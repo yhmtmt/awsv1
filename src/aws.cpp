@@ -82,14 +82,15 @@ using namespace std;
 // All filters and channels are discarded.
 // * rcmd <port number>
 // Invoking reciever thread of rcmd with <port number>
-// * trat <int >= 1>
+// * trat <int >= 1
 // Setting trat. trat enables the faster time clocking. For example, the time goes twice as fast as usual with trat of 2. 
 // Not that, trat is only allowed for offline mode.
 
 
 c_aws::c_aws(int argc, char ** argv):CmdAppBase(argc, argv),
 				     m_cmd_port(20000),
-				     m_working_path(NULL), m_lib_path(NULL),
+				     m_working_path(nullptr),
+				     m_lib_path(nullptr),
 				     m_bonline(true), m_exit(false),
 				     m_cycle_time(166667), m_time(0), m_time_zone_minute(540), m_time_rate(1)
 {
@@ -706,7 +707,6 @@ bool c_aws::handle_chrm(s_cmd & cmd)
 
 void c_aws::proc_command()
 {
-  f_base::flush_err_buf();
   
   if (m_cmd.stat != CS_SET){
     // no command
@@ -867,7 +867,13 @@ bool c_aws::add_filter(s_cmd & cmd)
   string type_str(tok[itok]);
   auto filter_lib = filter_libs.find(type_str);
   if(filter_lib == filter_libs.end()){
-    string path = string(m_lib_path) + string("/lib") + type_str + string(".so");
+    string path;
+    if(m_lib_path)
+      path =  string(m_lib_path);
+    else
+      path = string("lib");    
+    path += string("/lib") + type_str + string(".so");
+    
     unique_ptr<c_filter_lib> lib(new c_filter_lib);
     if(!lib->load(path)){
       cerr << "Failed to load shared object " << path << "." << endl;
@@ -937,7 +943,8 @@ bool c_aws::check_graph()
   return healthy;
 }
 
-bool c_aws::main(){
+bool c_aws::main()
+{
   c_rcmd * prcmd = new c_rcmd(this, m_cmd_port);
   if(!prcmd->is_exit())
     m_rcmds.push_back(prcmd);

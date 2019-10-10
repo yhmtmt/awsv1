@@ -15,7 +15,4 @@ using namespace std;
 #include "aws_clock.hpp"
 #include "f_sample.hpp"
 
-extern "C" f_base * factory(const std::string & name)
-{
-  return new f_sample(name.c_str());
-}
+DEFINE_FILTER(f_sample)

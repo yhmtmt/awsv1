@@ -1,7 +1,6 @@
-#ifndef _F_BASE_H_
-#define _F_BASE_H_
-// Copyright(c) 2012 Yohei Matsumoto, Tokyo University of Marine
-// Science and Technology, All right reserved. 
+#ifndef F_BASE_H
+#define F_BASE_H
+// Copyright(c) 2012,2019 Yohei Matsumoto,  All right reserved. 
 
 // f_base.h is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -47,53 +46,20 @@
 #include "aws_command.hpp"
 #include "channel_base.hpp"
 
+  
 class f_base;
-
-#define FILE_FERR_LOG "ferr.log"
-#define SIZE_FERR_BUF 64
-#define SIZE_FERR_MSG 1024
-
-#define FERR_SPROT_WINDOW_SNDBBM 0
-#define FERR_SPROT_WINDOW_OSPOS 1
-#define FERR_SPROT_WINDOW_FTRAIL_LOG_OPEN 2
-
-#define FERR_AVT_CAM 32
-#define FERR_AVT_CAM_INIT (FERR_AVT_CAM + 1)
-#define FERR_AVT_CAM_OPEN (FERR_AVT_CAM + 2)
-#define FERR_AVT_CAM_ALLOC (FERR_AVT_CAM + 3)
-#define FERR_AVT_CAM_CLOSE (FERR_AVT_CAM + 4)
-#define FERR_AVT_CAM_CFETH (FERR_AVT_CAM + 5)
-#define FERR_AVT_CAM_START (FERR_AVT_CAM + 6)
-#define FERR_AVT_CAM_STOP (FERR_AVT_CAM + 7)
-#define FERR_AVT_CAM_CH (FERR_AVT_CAM + 8)
-#define FERR_AVT_CAM_DATA (FERR_AVT_CAM + 9)
-
-#define FERR_TRN_IMG 64
-#define FERR_TRN_IMG_CHAN (FERR_TRN_IMG + 1)
-#define FERR_TRN_IMG_SOCK_SVR (FERR_TRN_IMG + 2)
-#define FERR_TRN_IMG_SOCK_SVR_CON (FERR_TRN_IMG + 3)
-
-typedef f_base * (*CreateFilter)(const char * name);
-template <class T> f_base * createFilter(const char * name)
-{
-	return reinterpret_cast<f_base*>(new T(name));
-}
-
 class c_aws;
 
-typedef map<const char *, CreateFilter, cmp> FMap;
+#define DEFINE_FILTER(class_name) \
+  extern "C" f_base * factory(const std::string & name){\
+    return new class_name(name.c_str());\
+  }
+
 
 class f_base
 {
 protected:
-  static FMap m_fmap;
-  // calling register_factor<T>(tname) to register all filters to be used.
-  static void register_factory();
-
-public:
-  // factory function
-  static f_base * create(const char * tname, const char * fname);
-  
+public: 
   // initialize mutex and signal objects. this is called by the c_aws constructor
   static c_aws * m_paws;
   static void init(c_aws * paws);
@@ -528,37 +494,7 @@ public:
 	
   ////////////////////////////////////////////// error log data and methods
 protected:
-  // filter error structure
-  struct s_ferr{
-    f_base * ptr; // filter caused error 
-    char tstr[32]; // time string
-    const char * fname; // file name
-    int line; // line number in fname
-    int code; // error code in the filter
-    
-
-    s_ferr(){
-    }
-    
-    ~s_ferr(){
-    }
-    
-    void dump_err(ostream & out);
-  };
-  
-  static ofstream m_file_err;
-  static s_ferr m_err_buf[SIZE_FERR_BUF];
-  static int m_err_head;
-  static int m_err_tail;
-  static mutex m_err_mtx;
-  
-  static void send_err(f_base * ptr, const char * fname, int line, int code);
-public:
-  static void flush_err_buf();
-  virtual const char * get_err_msg(int code){
-    return NULL;
-  }
-
+ 
 public:
   f_base(const char * name);
   virtual ~f_base();
