@@ -521,9 +521,6 @@ public:
     m_mutex_cmd.unlock();
   }
   
-  // interface for original command in each child class
-  virtual bool cmd_proc(s_cmd & cmd);
-  
   // set list of parameters
   bool set_par(s_cmd & cmd);
   

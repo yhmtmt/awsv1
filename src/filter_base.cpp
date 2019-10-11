@@ -320,37 +320,6 @@ f_base::~f_base()
   delete [] m_name;
 }
 
-bool f_base::cmd_proc(s_cmd & cmd)
-{
-  int num_args = cmd.num_args;
-  char ** args = cmd.args;
-
-  if(num_args < 2)
-    return false;
-  
-  int itok = 2;
-  
-  if(strcmp(args[itok], "tsh") == 0){
-    if(num_args != 4)
-      return false;
-    cout << m_name << " time offset changed from " << m_offset_time << " to ";
-    m_offset_time += (long long) (atof(args[itok+1]) * SEC);
-    m_offset_time = max(m_offset_time, 0LL);
-    cout << m_offset_time << "." << endl;
-    return true;
-  }else if(strcmp(args[itok], "intvl") == 0){
-    if(num_args != 4)
-      return false;
-    m_intvl = max(0, atoi(args[itok+1]));
-    cout << "Execution interval of " << m_name << " is set to " << m_intvl << " cycles." << endl;
-    
-    return true;
-  }else if(strcmp(args[itok], "ar") == 0){ // the command returns activity ratio
-    snprintf(cmd.get_ret_str(),  RET_LEN, "%f", (double) m_count_proc / (double) m_count_clock);
-    return true;
-  }
-  return false;
-}
 
 bool f_base::set_par(s_cmd & cmd)
 {

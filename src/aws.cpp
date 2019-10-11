@@ -90,7 +90,7 @@ using namespace std;
 c_aws::c_aws(int argc, char ** argv):CmdAppBase(argc, argv),
 				     m_cmd_port(20000),
 				     m_working_path(nullptr),
-				     m_lib_path(nullptr),
+				     m_lib_path(nullptr), m_log_path(nullptr),
 				     m_bonline(true), m_exit(false),
 				     m_cycle_time(166667), m_time(0), m_time_zone_minute(540), m_time_rate(1)
 {
@@ -106,7 +106,10 @@ c_aws::c_aws(int argc, char ** argv):CmdAppBase(argc, argv),
   add_arg("-wpath", "Path to the working directory.");
   add_val(&m_working_path, "string");
 
-  add_arg("-lpath", "Path to the filter library.");
+  add_arg("-logpath", "Path to the log files");
+  add_val(&m_log_path, "string");
+  
+  add_arg("-libpath", "Path to the filter library.");
   add_val(&m_lib_path, "string");
     
   add_arg("-tzm", "Time Zone in minutes.");
@@ -211,7 +214,7 @@ bool c_aws::push_command(const char * cmd_str, char * ret_str,
   // decoding command type
   cmd.type = cmd_str_to_id(m_cmd.args[0]);
   if (cmd.type == CMD_UNKNOWN) {
-    cerr << "Unknown command." << endl;
+    spdlog::error("Unknown command {}",  m_cmd.args[0]);
     return false;
   }
 
@@ -240,7 +243,7 @@ bool c_aws::handle_stop()
 {
   bool stopped = false;
   f_base::m_clk.stop();
-  
+  spdlog::info("Stopping all filters.");
   while(!stopped){
     stopped = true;
     for(auto fitr = filters.begin(); 
@@ -255,7 +258,8 @@ bool c_aws::handle_stop()
     fitr->second->destroy();
     fitr->second->runstat();    
   }
-
+  spdlog::info("All filters successfully stopped.");
+  
   return true;
 }
 
@@ -263,43 +267,41 @@ bool c_aws::handle_stop()
 bool c_aws::handle_chan(s_cmd & cmd)
 {
   bool result;
-  if(cmd.num_args < 3)
+  if(cmd.num_args < 3){
+    spdlog::error("Too few argument for command {}", cmd.args[0]);
     return false;
+  }
   
-  if(!(result = add_channel(cmd)))
-    sprintf(cmd.get_ret_str(), "Failed to create channel %s of %s.",
-	    cmd.args[2], cmd.args[1]);
+  if(!(result = add_channel(cmd))){
+    string message("Failed to create channel ");
+    message += cmd.args[2];
+    message += " of ";
+    message += cmd.args[1];
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+  }
   return result;
 }
 
 bool c_aws::handle_fltr(s_cmd & cmd)
 {
   bool result;
-  if(cmd.num_args < 3)
+  if(cmd.num_args < 3){
+    string message("Too few argument for command ");
+    message += cmd.args[0];
+    message += ".";
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN,  message.c_str());
     return false;
+  }
   
-  if(!(result = add_filter(cmd)))
-    sprintf(cmd.get_ret_str(), "Failed to create filter %s of %s.", 
-	    cmd.args[2], cmd.args[1]);
-  return result;
-}
-
-bool c_aws::handle_fcmd(s_cmd & cmd)
-{
-  bool result;
-  auto fitr = filters.find(string(cmd.args[1]));
- 
-  if(fitr == filters.end()){
-    sprintf(cmd.get_ret_str(), "Filter %s was not found.", cmd.args[1]);
-    result = false;
-  }else{
-    fitr->second->lock_cmd(true);
-    if(!fitr->second->cmd_proc(m_cmd)){
-      result = false;
-    }else{
-      result = true;
-    }
-    fitr->second->unlock_cmd(true);
+  if(!(result = add_filter(cmd))){
+    string message ("Failed to create filter ");
+    message += cmd.args[2];
+    message += " of ";
+    message += cmd.args[1];
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN,  message.c_str());
   }
   return result;
 }
@@ -309,14 +311,25 @@ bool c_aws::handle_fset(s_cmd & cmd)
   bool result;
   
   if(cmd.num_args <= 2){
+    string message("Too few argument for command ");
+    message += cmd.args[0];
+    message += ".";
+    spdlog::error(message);
     result = false;
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
     return result;
   }
 
   auto fitr = filters.find(string(cmd.args[1]));
   
   if(fitr == filters.end()){
-    sprintf(cmd.get_ret_str(), "Filter %s was not found.", cmd.args[1]);
+    string message("In command ");
+    message += cmd.args[0];
+    message += ", filter ";
+    message += cmd.args[1];
+    message += " not found.";
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
     result = false;
   }else{
     if(cmd.num_args == 3){ // no value present
@@ -339,6 +352,11 @@ bool c_aws::handle_fget(s_cmd & cmd)
 {
   bool result;
   if(cmd.num_args <= 2){
+    string message("Too few argument for command ");
+    message += cmd.args[0];
+    message += ".";
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN,  message.c_str());
     result = false;
     return result;
   }
@@ -347,7 +365,13 @@ bool c_aws::handle_fget(s_cmd & cmd)
   auto fitr = filters.find(string(cmd.args[1]));
   
   if(fitr == filters.end()){
-    sprintf(cmd.get_ret_str(), "Filter %s was not found.", cmd.args[1]);
+    string message("In command ");
+    message += cmd.args[0];
+    message += ", filter ";
+    message += cmd.args[1];
+    message += " was not found.";    
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
     result = false;
   }else{
     fitr->second->lock_cmd(true);
@@ -368,10 +392,15 @@ bool c_aws::handle_finf(s_cmd & cmd)
   // This command retrieves filter information
   f_base * pfilter = NULL;
   int ifilter;
+  string message("In command ");
+  message += cmd.args[0];
+  
   if(cmd.num_args == 2){ // The second argument is filter name
     pfilter = get_filter(cmd.args[1]);
     if(pfilter == NULL){
-      sprintf(cmd.get_ret_str(), "Filter %s was not found.", cmd.args[1]);
+      message = string(", filter ") + cmd.args[1] + string(" was not found.");
+      spdlog::error(message);
+      snprintf(cmd.get_ret_str(), RET_LEN,  message.c_str());
     }else{
       ifilter = 0;
       for(auto iftr = filters.begin(); iftr != filters.end(); iftr++){
@@ -389,10 +418,12 @@ bool c_aws::handle_finf(s_cmd & cmd)
       for (int i = 0; i != ifilter; i++, itr++);
       pfilter = itr->second;       
     }else{
-      sprintf(cmd.get_ret_str(), "Filter id=%d does not exist.", ifilter);
+      message += " , filter id = " + to_string(ifilter) + " not exist.";
+      spdlog::error(message);
+      snprintf(cmd.get_ret_str(), RET_LEN,  message.c_str());
     }
   }else{ // if there is no argument, the number of filters is returned
-    sprintf(cmd.get_ret_str(), "%d", (int) filters.size());
+    snprintf(cmd.get_ret_str(), RET_LEN, "%d", (int) filters.size());
     result = true;
     return result;
   }
@@ -412,7 +443,10 @@ bool c_aws::handle_fpar(s_cmd & cmd)
   bool result;
   f_base * pfilter = get_filter(cmd.args[1]);
   if(pfilter == NULL){
-    sprintf(cmd.get_ret_str(), "Filter %s was not found.", cmd.args[1]);
+    string message("In command ");
+    message += cmd.args[0];
+    message += string(", filter ") + cmd.args[1] + " was not found.";
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
     result = false;
   }else{
     if(!pfilter->get_par_info(cmd)){
@@ -435,7 +469,7 @@ bool c_aws::handle_chinf(s_cmd & cmd)
   if(cmd.num_args == 2){
     pch = get_channel(cmd.args[1]);
     if(pch == NULL){
-      sprintf(cmd.get_ret_str(), "Channel %s was not found.", cmd.args[1]);
+      snprintf(cmd.get_ret_str(), RET_LEN, "Channel %s was not found.", cmd.args[1]);
     }else{
       for(ich = 0; ich < m_channels.size(); ich++){
 	if(pch == m_channels[ich])
@@ -445,12 +479,12 @@ bool c_aws::handle_chinf(s_cmd & cmd)
   }else if(cmd.num_args == 3 && cmd.args[1][0] == 'n'){
     ich = atoi(cmd.args[2]);
     if(ich >= m_channels.size()){
-      sprintf(cmd.get_ret_str(), "Channel id=%d does not exist.", ich);
+      snprintf(cmd.get_ret_str(), RET_LEN, "Channel id=%d does not exist.", ich);
     }else{
       pch = m_channels[ich];
     }
   }else{
-    sprintf(cmd.get_ret_str(), "%d", (int)m_channels.size());
+    snprintf(cmd.get_ret_str(), RET_LEN, "%d", (int)m_channels.size());
     result = true;
     return result;
   }
@@ -468,6 +502,7 @@ bool c_aws::handle_chinf(s_cmd & cmd)
 bool c_aws::handle_quit(s_cmd & cmd)
 {
   bool result = true;
+  spdlog::info("Quit aws");
   m_exit = true;
   return result;
 }
@@ -476,7 +511,9 @@ bool c_aws::handle_step(s_cmd & cmd)
 {
   bool result;
   if(!f_base::m_clk.is_pause()){
-    sprintf(cmd.get_ret_str(), "Step can only  be used in pause state.");
+    string message("Step command can only be used in pause state.");
+    spdlog::info(message);
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
     result = false;
   }else{
     // parsing argument 
@@ -514,14 +551,13 @@ bool c_aws::handle_cyc(s_cmd & cmd)
 {
   bool result;
   if(!f_base::m_clk.is_stop()){
-    cout << "stop:" << f_base::m_clk.is_stop() << endl;
-    cout << "run:" << f_base::m_clk.is_run() << endl;
-    cout << "pause:" << f_base::m_clk.is_pause() << endl;
-    
-    sprintf(cmd.get_ret_str(), "Cycle cannot be changed during execution");
+    string message("Cycle time cannot be changed during execution");
+    spdlog::error(message);   
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
     result = false;
   }else{
     m_cycle_time = (long long) (atof(cmd.args[1]) * SEC);
+    spdlog::info("Cycle time changed to {%lld}", m_cycle_time);
     result = true;
   }
   return result;
@@ -531,7 +567,9 @@ bool c_aws::handle_pause(s_cmd & cmd)
 {
   bool result;
   if(!f_base::m_clk.is_run() || m_bonline){
-    sprintf(cmd.get_ret_str(), "Pause command should be used in run state.");
+    string message("Pause command should be used in run state under online mode.");
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
     result = false;
   }else{
     if(!f_base::m_clk.pause()){
@@ -547,7 +585,9 @@ bool c_aws::handle_clear(s_cmd & cmd)
 {
   bool result;
   if(f_base::m_clk.is_run()){
-    sprintf(cmd.get_ret_str(), "Graph cannot be cleared during execution.");
+    string message("Graph cannot be cleared during execution.");
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
     result = false;
   }else{
     clear();
@@ -559,9 +599,10 @@ bool c_aws::handle_clear(s_cmd & cmd)
 bool c_aws::handle_rcmd(s_cmd & cmd)
 {
   bool result;
-  if(cmd.num_args == 2){	
+  if(cmd.num_args == 2){
     c_rcmd * pcmd = new c_rcmd(this, atoi(cmd.args[1]));
     if(!pcmd->is_exit()){
+      spdlog::info("New remote command port {} opened.", cmd.args[1]);
       m_rcmds.push_back(pcmd);
       result = true;
     }else{
@@ -575,7 +616,9 @@ bool c_aws::handle_trat(s_cmd & cmd)
 {
   bool result;
   if(!f_base::m_clk.is_stop()){
-    sprintf(cmd.get_ret_str(), "Trat cannot be changed during execution");
+    string message("Trat cannot be changed during execution");
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
     result = false;
   }else{
     m_time_rate = (int) atoi(cmd.args[1]);
@@ -589,7 +632,9 @@ bool c_aws::handle_run(s_cmd & cmd)
   f_base::set_tz(m_time_zone_minute);
   
   if(f_base::m_clk.is_run()){
-    cout << "AWS is running." << endl;
+    string message("Filter graph is running.");
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());    
     return false;
   }
   
@@ -597,8 +642,9 @@ bool c_aws::handle_run(s_cmd & cmd)
     // in pause mode only 
     if(cmd.num_args == 3){
       if(cmd.args[1][0] != 't' || cmd.args[1][1] != 'o'){
-	sprintf(cmd.get_ret_str(), 
-		"In pause state, \"go [to <later absolute time>]\"");
+	string message ("In pause state, \"go [to <later absolute time>]\"");
+	spdlog::error(message);
+	snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
 	return false;
       }
       tmex tm;
@@ -611,7 +657,9 @@ bool c_aws::handle_run(s_cmd & cmd)
     }
     
     if(m_end_time <= f_base::m_clk.get_time()){
-      sprintf(cmd.get_ret_str(), "Time should be later than current time.");
+      string message("Time should be later than current time.");
+      spdlog::error(message);
+      snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
       return false;
     }
     
@@ -619,7 +667,9 @@ bool c_aws::handle_run(s_cmd & cmd)
   }
   
   if(!check_graph()){
-    snprintf(cmd.get_ret_str(), RET_LEN, "ERROR: Failed to run filter graph.");
+    string message("Failed to run filter graph.");
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
     return false;
   }
   
@@ -661,11 +711,12 @@ bool c_aws::handle_run(s_cmd & cmd)
   // check filter's status. 
   for(auto fitr = filters.begin();
       fitr != filters.end(); fitr++){
-    cout << "Starting filter " << fitr->second->get_name() << "." << endl;
+    spdlog::info("Starting filter {}.", fitr->second->get_name());
     
     if(!fitr->second->run(m_start_time, m_end_time)){
-      snprintf(cmd.get_ret_str(),  RET_LEN, 
-	       "Error in starting filter %s.", fitr->second->get_name());
+      string message ("Failed to start filetr");
+      message += fitr->second->get_name();      
+      snprintf(cmd.get_ret_str(),  RET_LEN, message.c_str());
       f_base::m_clk.stop();
       return false;
     }
@@ -679,12 +730,27 @@ bool c_aws::handle_run(s_cmd & cmd)
 bool c_aws::handle_frm(s_cmd & cmd)
 {
   if(cmd.num_args != 2){
+    string message("Too few argument for ");
+    message += cmd.args[0];
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
     return false;
   }
   auto itr = filters.find(cmd.args[1]);
-  if(itr != filters.end())
-    filters.erase(itr);
-
+  if(itr != filters.end()){
+    filters.erase(itr);  
+    spdlog::info("Filter {} removed.", cmd.args[1]);
+  }else{
+    string message("In command ");
+    message += cmd.args[0];
+    message += ", filter ";
+    message += cmd.args[1];
+    message += " not found.";
+    spdlog::error(message);
+    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    return false;
+  }
+  
   return true;
 }
 
@@ -725,9 +791,6 @@ void c_aws::proc_command()
       break;
     case CMD_FLTR:
       result = handle_fltr(cmd);
-      break;
-    case CMD_FCMD:
-      result = handle_fcmd(cmd);
       break;
     case CMD_FSET:
       result = handle_fset(cmd);
@@ -858,9 +921,8 @@ bool c_aws::add_filter(s_cmd & cmd)
   char ** tok = cmd.args;
   int itok = 1;
   
-  if(get_filter(tok[itok+1]) != nullptr){
-    cerr << "Cannot register filters with the same name "
-	 << tok[itok + 1] << "." << endl;
+  if(get_filter(tok[itok+1]) != nullptr){  
+    spdlog::error("In command {0}, filter {1} has already been instantiated.", cmd.args[0], cmd.args[itok+1]);    
     return false;
   }
 
@@ -876,10 +938,11 @@ bool c_aws::add_filter(s_cmd & cmd)
     
     unique_ptr<c_filter_lib> lib(new c_filter_lib);
     if(!lib->load(path)){
-      cerr << "Failed to load shared object " << path << "." << endl;
+      spdlog::error("Failed to load shared object {}.", path);
       return false;
     }
-    
+
+    spdlog::info("{} successfully loaded.", path);
     filter_libs.insert(
 		       make_pair(type_str,
 				 std::unique_ptr<c_filter_lib>(move(lib)))
@@ -891,8 +954,7 @@ bool c_aws::add_filter(s_cmd & cmd)
   string filter_str(tok[itok+1]);
  f_base * pfilter = filter_lib->second->create(filter_str);
   if(pfilter == nullptr){
-    cerr << "Failed to instantiate filter " << filter_str
-	 << " of " << type_str << endl;
+    spdlog::error("Failed to instantiate filter {0} of {1}", filter_str, type_str);
     return false;
   }
   
@@ -908,9 +970,8 @@ bool c_aws::add_filter(s_cmd & cmd)
       }else{
 	ch_base * pchan = get_channel(tok[itok]);
 	if(pchan == NULL){
-	  snprintf(cmd.get_ret_str(), RET_LEN, 
-		   "Channel %s not found for connecting filter %s", 
-		   tok[itok], tok[2]);
+
+	  spdlog::error("In command {0}, channel {1} to be connected with filter {2} not found.", cmd.args[0], tok[2], tok[itok]);
 	  throw cmd.ret;
 	}
 	if(is_input)
@@ -926,6 +987,7 @@ bool c_aws::add_filter(s_cmd & cmd)
   
   filters.insert(make_pair(filter_str, pfilter));  
 
+  spdlog::info("Filter {} created.", filter_str);
   return true;
 }
 
@@ -945,18 +1007,47 @@ bool c_aws::check_graph()
 
 bool c_aws::main()
 {
+  string logpath;
+  if(m_log_path){
+    logpath = string(m_log_path);    
+  }else{
+    logpath = string("logs");
+  }
+  logpath += "/aws.log";
+  spdlog::flush_every(chrono::seconds(5));
+  try{
+    auto console_sink = make_shared<spdlog::sinks::stdout_color_sink_mt>();
+    auto file_sink = make_shared<spdlog::sinks::basic_file_sink_mt>(logpath);
+    spdlog::set_default_logger(make_shared<spdlog::logger>("aws", spdlog::sinks_init_list({console_sink, file_sink})));    
+  }
+  catch (const spdlog::spdlog_ex & ex)
+    {
+      cout << "Log Initialization failed: "<< ex.what() << endl;
+      return false;
+    }
+  spdlog::set_pattern("[%c][%L][%t] %v");
+  
+  spdlog::info("Logging started on {}", logpath);
+  
   c_rcmd * prcmd = new c_rcmd(this, m_cmd_port);
-  if(!prcmd->is_exit())
+  if(!prcmd->is_exit()){
+    spdlog::info("Starting command server with port {}", m_cmd_port);
     m_rcmds.push_back(prcmd);
-  else{
+  }else{
     delete prcmd;
-    cerr << "Failed to construct command thread." << endl;
+    spdlog::error("Failed to start command server.");
     return false;
   }
   
   if(m_working_path){
     if(chdir(m_working_path) != 0)
-      cerr << "Failed to change path to " << m_working_path << "." << endl;
+      spdlog::error("Failed to change working path to {}.", m_working_path);
+  }
+
+  if(m_lib_path){
+    spdlog::info("Filter path is configured as {}.", m_lib_path);
+  }else{
+    spdlog::info("Filter path is configuread as ./lib");
   }
   
   m_exit = false;
@@ -993,13 +1084,11 @@ bool c_aws::main()
       if(f_base::m_clk.is_stop()){
 	// stop all the filters
 	handle_stop();
-	cout << "Processing loop stopped." << endl;
 	m_exit = true;
       }
     }
   }
 
-  cout << "Stopping filters." << endl;
   handle_stop();
   
   for(int i = 0; i < m_rcmds.size() ;i++){
@@ -1010,17 +1099,17 @@ bool c_aws::main()
 }
 
 //////////////////////////////////////////////////////// class c_rcmd member
-c_rcmd::c_rcmd(c_aws * paws, unsigned short port):m_paws(paws), m_th_rcmd(NULL){
-#ifndef _WIN32
+c_rcmd::c_rcmd(c_aws * paws, unsigned short port):m_paws(paws), m_th_rcmd(NULL)
+{
+
   signal(SIGPIPE, SIG_IGN);
-#endif
   
   m_to.tv_sec = 5;
   m_to.tv_usec = 0;
   m_exit = true;
   m_svr_sock = socket(AF_INET, SOCK_STREAM, 0);
   if(m_svr_sock == SOCKET_ERROR){
-    cerr << "socket failed with SOCKET_ERROR" << endl;
+    spdlog::error("During command server start-up, socket() failed with SOCKET_ERROR");
     m_svr_sock = -1;
     return;
   }
@@ -1030,15 +1119,12 @@ c_rcmd::c_rcmd(c_aws * paws, unsigned short port):m_paws(paws), m_th_rcmd(NULL){
   m_svr_addr.sin_addr.s_addr = INADDR_ANY;
   
   int ret;
-  
-#ifndef _WIN32
   int val = 1;
   ret = setsockopt(m_svr_sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
-#endif
   ret = ::bind(m_svr_sock, (sockaddr*)&m_svr_addr, sizeof(m_svr_addr));
   
   if(ret != 0){
-    cerr << "bind failed with SOCKET_ERROR." << endl;
+    spdlog::error("Durign command server start-up, bind() failed with SOCKET_ERROR");
     closesocket(m_svr_sock);
     m_svr_sock = -1;
     return;
@@ -1046,7 +1132,7 @@ c_rcmd::c_rcmd(c_aws * paws, unsigned short port):m_paws(paws), m_th_rcmd(NULL){
   
   ret = listen(m_svr_sock, 5);
   if(ret == SOCKET_ERROR){
-    cerr << "listen failed with SOCKET_ERROR." << endl;
+    spdlog::error("During command server start-up, listen() failed with SOCKET_ERROR");
     closesocket(m_svr_sock);
     m_svr_sock = -1;
     return;
@@ -1089,7 +1175,7 @@ bool c_rcmd::wait_connection(SOCKET & s){
 #endif
       return true;
     }else if(FD_ISSET(m_svr_sock, &m_fderr)){
-      cerr << "Socket error." << endl;
+      spdlog::error("In command server, wait_connection encountered socket error.");
       m_exit = true;
       return false;
     }
@@ -1113,8 +1199,8 @@ bool c_rcmd::wait_receive(SOCKET & s, char * buf, int & total){
       total += recv(s, buf + total, CMD_LEN - total, 0);
       return total == CMD_LEN;
     }else if(FD_ISSET(s, & m_fderr)){
-      cerr << "Socket error" << endl;
-      return false;
+      spdlog::error("In command server, wait_receive encountered socket error.");
+       return false;
     }
   }	
   
@@ -1128,7 +1214,7 @@ bool c_rcmd::wait_receive(SOCKET & s, char * buf, int & total){
 bool c_rcmd::push_command(const char * cmd_str, char * ret_str, bool ret_stat){
   bool stat = false;
   if(!m_paws->push_command(cmd_str, ret_str, ret_stat)){
-    cerr << "Unknown command " << cmd_str << endl;
+    spdlog::error("Unknown command {} ", cmd_str);
     return false;
   }
   return true;
@@ -1151,7 +1237,7 @@ bool c_rcmd::wait_send(SOCKET & s, char * buf)
       send(s, buf, CMD_LEN, 0);
       return true;
     }else if(FD_ISSET(s, &m_fderr)){
-      cerr << "Socket error" << endl;
+      spdlog::error("In command server, wait_send encountered socket error.");
       return false;
     }
   }
@@ -1181,10 +1267,8 @@ void c_rcmd::thrcmd(c_rcmd * prcmd)
       // push command 
       bool stat = false;
       if(total == CMD_LEN){
-	if(!prcmd->m_paws->push_command(prcmd->m_buf_recv, 
-					prcmd->m_buf_send, stat)){
-	  cerr << "Unknown command " << prcmd->m_buf_recv << endl;
-	}
+	prcmd->m_paws->push_command(prcmd->m_buf_recv, 
+				    prcmd->m_buf_send, stat);	  
       }
       else {
 	break;

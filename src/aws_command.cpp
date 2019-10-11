@@ -25,7 +25,7 @@ using namespace std;
 #include "aws_command.hpp"
 
 const char * str_cmd[CMD_UNKNOWN] = {
-	"channel", "filter", "fcmd", "fset", "fget", 
+	"channel", "filter", "fset", "fget", 
 	"finf", "fpar", "chinf", "go", "stop", "quit",
 	"step","cyc", "pause","clear", "rcmd", 
 	"trat", "chrm", "frm", "awscd", "awstime"
@@ -33,37 +33,37 @@ const char * str_cmd[CMD_UNKNOWN] = {
 
 e_cmd cmd_str_to_id(const char * cmd_str)
 {
-	e_cmd type = CMD_UNKNOWN;
-	for(int icmd = 0; icmd < (int) CMD_UNKNOWN; icmd++){
-		if(strcmp(cmd_str, str_cmd[icmd]) == 0){
-			type = (e_cmd) icmd;
-			break;
-		}
-	}
-	return type;
+  e_cmd type = CMD_UNKNOWN;
+  for(int icmd = 0; icmd < (int) CMD_UNKNOWN; icmd++){
+    if(strcmp(cmd_str, str_cmd[icmd]) == 0){
+      type = (e_cmd) icmd;
+      break;
+    }
+  }
+  return type;
 }
 
 bool split_cmd_tok(char * cmd, vector<char *> & cmd_tok)
 {
-	int i = 0;
-	bool seek_head = true;
-	cmd_tok.clear();
-
-	while(cmd[i] != '\0'){
-		if(i == CMD_LEN) // no termination character found
-			return false;
-		if(cmd[i] == ' ' || cmd[i] == '\t'){ // space and tab is a delimiter
-			cmd[i] = '\0';
-			seek_head = true;
-		}else if(seek_head){
-			cmd_tok.push_back(&cmd[i]);
-			seek_head = false;
-		}
-
-		i++;
-	}
-
-	return true;
+  int i = 0;
+  bool seek_head = true;
+  cmd_tok.clear();
+  
+  while(cmd[i] != '\0'){
+    if(i == CMD_LEN) // no termination character found
+      return false;
+    if(cmd[i] == ' ' || cmd[i] == '\t'){ // space and tab is a delimiter
+      cmd[i] = '\0';
+      seek_head = true;
+    }else if(seek_head){
+      cmd_tok.push_back(&cmd[i]);
+      seek_head = false;
+    }
+    
+    i++;
+  }
+  
+  return true;
 }
 
 

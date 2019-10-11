@@ -8,7 +8,7 @@ bool split_cmd_tok(char * cmd, vector<char *> & cmd_tok);
 #define CMD_ARGS 32
 
 enum e_cmd {
-  CMD_CHAN, CMD_FLTR, CMD_FCMD, CMD_FSET, CMD_FGET, 
+  CMD_CHAN, CMD_FLTR, CMD_FSET, CMD_FGET, 
   CMD_FINF, CMD_FPAR, CMD_CHINF, CMD_GO, CMD_STOP, 
   CMD_QUIT, CMD_STEP, CMD_CYC, CMD_PAUSE, 
   CMD_CLEAR, CMD_RCMD, CMD_TRAT, CMD_CHRM, CMD_FRM, 

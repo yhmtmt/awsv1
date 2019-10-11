@@ -14,8 +14,10 @@
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with c_aws.h.  If not, see <http://www.gnu.org/licenses/>. 
+// along with c_aws.h.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "CmdAppBase.hpp"
+
 class c_rcmd;
 class c_filter_lib
 {
@@ -72,6 +74,7 @@ protected:
 
   int m_cmd_port;
   char * m_working_path;
+  char * m_log_path;
   char * m_lib_path;
 
   // for remote command processor
@@ -160,8 +163,7 @@ public:
   
   bool push_command(const char * cmd_str, char * ret_str, bool & ret_stat);
   
-  long long  get_cycle_time()
-  {
+  long long  get_cycle_time(){
     return m_cycle_time;
   }
   
@@ -172,7 +174,6 @@ public:
   virtual void print_title();
   virtual bool main();
 };
-
 
 // class for remote command processor 
 // this class is instanciated when the rcmd command is issued.
