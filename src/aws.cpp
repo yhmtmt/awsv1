@@ -278,7 +278,7 @@ bool c_aws::handle_chan(s_cmd & cmd)
     message += " of ";
     message += cmd.args[1];
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
   }
   return result;
 }
@@ -291,7 +291,7 @@ bool c_aws::handle_fltr(s_cmd & cmd)
     message += cmd.args[0];
     message += ".";
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN,  message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     return false;
   }
   
@@ -301,7 +301,7 @@ bool c_aws::handle_fltr(s_cmd & cmd)
     message += " of ";
     message += cmd.args[1];
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN,  message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
   }
   return result;
 }
@@ -316,7 +316,7 @@ bool c_aws::handle_fset(s_cmd & cmd)
     message += ".";
     spdlog::error(message);
     result = false;
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     return result;
   }
 
@@ -329,7 +329,7 @@ bool c_aws::handle_fset(s_cmd & cmd)
     message += cmd.args[1];
     message += " not found.";
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     result = false;
   }else{
     if(cmd.num_args == 3){ // no value present
@@ -356,7 +356,7 @@ bool c_aws::handle_fget(s_cmd & cmd)
     message += cmd.args[0];
     message += ".";
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN,  message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     result = false;
     return result;
   }
@@ -371,7 +371,7 @@ bool c_aws::handle_fget(s_cmd & cmd)
     message += cmd.args[1];
     message += " was not found.";    
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     result = false;
   }else{
     fitr->second->lock_cmd(true);
@@ -400,7 +400,7 @@ bool c_aws::handle_finf(s_cmd & cmd)
     if(pfilter == NULL){
       message = string(", filter ") + cmd.args[1] + string(" was not found.");
       spdlog::error(message);
-      snprintf(cmd.get_ret_str(), RET_LEN,  message.c_str());
+      strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     }else{
       ifilter = 0;
       for(auto iftr = filters.begin(); iftr != filters.end(); iftr++){
@@ -420,7 +420,7 @@ bool c_aws::handle_finf(s_cmd & cmd)
     }else{
       message += " , filter id = " + to_string(ifilter) + " not exist.";
       spdlog::error(message);
-      snprintf(cmd.get_ret_str(), RET_LEN,  message.c_str());
+      strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     }
   }else{ // if there is no argument, the number of filters is returned
     snprintf(cmd.get_ret_str(), RET_LEN, "%d", (int) filters.size());
@@ -446,7 +446,7 @@ bool c_aws::handle_fpar(s_cmd & cmd)
     string message("In command ");
     message += cmd.args[0];
     message += string(", filter ") + cmd.args[1] + " was not found.";
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     result = false;
   }else{
     if(!pfilter->get_par_info(cmd)){
@@ -513,7 +513,7 @@ bool c_aws::handle_step(s_cmd & cmd)
   if(!f_base::m_clk.is_pause()){
     string message("Step command can only be used in pause state.");
     spdlog::info(message);
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     result = false;
   }else{
     // parsing argument 
@@ -553,7 +553,7 @@ bool c_aws::handle_cyc(s_cmd & cmd)
   if(!f_base::m_clk.is_stop()){
     string message("Cycle time cannot be changed during execution");
     spdlog::error(message);   
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     result = false;
   }else{
     m_cycle_time = (long long) (atof(cmd.args[1]) * SEC);
@@ -569,7 +569,7 @@ bool c_aws::handle_pause(s_cmd & cmd)
   if(!f_base::m_clk.is_run() || m_bonline){
     string message("Pause command should be used in run state under online mode.");
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     result = false;
   }else{
     if(!f_base::m_clk.pause()){
@@ -587,7 +587,7 @@ bool c_aws::handle_clear(s_cmd & cmd)
   if(f_base::m_clk.is_run()){
     string message("Graph cannot be cleared during execution.");
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     result = false;
   }else{
     clear();
@@ -618,7 +618,7 @@ bool c_aws::handle_trat(s_cmd & cmd)
   if(!f_base::m_clk.is_stop()){
     string message("Trat cannot be changed during execution");
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     result = false;
   }else{
     m_time_rate = (int) atoi(cmd.args[1]);
@@ -634,7 +634,7 @@ bool c_aws::handle_run(s_cmd & cmd)
   if(f_base::m_clk.is_run()){
     string message("Filter graph is running.");
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());    
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);    
     return false;
   }
   
@@ -644,7 +644,7 @@ bool c_aws::handle_run(s_cmd & cmd)
       if(cmd.args[1][0] != 't' || cmd.args[1][1] != 'o'){
 	string message ("In pause state, \"go [to <later absolute time>]\"");
 	spdlog::error(message);
-	snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+	strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
 	return false;
       }
       tmex tm;
@@ -659,7 +659,7 @@ bool c_aws::handle_run(s_cmd & cmd)
     if(m_end_time <= f_base::m_clk.get_time()){
       string message("Time should be later than current time.");
       spdlog::error(message);
-      snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+      strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
       return false;
     }
     
@@ -669,7 +669,7 @@ bool c_aws::handle_run(s_cmd & cmd)
   if(!check_graph()){
     string message("Failed to run filter graph.");
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     return false;
   }
   
@@ -716,7 +716,7 @@ bool c_aws::handle_run(s_cmd & cmd)
     if(!fitr->second->run(m_start_time, m_end_time)){
       string message ("Failed to start filetr");
       message += fitr->second->get_name();      
-      snprintf(cmd.get_ret_str(),  RET_LEN, message.c_str());
+      strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
       f_base::m_clk.stop();
       return false;
     }
@@ -733,7 +733,7 @@ bool c_aws::handle_frm(s_cmd & cmd)
     string message("Too few argument for ");
     message += cmd.args[0];
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     return false;
   }
   auto itr = filters.find(cmd.args[1]);
@@ -747,7 +747,7 @@ bool c_aws::handle_frm(s_cmd & cmd)
     message += cmd.args[1];
     message += " not found.";
     spdlog::error(message);
-    snprintf(cmd.get_ret_str(), RET_LEN, message.c_str());
+    strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
     return false;
   }
   
