@@ -56,22 +56,8 @@ public:
     // override this function if you need to do something in stopping filter thread
   }
   
-  virtual bool proc(){
+  virtual bool proc();
     // 5) implement your filter body. this function is called in the loop of fthread.
-    cout << m_name << ":" << get_time_str() << endl;
-    if(is_pause()){
-      cout << "Filter is puasing." << endl;
-    }
-    
-    cout << " f64par:" << m_f64par << " s64par:" 
-	 << m_s64par << " u64par:" << m_u64par << endl;
-    
-    // Typical channels has setter/getter with mutual exclusion. 
-    if (increment)
-      val++;
-    
-    return true;
-  }
 };
 // 6) you should jump toward f_base.cpp and add the line of creation code to f_base::create the factory function.
 // 7) If you are the linux builder, the filter object should be added to the Makefile.

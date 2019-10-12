@@ -1025,7 +1025,7 @@ bool c_aws::main()
       cout << "Log Initialization failed: "<< ex.what() << endl;
       return false;
     }
-  spdlog::set_pattern("[%c][%L][%t] %v");
+  spdlog::set_pattern("%^[%c][%L][%t]%$ %v");
   
   spdlog::info("Logging started on {}", logpath);
   

@@ -330,10 +330,7 @@ public:
   }
   
   void runstat(){
-    cout << get_name() << ": ";
-    cout << "Processing rate " << m_proc_rate;
-    cout << " (" << m_count_proc << "/" << m_count_clock << ") ";
-    cout << "Max cycles " << m_max_cycle << endl;
+    spdlog::info("[{}] ProcRate {}({}/{}), Max Cycles {}", get_name(), m_proc_rate, m_count_proc, m_count_clock, m_max_cycle);
   }
   
   // check the filter activity condition
@@ -405,25 +402,11 @@ public:
   void set_time(tmex & tm){m_clk.set_time(tm);};
   void set_time(long long & t){m_clk.set_time(t);};
   static void set_sys_time(){
-#ifdef _WIN32
-    SYSTEMTIME st;
-    ZeroMemory(&st, sizeof(st));
-    st.wDay = m_tm.tm_mday;
-    st.wDayOfWeek = m_tm.tm_wday;
-    st.wMonth = m_tm.tm_mon;
-    st.wYear = m_tm.tm_year + 1900;
-    st.wHour = m_tm.tm_hour;
-    st.wMinute = m_tm.tm_min;
-    st.wSecond = m_tm.tm_sec;
-    st.wMilliseconds = m_tm.tm_msec;
-    SetLocalTime(&st);
-#else
     timespec ts;
     long long tcur = get_time();
     ts.tv_sec = tcur / SEC;
     ts.tv_nsec = (tcur - SEC * ts.tv_sec) * 100;
     clock_settime(CLOCK_REALTIME, &ts);
-#endif
   }
   
   // clock signal issued by c_aws's main loop
@@ -494,7 +477,7 @@ public:
 	
   ////////////////////////////////////////////// error log data and methods
 protected:
- 
+
 public:
   f_base(const char * name);
   virtual ~f_base();

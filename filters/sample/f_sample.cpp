@@ -16,3 +16,18 @@ using namespace std;
 #include "f_sample.hpp"
 
 DEFINE_FILTER(f_sample)
+
+bool f_sample::proc()
+{
+  if(is_pause()){
+    cout << "Filter is puasing." << endl;
+  }
+
+  spdlog::info("[{}] f64par {}, s64par {}, u64par {}", get_name(),  m_f64par, m_s64par, m_u64par);
+  
+  // Typical channels has setter/getter with mutual exclusion. 
+  if (increment)
+    val++;
+  
+  return true;  
+}
