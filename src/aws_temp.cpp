@@ -14,6 +14,8 @@ using namespace std;
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 
+#include <flatbuffers/flatbuffers.h>
+
 #include "aws_stdlib.hpp"
 #include "aws_sock.hpp"
 #include "aws_thread.hpp"

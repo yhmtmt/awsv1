@@ -19,6 +19,61 @@
 #include "CmdAppBase.hpp"
 
 class c_rcmd;
+
+class t_base
+{
+protected:
+  string name;
+  mutex mtx;
+
+public:
+  t_base(const char * name_):name(name_)
+  {
+  }
+  virtual ~t_base()
+  {
+  }
+
+  const string & get_name()
+  {
+    return name;
+  }
+  
+  void lock(){
+    mtx.lock();
+  }
+
+  void unlock(){
+    mtx.unlock();
+  }
+
+};
+
+template <class T> class t_flatbuffer: public t_base
+{
+protected:
+  string data;
+
+public:
+  t_flatbuffer(const char * name_):t_base(name_)
+  {
+  }
+
+  ~t_flatbuffer()
+  {
+  }
+
+  void set(string & data_)
+  {
+    unique_lock<mutex> lock(mtx);
+    data = move(data_);
+  }
+
+  const T * get(){
+    return flatbuffers::GetRoot<T>((const void*)data.c_str());
+  }  
+};
+
 class c_filter_lib
 {
 private:
@@ -96,6 +151,8 @@ protected:
 
   map<string, unique_ptr<c_filter_lib>> filter_libs;
   map<string, f_base*> filters;
+
+  map<string, t_base*> tbls;
   
   vector<ch_base *> m_channels;
 
