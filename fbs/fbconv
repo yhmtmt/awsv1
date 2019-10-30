@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if `test $# -ne 1`; then
+   echo "fbconf <fbs file>"
+   exit
+fi
+
+flatc -b --schema $1
+flatc --cpp $1
+
