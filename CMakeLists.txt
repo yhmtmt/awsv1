@@ -9,6 +9,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -pg")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -s -DNODEBUG -march=native")
 find_package(Protobuf REQUIRED)
 find_package(GRPC REQUIRED)
+find_package(Flatbuffers REQUIRED)
 
 set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 
