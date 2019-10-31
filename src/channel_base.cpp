@@ -14,23 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with ch_base.  If not, see <http://www.gnu.org/licenses/>. 
 
-
-#include <cstring>
-#include <cmath>
-
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <list>
-#include <map>
-#include <algorithm>
-using namespace std;
-
-#include "aws_stdlib.hpp"
-#include "aws_thread.hpp"
-#include "aws_clock.hpp"
-
-#include "channel_base.hpp"
+#include "aws.hpp"
 
 CHMap ch_base::m_chmap;
 

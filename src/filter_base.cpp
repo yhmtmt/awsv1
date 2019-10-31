@@ -13,30 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with f_base.  If not, see <http://www.gnu.org/licenses/>. 
 
-#include <cstring>
-#include <cmath>
-
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <list>
-#include <map>
-
-using namespace std;
-
-#include <dlfcn.h>
-
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/basic_file_sink.h>
-
-#include <flatbuffers/flatbuffers.h>
-
-#include "aws_stdlib.hpp"
-#include "aws_thread.hpp"
-#include "aws_clock.hpp"
-
-#include "filter_base.hpp"
 #include "aws.hpp"
 
 // Initialization function. 

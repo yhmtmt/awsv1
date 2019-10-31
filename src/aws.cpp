@@ -14,36 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with c_aws.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <cstdio>
-#include <climits>
-#include <cmath>
-#include <cstring>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <list>
-#include <map>
-#include <queue>
-using namespace std;
-
-#include <signal.h>
-
-#include <dlfcn.h>
-
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
-#include <spdlog/sinks/basic_file_sink.h>
-
-#include <flatbuffers/flatbuffers.h>
-
-#include "aws_stdlib.hpp"
-#include "aws_sock.hpp"
-#include "aws_thread.hpp"
-#include "aws_clock.hpp"
-
-#include "channel_base.hpp"
-#include "filter_base.hpp"
-#include "aws_command.hpp"
 #include "aws.hpp"
 
 // Command explanation
