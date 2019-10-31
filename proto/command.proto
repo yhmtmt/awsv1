@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package CommandService;
+
+service Command{
+	rpc GenTbl(TblInfo) returns (Result) {}
+	rpc GetTbl(TblInfo) returns (TblData) {}
+	rpc SetTbl(TblInfo) returns (Result) {}
+	rpc SetTblRef(TblRef) returns (Result) {}
+}
+
+message TblRef{
+	string tbl_name = 1;
+	string flt_name = 2;
+}
+
+message TblInfo{
+	string type_name = 1;
+	string inst_name = 2;
+}
+
+message TblData{
+	string inst_name = 1;
+	string type_name = 2;
+	bytes tbl = 3;
+}
+
+message Result {
+	bool is_ok = 1;
+	string message = 2;
+}
+
