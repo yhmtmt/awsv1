@@ -1,0 +1,71 @@
+#ifndef T_BASE_H
+#define T_BASE_H
+// Copyright(c) 2019 Yohei Matsumoto,  All right reserved. 
+
+// t_base.hpp is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// t_base.hpp is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with f_base.h.  If not, see <http://www.gnu.org/licenses/>. 
+class t_base
+{
+protected:
+  string name;
+  mutex mtx;
+
+public:
+  t_base(const char * name_):name(name_)
+  {
+  }
+  virtual ~t_base()
+  {
+  }
+
+  const string & get_name()
+  {
+    return name;
+  }
+  
+  void lock(){
+    mtx.lock();
+  }
+
+  void unlock(){
+    mtx.unlock();
+  }
+
+};
+
+template <class T> class t_flatbuffer: public t_base
+{
+protected:
+  string data;
+
+public:
+  t_flatbuffer(const char * name_):t_base(name_)
+  {
+  }
+
+  ~t_flatbuffer()
+  {
+  }
+
+  void set(string & data_)
+  {
+    unique_lock<mutex> lock(mtx);
+    data = move(data_);
+  }
+
+  const T * get(){
+    return flatbuffers::GetRoot<T>((const void*)data.c_str());
+  }  
+};
+
+#endif
