@@ -18,12 +18,15 @@ class t_base
 {
 protected:
   string name;
+  string type;
+  string data;
   mutex mtx;
 
 public:
-  t_base(const char * name_):name(name_)
+  t_base(const string type_, const string name_):type(type_), name(name_)
   {
   }
+  
   virtual ~t_base()
   {
   }
@@ -41,29 +44,21 @@ public:
     mtx.unlock();
   }
 
-};
-
-template <class T> class t_flatbuffer: public t_base
-{
-protected:
-  string data;
-
-public:
-  t_flatbuffer(const char * name_):t_base(name_)
-  {
-  }
-
-  ~t_flatbuffer()
-  {
-  }
-
   void set(string & data_)
   {
     unique_lock<mutex> lock(mtx);
     data = move(data_);
   }
 
-  const T * get(){
+  template <class T> bool is_type()
+  {
+    return type != typeid(T).name();
+  }
+  
+  template <class T> const T * get(){
+    if(is_type<T>())
+      return nullptr;
+    
     return flatbuffers::GetRoot<T>((const void*)data.c_str());
   }  
 };

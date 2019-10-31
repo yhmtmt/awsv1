@@ -37,15 +37,12 @@ using namespace std;
 
 #include <flatbuffers/flatbuffers.h>
 
-#include <grpcpp/grpcpp.h>
-#include <google/protobuf/util/json_util.h>
-#include "command.grpc.pb.h"
-
 #include "aws_stdlib.hpp"
 #include "aws_sock.hpp"
 #include "aws_thread.hpp"
 #include "aws_clock.hpp"
 
+#include "table_base.hpp"
 #include "channel_base.hpp"
 #include "filter_base.hpp"
 #include "aws_command.hpp"
@@ -53,60 +50,6 @@ using namespace std;
 #include "CmdAppBase.hpp"
 
 class c_rcmd;
-
-class t_base
-{
-protected:
-  string name;
-  mutex mtx;
-
-public:
-  t_base(const char * name_):name(name_)
-  {
-  }
-  virtual ~t_base()
-  {
-  }
-
-  const string & get_name()
-  {
-    return name;
-  }
-  
-  void lock(){
-    mtx.lock();
-  }
-
-  void unlock(){
-    mtx.unlock();
-  }
-
-};
-
-template <class T> class t_flatbuffer: public t_base
-{
-protected:
-  string data;
-
-public:
-  t_flatbuffer(const char * name_):t_base(name_)
-  {
-  }
-
-  ~t_flatbuffer()
-  {
-  }
-
-  void set(string & data_)
-  {
-    unique_lock<mutex> lock(mtx);
-    data = move(data_);
-  }
-
-  const T * get(){
-    return flatbuffers::GetRoot<T>((const void*)data.c_str());
-  }  
-};
 
 class c_filter_lib
 {

@@ -2,12 +2,12 @@
 #define F_BASE_H
 // Copyright(c) 2012,2019 Yohei Matsumoto,  All right reserved. 
 
-// f_base.h is free software: you can redistribute it and/or modify
+// f_base.hpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// f_base.h is distributed in the hope that it will be useful,
+// f_base.hpp is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
@@ -39,11 +39,28 @@
 // in the offline mode.
 
 #include <typeinfo>
+#include <iostream>
+#include <cmath>
+#include <cstring>
+#include <vector>
+#include <map>
+#include <list>
+using namespace std;
+#include <dlfcn.h>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
+
+#include <flatbuffers/flatbuffers.h>
+
+#include "aws_const.hpp"
+#include "aws_clock.hpp"
 #include "aws_stdlib.hpp"
 #include "aws_sock.hpp"
 #include "aws_thread.hpp"
 #include "aws_command.hpp"
+#include "table_base.hpp"
 #include "channel_base.hpp"
 
   
@@ -69,7 +86,17 @@ public:
   
 protected:
   char * m_name; // filter name
+  map<string, t_base*> tables;
+  
 public:
+  template <class T> const T * get_table(const string name)
+  {
+    auto tbl = tables.find(name);
+    if(tbl == tables.end())
+      return nullptr;
+    return tbl->second->get<T>();
+  }
+  
   const char * get_name()
   {
     return m_name;

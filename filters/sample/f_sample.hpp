@@ -1,5 +1,4 @@
-// Copyright(c) 2014 Yohei Matsumoto, Tokyo University of Marine
-// Science and Technology, All right reserved. 
+// Copyright(c) 2019 Yohei Matsumoto, All right reserved. 
 
 // f_sample.cpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Publica License as published by
@@ -14,16 +13,20 @@
 // You should have received a copy of the GNU General Public License
 // along with f_sample.cpp.  If not, see <http://www.gnu.org/licenses/>. 
 
-#ifndef _F_SAMPLE_H_
-#define _F_SAMPLE_H_
+#ifndef F_SAMPLE_H
+#define F_SAMPLE_H
 #include "filter_base.hpp"
+#include "sample_generated.h"
 
 /////////////////////////////////////////////////////////// sample implementation of filter class
+using namespace Filter::Sample;
 
 class f_sample: public f_base // 1) inherit from f_base
 {
 private:
 
+  const Sample * sample; // sample table
+  
   // 2) define variables used in this filter (you can define channel aliases)
   double m_f64par;
   long long m_s64par;
@@ -47,6 +50,9 @@ public:
   }
   
   virtual bool init_run(){
+
+    sample = get_table<Sample>(string("sample"));
+    
     // 4) override this function if you need to initialized filter class just before invoking fthread.
     //		open file or communication channels, set up and check channels and their aliases.
     return true;
