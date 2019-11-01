@@ -46,9 +46,9 @@ public:
     else{
       string msg("Failed to generate table ");
       msg += inf->inst_name() + " of " + inf->type_name();
-      spdlog::error(msg);
       res->set_is_ok(false);
       res->set_message(msg);
+      spdlog::error(msg);
     }
     return Status::OK;
   }
@@ -67,15 +67,38 @@ public:
     return Status::OK;    
   }
 
-  Status SetTbl(ServerContext * context, const TblInfo * inf,
+  Status SetTbl(ServerContext * context, const TblData * data,
 		Result * res) override
   {
+    auto tbl = paws->get_table(data->type_name(), data->inst_name());
+    if(tbl){
+      tbl->set(data->tbl());
+      res->set_is_ok(true);
+    }else{
+      string msg("Failed to set table on ");
+      msg += data->inst_name() + " of " + data->type_name();
+      res->set_is_ok(false);
+      res->set_message(msg);
+      spdlog::error(msg);
+    }
+        
     return Status::OK;    
   }
 
   Status SetTblRef(ServerContext * context, const TblRef * ref,
 		   Result * res) override
   {
+    auto tbl = paws->get_table(ref->tbl_name());
+    auto flt = paws->get_filter(ref->flt_name());
+    if(tbl && flt && flt->set_table(ref->flt_tbl_name(), tbl))
+      res->set_is_ok(true);
+    else{
+      string msg("Failed to set table ");
+      msg += ref->tbl_name() + " to " + ref->flt_name() + "." + ref->flt_tbl_name();
+      res->set_is_ok(false);
+      res->set_message(msg);
+      spdlog::error(msg);      
+    }
     return Status::OK;    
   }  
 };

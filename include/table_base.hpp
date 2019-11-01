@@ -39,6 +39,12 @@ public:
     mtx.unlock();
   }
 
+  void set(const string & data_)
+  {
+    unique_lock<mutex> lock(mtx);
+    data = move(data_);
+  }
+  
   void set(string & data_)
   {
     unique_lock<mutex> lock(mtx);

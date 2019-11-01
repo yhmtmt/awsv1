@@ -89,12 +89,22 @@ protected:
   map<string, t_base*> tables;
   
 public:
-  template <class T> const T * get_table(const string name)
+  template <class T> const T * get_table(const string & name)
   {
     auto tbl = tables.find(name);
     if(tbl == tables.end())
       return nullptr;
     return tbl->second->get<T>();
+  }
+
+  bool set_table(const string & name, t_base * tbl_)
+  {
+    auto tbl = tables.find(name);
+    if(tbl == tables.end())
+      return false;
+
+    tbl->second = tbl_;
+    return true;
   }
   
   const char * get_name()

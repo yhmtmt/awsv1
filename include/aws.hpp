@@ -139,6 +139,10 @@ public:
     return nullptr;
   }
 
+  f_base * get_filter(const string & name)
+  {
+    return get_filter(name.c_str());
+  }
 protected:
   s_cmd m_cmd;
   mutex m_mtx;
