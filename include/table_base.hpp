@@ -23,17 +23,12 @@ protected:
   mutex mtx;
 
 public:
-  t_base(const string type_, const string name_):type(type_), name(name_)
+  t_base(const string & type_, const string & name_):type(type_), name(name_)
   {
   }
   
   virtual ~t_base()
   {
-  }
-
-  const string & get_name()
-  {
-    return name;
   }
   
   void lock(){
@@ -50,9 +45,29 @@ public:
     data = move(data_);
   }
 
+  const string & get_name()
+  {
+    return name;
+  }
+
+  const string & get_type()
+  {
+    return type;
+  }
+  
   template <class T> bool is_type()
   {
-    return type != typeid(T).name();
+    return type == typeid(T).name();
+  }
+
+  bool is_type(const string & type_)
+  {
+    return type_ == type;
+  }
+
+  const string & get_data()
+  {
+    return data;
   }
   
   template <class T> const T * get(){

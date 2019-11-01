@@ -51,6 +51,8 @@ using namespace std;
 
 class c_rcmd;
 
+
+
 class c_filter_lib
 {
 private:
@@ -99,6 +101,44 @@ public:
 // main() instantiate a c_aws objects and runs c_aws::run(). 
 class c_aws: public CmdAppBase
 {
+public:
+  bool gen_table(const string & type_name, const string & inst_name)
+  {
+    auto tbl = get_table(inst_name);
+    if(tbl){ // the instance name has already been used      
+      spdlog::error("Table {} has already been instantiated.", inst_name);
+      return false;
+    }
+
+    tbl = new t_base(type_name, inst_name);
+    if(tbl)
+      tbls[inst_name] = tbl;
+    else{
+      spdlog::error("Table {} of {} cannot be instantiated because of the memory allocation error.", inst_name, type_name);
+      return false;
+    }
+    
+    return true;
+  }
+
+  t_base * get_table(const string & inst_name)
+  {
+    auto itr = tbls.find(inst_name);
+    if(itr == tbls.end())
+      return nullptr;
+    
+    return itr->second;
+  }
+
+  t_base * get_table(const string & type_name, const string & inst_name)
+  {
+    auto tbl = get_table(inst_name);
+    if(tbl->is_type(type_name))
+      return tbl;
+    spdlog::error("Talbe {} found, but type is not {}.", inst_name, type_name);
+    return nullptr;
+  }
+
 protected:
   s_cmd m_cmd;
   mutex m_mtx;

@@ -16,6 +16,70 @@
 
 #include "aws.hpp"
 
+#include <grpcpp/grpcpp.h>
+#include <google/protobuf/util/json_util.h>
+#include "command.grpc.pb.h"
+
+using grpc::Server;
+using grpc::ServerBuilder;
+using grpc::ServerContext;
+using grpc::Status;
+
+using CommandService::Command;
+using CommandService::TblRef;
+using CommandService::TblInfo;
+using CommandService::TblData;
+using CommandService::Result;
+
+class CommandServiceImpl final : public Command::Service
+{
+private:
+  c_aws * paws;
+public:
+  CommandServiceImpl(c_aws * paws_):paws(paws_){};
+  
+  Status GenTbl(ServerContext * context, const TblInfo * inf,
+		Result * res) override
+  {
+    if(paws->gen_table(inf->type_name(), inf->inst_name()))
+      res->set_is_ok(true);
+    else{
+      string msg("Failed to generate table ");
+      msg += inf->inst_name() + " of " + inf->type_name();
+      spdlog::error(msg);
+      res->set_is_ok(false);
+      res->set_message(msg);
+    }
+    return Status::OK;
+  }
+
+  Status GetTbl(ServerContext * context, const TblInfo * inf,
+		TblData * data) override
+  {
+    auto tbl = paws->get_table(inf->type_name(), inf->inst_name());
+    data->set_inst_name(inf->inst_name());
+    data->set_type_name(inf->type_name());
+    if(tbl){
+      data->set_tbl(tbl->get_data());
+    }else{
+      data->set_tbl(string());
+    }
+    return Status::OK;    
+  }
+
+  Status SetTbl(ServerContext * context, const TblInfo * inf,
+		Result * res) override
+  {
+    return Status::OK;    
+  }
+
+  Status SetTblRef(ServerContext * context, const TblRef * ref,
+		   Result * res) override
+  {
+    return Status::OK;    
+  }  
+};
+
 // Command explanation
 // * channel <type> <name>
 // Creating an channel instance of <type> with <name> 
