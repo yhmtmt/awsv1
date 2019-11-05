@@ -1,5 +1,4 @@
-// Copyright(c) 2012 Yohei Matsumoto, Tokyo University of Marine
-// Science and Technology, All right reserved. 
+// Copyright(c) 2012-2019 Yohei Matsumoto, All right reserved. 
 
 // c_aws is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -47,7 +46,7 @@ public:
       string msg("Failed to generate table ");
       msg += inf->inst_name() + " of " + inf->type_name();
       res->set_is_ok(false);
-      res->set_message(msg);
+      res->set_message(msg);+
       spdlog::error(msg);
     }
     return Status::OK;
