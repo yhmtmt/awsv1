@@ -8,17 +8,18 @@
 #include <grpcpp/grpcpp.h>
 #include <google/protobuf/util/json_util.h>
 #include "command.grpc.pb.h"
-
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
 
-
+using CommandService::Config;
 using CommandService::Command;
 using CommandService::TblRef;
 using CommandService::TblInfo;
 using CommandService::TblData;
 using CommandService::Result;
+
+#include "table_util.hpp"
 
 enum cmd_id{
   GEN_TBL = 0, GET_TBL, SET_TBL, SET_TBL_REF, JSON, UNKNOWN
@@ -96,26 +97,14 @@ public:
     }
     
     std::string schema_file_name;
-    std::string schema_file;
     schema_file_name = lib_path_ + "/" +  data.type_name() + ".bfbs";
-    bool ok = flatbuffers::LoadFile(schema_file_name.c_str(), true, &schema_file);
-    if(!ok){
-      std::cerr << "Error: Failed to load schema file "
-		<< schema_file_name << std::endl;
-      return false;
-    }
-
-    std::string json_file;
     flatbuffers::Parser parser;
-    ok = parser.Deserialize((const uint8_t*)schema_file.c_str(),
-		       schema_file.length());
-    if(!ok){
-      std::cerr << "Error: Failed to deserialize schema file "
-		<< schema_file_name << std::endl;
-      return false;
-    }
     
-    ok = GenerateText(parser, (const uint8_t*)data.tbl().c_str(), &json_file);
+    if(!load_tbl_json_parser(schema_file_name, parser))
+      return false;
+ 
+    std::string json_file;
+    bool ok = GenerateText(parser, (const uint8_t*)data.tbl().c_str(), &json_file);
     if(!ok){
       std::cerr << "Error: Failed to convert table " << name << 
 	" to json string." << std::endl;
@@ -133,11 +122,43 @@ public:
     TblData data;
     data.set_inst_name(name);
     data.set_type_name(type);
+
+    std::string schema_file_name;
+    schema_file_name = lib_path_ + "/" + type + ".bfbs";
+    flatbuffers::Parser parser;
+    if(!load_tbl_json_parser(schema_file_name, parser))
+      return false;
+
+    std::string json_str;
     if(opt == "-s"){ // opt_str is json string
-      
+      json_str = opt_str;
     }else if(opt == "-f"){ // opt_str is json file
+      bool ok = flatbuffers::LoadFile(opt_str.c_str(), true, &json_str);
+      
+      if(!ok){
+	std::cerr << "Error: Failed to load " << opt_str << "." << std::endl;
+	return false;
+      }
+    }
+    
+    bool ok = parser.Parse(json_str.c_str());
+    if(!ok){
+      std::cerr << "Error: " << parser.error_ << std::endl;
+      return false;
     }
 
+    data.set_tbl((const void*)parser.builder_.GetBufferPointer(),
+		 parser.builder_.GetSize());
+
+    Result res;
+    ClientContext context;
+    Status status = stub_->SetTbl(&context, data, &res);
+
+    if(!status.ok()){
+      std::cout << "Error:" << res.message() << std::endl;
+      return false;
+    }
+    
     return true;
   }
 
@@ -176,8 +197,7 @@ public:
     }
       
     return true;
-  }
-  
+  }  
 };
 
 void dump_usage()
@@ -191,17 +211,24 @@ void dump_usage()
 
 bool ParseAndProcessCommandArguments(int argc, char ** argv)
 {
+  Config conf;
+
+  if(!load_config("aws.conf", conf)){
+    conf.set_address("localhost");
+    conf.set_port("50051");
+    conf.set_lib_path("lib");    
+  }
+  
 // argv[1] : command string
 // gentbl <name> <type> 
 // gettbl <name> [<type>]
 // settbl <name> <type> [-f <jsonfile> | -s <jsonstring>]
 // settblref <table_name> <filter_name> <filter_table_name>
 // <jsonfile>
-  std::string server_address = "localhost:50051";
-  std::string lib_path("lib");  
+  std::string server_address = conf.address() + ":" + conf.port();
   CommandHandler handler(grpc::CreateChannel(server_address,
 					     grpc::InsecureChannelCredentials()),
-			 lib_path);
+			 conf.lib_path());
   
   if(argc < 2){
     dump_usage();

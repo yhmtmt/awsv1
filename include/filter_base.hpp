@@ -53,6 +53,8 @@ using namespace std;
 #include <spdlog/sinks/basic_file_sink.h>
 
 #include <flatbuffers/flatbuffers.h>
+#include <flatbuffers/idl.h>
+#include <flatbuffers/util.h>
 
 #include "aws_const.hpp"
 #include "aws_clock.hpp"
@@ -560,5 +562,4 @@ public:
   bool get_par(s_cmd & cmd);
 };
 
-#include "aws.hpp"
 #endif

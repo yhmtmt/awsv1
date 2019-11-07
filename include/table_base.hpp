@@ -14,6 +14,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with table_base.hpp.  If not, see <http://www.gnu.org/licenses/>.
+
 class f_base;
 
 class t_base
@@ -88,5 +89,6 @@ public:
     return flatbuffers::GetRoot<T>((const void*)data.c_str());
   }  
 };
+
 
 #endif

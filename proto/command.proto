@@ -32,3 +32,8 @@ message Result {
 	string message = 2;
 }
 
+message Config {
+	string address = 1;
+	string port = 2;
+	string lib_path = 3;
+}

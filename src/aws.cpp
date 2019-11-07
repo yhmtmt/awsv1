@@ -15,21 +15,6 @@
 
 #include "aws.hpp"
 
-#include <grpcpp/grpcpp.h>
-#include <google/protobuf/util/json_util.h>
-#include "command.grpc.pb.h"
-
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
-using grpc::Status;
-
-using CommandService::Command;
-using CommandService::TblRef;
-using CommandService::TblInfo;
-using CommandService::TblData;
-using CommandService::Result;
-
 class CommandServiceImpl final : public Command::Service
 {
 private:

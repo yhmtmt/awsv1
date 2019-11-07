@@ -20,6 +20,7 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <list>
 #include <map>
@@ -34,7 +35,25 @@ using namespace std;
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 
+#include <grpcpp/grpcpp.h>
+
+#include <google/protobuf/util/json_util.h>
 #include <flatbuffers/flatbuffers.h>
+#include <flatbuffers/idl.h>
+#include <flatbuffers/util.h>
+
+#include "command.grpc.pb.h"
+using grpc::Server;
+using grpc::ServerBuilder;
+using grpc::ServerContext;
+using grpc::Status;
+
+using CommandService::Config;
+using CommandService::Command;
+using CommandService::TblRef;
+using CommandService::TblInfo;
+using CommandService::TblData;
+using CommandService::Result;
 
 #include "aws_stdlib.hpp"
 #include "aws_sock.hpp"
