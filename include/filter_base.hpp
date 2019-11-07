@@ -106,6 +106,17 @@ public:
     tbl->second = tbl_;
     return true;
   }
+
+  bool del_table(t_base * tbl_)
+  {
+    for(auto itr = tables.begin(); itr != tables.end(); itr++){
+      if(itr->second == tbl_){
+	itr->second = nullptr;
+	return true;
+      }
+    }
+    return false; // no such table
+  }
   
   const char * get_name()
   {

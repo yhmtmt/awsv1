@@ -7,6 +7,7 @@ service Command{
 	rpc GetTbl(TblInfo) returns (TblData) {}
 	rpc SetTbl(TblData) returns (Result) {}
 	rpc SetTblRef(TblRef) returns (Result) {}
+	rpc DelTbl(TblInfo) returns (Result) {}
 }
 
 message TblRef{

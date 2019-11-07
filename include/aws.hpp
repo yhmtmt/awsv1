@@ -1,7 +1,6 @@
 #ifndef AWS_H
 #define AWS_H
-// Copyright(c) 2014 Yohei Matsumoto, Tokyo University of Marine
-// Science and Technology, All right reserved. 
+// Copyright(c) 2014,2019 Yohei Matsumoto, All right reserved. 
 
 // c_aws.h is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Publica License as published by
@@ -117,10 +116,24 @@ public:
       spdlog::error("Table {} of {} cannot be instantiated because of the memory allocation error.", inst_name, type_name);
       return false;
     }
-    
+
+    spdlog::info("Table {} of {} created.", inst_name, type_name);
     return true;
   }
 
+  bool del_table(const string & inst_name)
+  {
+    auto tbl = get_table(inst_name);
+    if(!tbl){ // No such table      
+      spdlog::error("In del_table(), table {} not found.", inst_name);
+      return false;
+    }
+    delete tbl;
+    tbls.erase(inst_name);
+    spdlog::info("Table {} deleted.", inst_name);
+    return true;
+  }
+  
   t_base * get_table(const string & inst_name)
   {
     auto itr = tbls.find(inst_name);

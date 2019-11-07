@@ -46,7 +46,7 @@ public:
       string msg("Failed to generate table ");
       msg += inf->inst_name() + " of " + inf->type_name();
       res->set_is_ok(false);
-      res->set_message(msg);+
+      res->set_message(msg);
       spdlog::error(msg);
     }
     return Status::OK;
@@ -89,9 +89,9 @@ public:
   {
     auto tbl = paws->get_table(ref->tbl_name());
     auto flt = paws->get_filter(ref->flt_name());
-    if(tbl && flt && flt->set_table(ref->flt_tbl_name(), tbl))
+    if(tbl && flt && tbl->set_flt_ref(ref->flt_tbl_name(), flt)){
       res->set_is_ok(true);
-    else{
+    }else{
       string msg("Failed to set table ");
       msg += ref->tbl_name() + " to " + ref->flt_name() + "." + ref->flt_tbl_name();
       res->set_is_ok(false);
@@ -99,7 +99,23 @@ public:
       spdlog::error(msg);      
     }
     return Status::OK;    
-  }  
+  }
+
+  Status DelTbl(ServerContext * context, const TblInfo * inf,
+		Result * res) override
+  {
+    if(paws->del_table(inf->inst_name())){
+      res->set_is_ok(true);
+    }else{
+      res->set_is_ok(false);
+      string msg("No table named ");
+      msg += inf->inst_name();
+      msg += ".";
+      res->set_message(msg);
+    }
+      
+    return Status::OK;
+  }
 };
 
 // Command explanation
@@ -361,6 +377,9 @@ bool c_aws::handle_fltr(s_cmd & cmd)
     spdlog::error(message);
     strncpy(cmd.get_ret_str(), message.c_str(), RET_LEN);
   }
+
+  spdlog::info("Filter {} of {} created.", cmd.args[2], cmd.args[1]);
+  
   return result;
 }
 

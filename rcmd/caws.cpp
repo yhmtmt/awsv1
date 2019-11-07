@@ -51,7 +51,6 @@ const cmd_id get_cmd_id(const char * str)
   return UNKNOWN;    
 }
 
-
 class CommandHandler
 {
 private:
@@ -78,6 +77,7 @@ public:
       std::cout << "Error:" << res.message() << std::endl;
       return false;
     }
+    
     return true;
   }
 
@@ -98,7 +98,7 @@ public:
     std::string schema_file_name;
     std::string schema_file;
     schema_file_name = lib_path_ + "/" +  data.type_name() + ".bfbs";
-    bool ok flatbuffers::LoadFile(schema_file_name.c_str(), true, schema_file);
+    bool ok = flatbuffers::LoadFile(schema_file_name.c_str(), true, &schema_file);
     if(!ok){
       std::cerr << "Error: Failed to load schema file "
 		<< schema_file_name << std::endl;
@@ -129,18 +129,56 @@ public:
 
   bool SetTbl(const std::string & name, const std::string & type,
 	      const std::string & opt, const std::string & opt_str)
-  {    
+  {
+    TblData data;
+    data.set_inst_name(name);
+    data.set_type_name(type);
+    if(opt == "-s"){ // opt_str is json string
+      
+    }else if(opt == "-f"){ // opt_str is json file
+    }
+
     return true;
   }
 
   bool SetTblRef(const std::string & tbl_name, const std::string & flt_name,
 		 const std::string & flt_tbl_name)
   {
+    TblRef ref;
+    ref.set_tbl_name(tbl_name);
+    ref.set_flt_name(flt_name);
+    ref.set_flt_tbl_name(flt_tbl_name);
+
+    Result res;
+    ClientContext context;
+    Status status = stub_->SetTblRef(&context, ref, &res);
+
+    if(!status.ok()){
+      std::cout << "Error:" << res.message() << std::endl;
+      return false;
+    }
+   
+    return true;
+  }
+  
+  bool DelTbl(const std::string & name, const std::string type)
+  {
+    TblInfo info;
+    info.set_type_name(type);
+    info.set_inst_name(name);
+
+    Result res;
+    ClientContext context;
+    Status status = stub_->DelTbl(&context, info, &res);
+    if(!status.ok()){
+      std::cout << "Error:" << res.message() << std::endl;
+      return false;
+    }
+      
     return true;
   }
   
 };
-
 
 void dump_usage()
 {
@@ -159,7 +197,12 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
 // settbl <name> <type> [-f <jsonfile> | -s <jsonstring>]
 // settblref <table_name> <filter_name> <filter_table_name>
 // <jsonfile>
-
+  std::string server_address = "localhost:50051";
+  std::string lib_path("lib");  
+  CommandHandler handler(grpc::CreateChannel(server_address,
+					     grpc::InsecureChannelCredentials()),
+			 lib_path);
+  
   if(argc < 2){
     dump_usage();
   }
@@ -177,25 +220,25 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
       dump_usage();
       return false;
     }
-    break;		    
+    return handler.GenTbl(argv[2], argv[3]);
   case GET_TBL:
     if(argc == 3 || argc == 4){
       dump_usage();
       return false;
     }
-    break;
+    return handler.GetTbl(argv[2], (argc == 4 ? argv[3] : std::string()));
   case SET_TBL:
     if(argc == 6){
       dump_usage();
       return false;
     }
-    break;
+    return handler.SetTbl(argv[2], argv[3], argv[4], argv[5]);
   case SET_TBL_REF:
     if(argc == 5){
       dump_usage();
       return false;
     }
-    break;
+    return handler.SetTblRef(argv[2], argv[3], argv[4]);
   default:
     return false;
   }
