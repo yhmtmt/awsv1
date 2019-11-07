@@ -1,0 +1,51 @@
+namespace Filter.Sample;
+
+enum AutoPilotMode:byte
+{
+	FollowWaypoints=0,
+	Stay=1	
+}
+
+enum ClewType:byte
+{
+	Captain=0,
+	Passenger=1
+}
+
+
+struct Position {
+       lat:double;
+       lon:double;
+       alt:double;
+}
+
+struct Velocity{
+       u:float;
+       v:float;       
+}
+
+union Navigator { Clew, AutoPilot }
+
+table AutoPilot
+{
+	name:string;
+	mode:AutoPilotMode;	
+}
+
+table Clew
+{
+	name:string;
+	type:ClewType;	
+}
+
+table Sample{
+      name:string;
+      num:short;
+      pos:Position;
+      vel:Velocity;
+      waypoints:[Position];
+      clews:[Clew];
+      navi:Navigator;
+}
+
+root_type Sample;
