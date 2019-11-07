@@ -29,4 +29,8 @@ add_subdirectory(src)
 add_subdirectory(filters)
 add_subdirectory(rcmd)
 
+enable_testing()
+add_subdirectory(test)
+
 install(FILES ${FLAT_BFBS} DESTINATION lib)
+
