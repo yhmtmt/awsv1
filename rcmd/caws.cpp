@@ -33,7 +33,7 @@ const cmd_id get_cmd_id(const char * str)
 {
   for(int id = 0; id < (int)JSON; id++){
     int c = 0;
-    for(; str_cmd[id][c] && str[c];c++);
+    for(; str_cmd[id][c] && str[c] && str_cmd[id][c] == str[c];c++);
     
     if(!str_cmd[id][c] && !str[c])
       return (cmd_id)id;	  
@@ -226,18 +226,22 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
 // settblref <table_name> <filter_name> <filter_table_name>
 // <jsonfile>
   std::string server_address = conf.address() + ":" + conf.port();
+
   CommandHandler handler(grpc::CreateChannel(server_address,
 					     grpc::InsecureChannelCredentials()),
 			 conf.lib_path());
   
   if(argc < 2){
     dump_usage();
+    return false;
   }
 
   cmd_id id = get_cmd_id(argv[1]);
 
   if(id == JSON){
-    std::cout << "Json file " << argv[1] << " is given. But still the parser is under construction. " << std::endl;
+    std::cout << "Json file " << argv[1]
+	      << " is given. But still the parser is under construction. "
+	      << std::endl;
     return true;
   }
 
@@ -249,19 +253,19 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
     }
     return handler.GenTbl(argv[2], argv[3]);
   case GET_TBL:
-    if(argc == 3 || argc == 4){
+    if(argc != 3 && argc != 4){
       dump_usage();
       return false;
     }
     return handler.GetTbl(argv[2], (argc == 4 ? argv[3] : std::string()));
   case SET_TBL:
-    if(argc == 6){
+    if(argc != 6){
       dump_usage();
       return false;
     }
     return handler.SetTbl(argv[2], argv[3], argv[4], argv[5]);
   case SET_TBL_REF:
-    if(argc == 5){
+    if(argc != 5){
       dump_usage();
       return false;
     }

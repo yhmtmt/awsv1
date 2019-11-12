@@ -15,6 +15,8 @@
 
 #include "aws.hpp"
 
+#include "table_util.hpp"
+
 class CommandServiceImpl final : public Command::Service
 {
 private:
@@ -149,7 +151,7 @@ public:
 c_aws::c_aws(int argc, char ** argv):CmdAppBase(argc, argv),
 				     m_cmd_port(20000),
 				     m_working_path(nullptr),
-				     m_lib_path(nullptr), m_log_path(nullptr),
+				     m_config_file(nullptr),
 				     m_bonline(true), m_exit(false),
 				     m_cycle_time(166667), m_time(0), m_time_zone_minute(540), m_time_rate(1)
 {
@@ -165,12 +167,9 @@ c_aws::c_aws(int argc, char ** argv):CmdAppBase(argc, argv),
   add_arg("-wpath", "Path to the working directory.");
   add_val(&m_working_path, "string");
 
-  add_arg("-logpath", "Path to the log files");
-  add_val(&m_log_path, "string");
-  
-  add_arg("-libpath", "Path to the filter library.");
-  add_val(&m_lib_path, "string");
-    
+  add_arg("-config", "Configuration file");
+  add_val(&m_config_file, "string");
+     
   add_arg("-tzm", "Time Zone in minutes.");
   add_val(&m_time_zone_minute, "int");
   
@@ -992,11 +991,7 @@ bool c_aws::add_filter(s_cmd & cmd)
   auto filter_lib = filter_libs.find(type_str);
   if(filter_lib == filter_libs.end()){
     string path;
-    if(m_lib_path)
-      path =  string(m_lib_path);
-    else
-      path = string("lib");    
-    path += string("/lib") + type_str + string(".so");
+    path = conf.lib_path() + string("/lib") + type_str + string(".so");
     
     unique_ptr<c_filter_lib> lib(new c_filter_lib);
     if(!lib->load(path)){
@@ -1069,13 +1064,20 @@ bool c_aws::check_graph()
 
 bool c_aws::main()
 {
-  string logpath;
-  if(m_log_path){
-    logpath = string(m_log_path);    
-  }else{
-    logpath = string("logs");
+  if(m_config_file){
+    if(!load_config(m_config_file, conf)){
+      cerr << "Failed to open " << m_config_file << "." << endl;      
+      return false;
+    }
+  }else if(!load_config("aws.conf", conf)){
+    conf.set_address("localhost");
+    conf.set_port("50051");
+    conf.set_lib_path("lib");
+    conf.set_log_path("logs");
   }
-  logpath += "/aws.log";
+  
+  string logpath = conf.log_path() + "/aws.log";
+  
   spdlog::flush_every(chrono::seconds(5));
   try{
     auto console_sink = make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -1106,13 +1108,20 @@ bool c_aws::main()
       spdlog::error("Failed to change working path to {}.", m_working_path);
   }
 
-  if(m_lib_path){
-    spdlog::info("Filter path is configured as {}.", m_lib_path);
-  }else{
-    spdlog::info("Filter path is configuread as ./lib");
-  }
+
+  spdlog::info("Filter path is configured as {}.", conf.lib_path());
   
   m_exit = false;
+
+  string server_address = conf.address() + ":" + conf.port();
+  CommandServiceImpl service(this);
+  ServerBuilder builder;
+  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  builder.RegisterService(&service);
+  unique_ptr<Server> server(builder.BuildAndStart());
+
+  thread server_thread([&](){server->Wait();});
+  spdlog::info("Command service started on {}.", server_address);
   
   while(!m_exit){
     proc_command();
@@ -1152,6 +1161,9 @@ bool c_aws::main()
   }
 
   handle_stop();
+
+  server->Shutdown();
+  server_thread.join();
   
   for(int i = 0; i < m_rcmds.size() ;i++){
     delete m_rcmds[i];

@@ -180,11 +180,11 @@ protected:
   mutex m_mtx;
   condition_variable m_cnd_ret, m_cnd_none;
 
+  Config conf;
   int m_cmd_port;
+  char * m_config_file;
   char * m_working_path;
-  char * m_log_path;
-  char * m_lib_path;
-
+  
   // for remote command processor
   vector<c_rcmd*> m_rcmds;
 
