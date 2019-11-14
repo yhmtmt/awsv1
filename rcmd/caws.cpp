@@ -22,12 +22,23 @@ using CommandService::Result;
 #include "table_util.hpp"
 
 enum cmd_id{
-  GEN_TBL = 0, GET_TBL, SET_TBL, SET_TBL_REF, JSON, UNKNOWN
+  GEN_TBL = 0, GET_TBL, SET_TBL, SET_TBL_REF, DEL_TBL,  JSON, UNKNOWN
 };
 
 const char * str_cmd[UNKNOWN] = {
-  "gentbl", "gettbl", "settbl", "settblref", ".json"
+  "gentbl", "gettbl", "settbl", "settblref", "deltbl", ".json"
 };
+
+const char * str_cmd_usage[UNKNOWN] =
+{
+  "<name> <type>",
+  "<name> [<type>]",
+  "<name> <type> [ -f <json file> | -s <json string> ]",
+  "<table name> <filter name> <filter table name>",
+  "<table name>",
+  "<json file>"
+};
+
 
 const cmd_id get_cmd_id(const char * str)
 {
@@ -200,13 +211,16 @@ public:
   }  
 };
 
-void dump_usage()
+void dump_usage(const cmd_id & id = UNKNOWN)
 {
   std::cerr << "caws [<command>|<command json file>]" << std::endl;
-  std::cerr << "   " << str_cmd[GEN_TBL] << " <name> <type>" << std::endl;
-  std::cerr << "   " << str_cmd[GET_TBL] << " <name> [<type>]" << std::endl;
-  std::cerr << "   " << str_cmd[SET_TBL] << " <name> <type> [-f <json file> | -s <json string>]" << std::endl;
-  std::cerr << "   " << str_cmd[SET_TBL_REF] << " <table name> <filter name> <filter table name>" << std::endl;
+  if(id == UNKNOWN){
+    for(int i = 0; i < (int)UNKNOWN; i++){
+      std::cerr << "   " << str_cmd[i] << " " << str_cmd_usage[i] << std::endl;
+    }
+  }else{
+    std::cerr << "   " << str_cmd[id] << " " << str_cmd_usage[id] << std::endl;
+  }
 }
 
 bool ParseAndProcessCommandArguments(int argc, char ** argv)
@@ -224,6 +238,7 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
 // gettbl <name> [<type>]
 // settbl <name> <type> [-f <jsonfile> | -s <jsonstring>]
 // settblref <table_name> <filter_name> <filter_table_name>
+// deltbl <table_name> 
 // <jsonfile>
   std::string server_address = conf.address() + ":" + conf.port();
 
@@ -248,28 +263,34 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
   switch(id){
   case GEN_TBL:
     if(argc != 4){
-      dump_usage();
+      dump_usage(id);
       return false;
     }
     return handler.GenTbl(argv[2], argv[3]);
   case GET_TBL:
     if(argc != 3 && argc != 4){
-      dump_usage();
+      dump_usage(id);
       return false;
     }
     return handler.GetTbl(argv[2], (argc == 4 ? argv[3] : std::string()));
   case SET_TBL:
     if(argc != 6){
-      dump_usage();
+      dump_usage(id);
       return false;
     }
     return handler.SetTbl(argv[2], argv[3], argv[4], argv[5]);
   case SET_TBL_REF:
     if(argc != 5){
-      dump_usage();
+      dump_usage(id);
       return false;
     }
     return handler.SetTblRef(argv[2], argv[3], argv[4]);
+  case DEL_TBL:
+    if(argc != 3){
+      dump_usage(id);
+      return false;
+    }
+    return handler.DelTbl(argv[2], argv[3]);
   default:
     return false;
   }
