@@ -1066,14 +1066,10 @@ bool c_aws::main()
 {
   if(m_config_file){
     if(!load_config(m_config_file, conf)){
-      cerr << "Failed to open " << m_config_file << "." << endl;      
       return false;
     }
   }else if(!load_config("aws.conf", conf)){
-    conf.set_address("localhost");
-    conf.set_port("50051");
-    conf.set_lib_path("lib");
-    conf.set_log_path("logs");
+    return false;
   }
   
   string logpath = conf.log_path() + "/aws.log";

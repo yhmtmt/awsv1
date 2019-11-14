@@ -2,17 +2,23 @@
 inline bool load_config(const std::string & config_file, Config & conf)
 {
   std::ifstream file_in(config_file);
-  if(!file_in.is_open())
+  if(!file_in.is_open()){
+    std::cerr << "Failed to open config file " << config_file << "." << std::endl;
     return false;
+  }
 
   std::stringstream strstream;
   strstream << file_in.rdbuf();
 
   std::string json_string(strstream.str());
 
-  if(!google::protobuf::util::JsonStringToMessage(json_string, &conf).ok())
+  google::protobuf::util::Status st = google::protobuf::util::JsonStringToMessage(json_string, &conf);
+  if(!st.ok()){
+    std::cerr << "Failed to parse " << config_file << "." << std::endl;
+    std::cerr << "Error: " << st.error_message() << std::endl;    
     return false;
-
+  }
+  
   return true;
 }
 

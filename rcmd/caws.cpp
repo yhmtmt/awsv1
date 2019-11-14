@@ -228,9 +228,7 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
   Config conf;
 
   if(!load_config("aws.conf", conf)){
-    conf.set_address("localhost");
-    conf.set_port("50051");
-    conf.set_lib_path("lib");    
+    return false;
   }
   
 // argv[1] : command string
