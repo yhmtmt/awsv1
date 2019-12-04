@@ -30,6 +30,7 @@ bool t_base::set_flt_ref(const string & flt_tbl_name, f_base * flt)
   if(!flt->set_table(flt_tbl_name, this))
     return false;
   refs[flt->get_name()] = flt;
+  return true;
 }
 
 void t_base::del_flt_ref(f_base * flt)

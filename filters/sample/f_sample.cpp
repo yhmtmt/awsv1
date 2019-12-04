@@ -8,7 +8,11 @@ bool f_sample::proc()
     cout << "Filter is puasing." << endl;
   }
 
-  spdlog::info("[{}] name:{} num:{} pos:{},{} vel:{},{}", get_name(),  sample->name()->c_str(), sample->pos()->lat(), sample->pos()->lon(), sample->vel()->u(), sample->vel()->v());
+  if(sample != nullptr){
+    //    sample = tables["sample"].table->get<Sample>();
+    
+    spdlog::info("[{}] name:{} num:{} pos:{},{} vel:{},{}", get_name(),  sample->name()->c_str(), sample->num(), sample->pos()->lat(), sample->pos()->lon(), sample->vel()->u(), sample->vel()->v());
+  }
   
   // Typical channels has setter/getter with mutual exclusion. 
   if (increment)

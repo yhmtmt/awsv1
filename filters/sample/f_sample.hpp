@@ -35,7 +35,7 @@ private:
   bool increment;
 public:
   // 3) constructor should have an object name as a c-string. Then the object name should be passed to the f_base constructor.
-  f_sample(const char * fname): f_base(fname),
+  f_sample(const char * fname): f_base(fname), sample(nullptr),
 				m_f64par(0.), m_s64par(0), m_u64par(0),
 				val(0), increment(false)
   {
@@ -47,12 +47,10 @@ public:
     register_fpar("s64par", &m_s64par, "64 bit signed integer.");
     register_fpar("u64par", &m_u64par, "64 bit unsigned integer.");
     register_fpar("increment", &increment, "Enable incrementing val");
+    register_table("sample", (const void**)&sample);
   }
   
-  virtual bool init_run(){
-
-    sample = get_table<Sample>(string("sample"));
-    
+  virtual bool init_run(){    
     // 4) override this function if you need to initialized filter class just before invoking fthread.
     //		open file or communication channels, set up and check channels and their aliases.
     return true;

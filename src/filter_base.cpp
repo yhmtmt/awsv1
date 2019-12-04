@@ -183,7 +183,8 @@ void f_base::fthread()
     return;
   }
   
-  if(m_bactive){		
+  if(m_bactive){
+    update_table_objects();    
     calc_time_diff();
     
     if (!proc()){
@@ -209,6 +210,7 @@ void f_base::sfthread(f_base * filter)
       filter->m_cycle++;
     }
     filter->lock_cmd();
+    filter->update_table_objects();
     
     filter->calc_time_diff();
     

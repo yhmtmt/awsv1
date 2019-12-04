@@ -42,9 +42,17 @@ public:
   Status GetTbl(ServerContext * context, const TblInfo * inf,
 		TblData * data) override
   {
-    auto tbl = paws->get_table(inf->type_name(), inf->inst_name());
-    data->set_inst_name(inf->inst_name());
-    data->set_type_name(inf->type_name());
+    t_base * tbl;
+    if(inf->type_name().length()){
+      tbl = paws->get_table(inf->type_name(), inf->inst_name());
+      data->set_inst_name(inf->inst_name());
+      data->set_type_name(inf->type_name());
+    }else{
+      tbl = paws->get_table(inf->inst_name());
+      data->set_inst_name(inf->inst_name());
+      data->set_type_name(tbl->get_type());
+    }
+    
     if(tbl){
       data->set_tbl(tbl->get_data());
     }else{

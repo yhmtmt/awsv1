@@ -88,32 +88,50 @@ public:
   
 protected:
   char * m_name; // filter name
-  map<string, t_base*> tables;
+  struct s_table_info
+  {
+    t_base * table;
+    string data;
+    const void ** obj;
+    s_table_info():table(nullptr), obj(nullptr){}
+  };
+    
+  map<string, s_table_info> tables;
   
 public:
-  template <class T> const T * get_table(const string & name)
+  void update_table_objects()
   {
-    auto tbl = tables.find(name);
-    if(tbl == tables.end())
-      return nullptr;
-    return tbl->second->get<T>();
+    for (auto tbl = tables.begin(); tbl != tables.end(); tbl++){
+      s_table_info ti = tbl->second;
+      if(ti.table && ti.obj){	
+	ti.data = ti.table->get_data();
+	(*ti.obj) = flatbuffers::GetRoot<void>((const void*)ti.data.c_str());
+      }
+    }
   }
+  
+  void register_table(const string & name, const void ** obj)
+  {
+    s_table_info ti;
+    ti.obj = obj;
+    tables[name] = ti;
+  }  
 
   bool set_table(const string & name, t_base * tbl_)
   {
     auto tbl = tables.find(name);
     if(tbl == tables.end())
       return false;
-
-    tbl->second = tbl_;
+   
+    tbl->second.table = tbl_;
     return true;
   }
 
   bool del_table(t_base * tbl_)
   {
     for(auto itr = tables.begin(); itr != tables.end(); itr++){
-      if(itr->second == tbl_){
-	itr->second = nullptr;
+      if(itr->second.table == tbl_){
+	itr->second.table = nullptr;
 	return true;
       }
     }

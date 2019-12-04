@@ -66,28 +66,22 @@ public:
   {
     return type;
   }
-  
-  template <class T> bool is_type()
-  {
-    return type == typeid(T).name();
-  }
-
+ 
   bool is_type(const string & type_)
-  {
+  {    
     return type_ == type;
   }
 
-  const string & get_data()
+  const string get_data()
   {
+    unique_lock<mutex> lock(mtx);
     return data;
   }
-  
-  template <class T> const T * get(){
-    if(is_type<T>())
-      return nullptr;
-    
-    return flatbuffers::GetRoot<T>((const void*)data.c_str());
-  }  
+
+  template<class T> const T * get()
+  {
+    return flatbuffers::GetRoot<T>(data.c_str());
+  }
 };
 
 
