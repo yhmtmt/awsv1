@@ -22,12 +22,14 @@ class t_base
 protected:
   string name;
   string type;
-  string data;
+  size_t size;
+  shared_ptr<const char> data;
   mutex mtx;
 
   map<string, f_base*> refs;
 public:
-  t_base(const string & type_, const string & name_):type(type_), name(name_)
+  t_base(const string & type_, const string & name_):type(type_), name(name_),
+						     size(0), data(nullptr)
   {
   }
   
@@ -44,15 +46,12 @@ public:
   void set(const string & data_)
   {
     unique_lock<mutex> lock(mtx);
-    data = move(data_);
+    size = data_.size();
+    char * p = (char*)malloc(size);
+    memcpy((void*)p, data_.data(), size);    
+    data = shared_ptr<const char>(p);
   }
-  
-  void set(string & data_)
-  {
-    unique_lock<mutex> lock(mtx);
-    data = move(data_);
-  }
-
+ 
   bool set_flt_ref(const string & flt_tbl_name, f_base * flt);
 
   void del_flt_ref(f_base * flt);
@@ -72,15 +71,26 @@ public:
     return type_ == type;
   }
 
-  const string get_data()
+  bool is_same(shared_ptr<const char> & data_)
+  {
+    return data_ == data;
+  }
+  
+  shared_ptr<const char> get_data()
   {
     unique_lock<mutex> lock(mtx);
     return data;
   }
 
+  const size_t get_data_size()
+  {
+    unique_lock<mutex> lock(mtx);
+    return size;
+  }
+
   template<class T> const T * get()
   {
-    return flatbuffers::GetRoot<T>(data.c_str());
+    return flatbuffers::GetRoot<T>((const void*)data.get());
   }
 };
 

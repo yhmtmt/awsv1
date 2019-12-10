@@ -54,7 +54,8 @@ public:
     }
     
     if(tbl){
-      data->set_tbl(tbl->get_data());
+      string tbl_data((const char*)tbl->get_data().get(), tbl->get_data_size());
+      data->set_tbl(tbl_data);
     }else{
       data->set_tbl(string());
     }

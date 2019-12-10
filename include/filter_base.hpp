@@ -40,7 +40,9 @@
 
 #include <typeinfo>
 #include <iostream>
+#include <memory>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <vector>
 #include <map>
@@ -91,7 +93,7 @@ protected:
   struct s_table_info
   {
     t_base * table;
-    string data;
+    shared_ptr<const char> data;
     const void ** obj;
     s_table_info():table(nullptr), obj(nullptr){}
   };
@@ -102,10 +104,12 @@ public:
   void update_table_objects()
   {
     for (auto tbl = tables.begin(); tbl != tables.end(); tbl++){
-      s_table_info ti = tbl->second;
-      if(ti.table && ti.obj){	
-	ti.data = ti.table->get_data();
-	(*ti.obj) = flatbuffers::GetRoot<void>((const void*)ti.data.c_str());
+      s_table_info & ti = tbl->second;
+      if(ti.table && ti.obj){
+	if(!ti.table->is_same(ti.data)){	  
+	  ti.data = ti.table->get_data();
+	  (*ti.obj) = flatbuffers::GetRoot<void>((const void*)ti.data.get());
+	}
       }
     }
   }

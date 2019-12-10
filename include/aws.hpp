@@ -15,10 +15,12 @@
 // You should have received a copy of the GNU General Public License
 // along with c_aws.h.  If not, see <http://www.gnu.org/licenses/>.
 #include <cstdio>
+#include <cstdlib>
 #include <climits>
 #include <cmath>
 #include <cstring>
 #include <iostream>
+#include <memory>
 #include <fstream>
 #include <sstream>
 #include <vector>
