@@ -1,0 +1,43 @@
+{
+  name: "Sample",
+  pos: {
+    lat: 1.0,
+    lon: 2.0,
+    alt: 3.0
+  },
+    vel: {
+	u: 5.0,
+	v: 1.0,
+    },
+  waypoints: [
+    {
+      lat: 4.0,
+      lon: 5.0,
+      alt: 6.0
+    },
+    {
+      lat: 7.0,
+      lon: 8.0,
+      alt: 9.0
+    },
+      {
+	  lat: 10.0,
+	  lon: 11.0,
+	  alt: 12.0
+      }      
+  ],
+  clews: [
+    {
+      name: "yohei"
+    },
+    {
+      name: "matsumoto",
+      type: "Passenger"
+    }
+  ],
+  navi_type: "Clew",
+  navi: {
+    name: "matsumoto",
+    type: "Passenger"
+  }
+}
