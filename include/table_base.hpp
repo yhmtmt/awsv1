@@ -49,7 +49,7 @@ public:
     size = data_.size();
     char * p = (char*)malloc(size);
     memcpy((void*)p, data_.data(), size);    
-    data = shared_ptr<const char>(p);
+    data = shared_ptr<const char>(p, free);
   }
  
   bool set_flt_ref(const string & flt_tbl_name, f_base * flt);
