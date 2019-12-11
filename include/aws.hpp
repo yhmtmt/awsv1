@@ -52,6 +52,7 @@ using grpc::Status;
 
 using CommandService::Config;
 using CommandService::Command;
+using CommandService::FltrInfo;
 using CommandService::TblRef;
 using CommandService::TblInfo;
 using CommandService::TblData;
@@ -122,6 +123,9 @@ public:
 class c_aws: public CmdAppBase
 {
 public:
+  bool add_filter(const string & type, const string & name);  
+  bool del_filter(const string & name);
+  
   bool gen_table(const string & type_name, const string & inst_name)
   {
     auto tbl = get_table(inst_name);
@@ -238,7 +242,7 @@ protected:
   
   // create and add filter
   bool add_filter(s_cmd & cmd);
-  
+   
   // check filter graph
   bool check_graph();
   

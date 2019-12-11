@@ -3,11 +3,19 @@ syntax = "proto3";
 package CommandService;
 
 service Command{
+	rpc GenFltr(FltrInfo) returns (Result) {}
+	rpc DelFltr(FltrInfo) returns (Result) {}
+
 	rpc GenTbl(TblInfo) returns (Result) {}
 	rpc GetTbl(TblInfo) returns (TblData) {}
 	rpc SetTbl(TblData) returns (Result) {}
 	rpc SetTblRef(TblRef) returns (Result) {}
-	rpc DelTbl(TblInfo) returns (Result) {}
+	rpc DelTbl(TblInfo) returns (Result) {}	
+}
+
+message FltrInfo{
+	string type_name = 1;
+	string inst_name = 2;
 }
 
 message TblRef{

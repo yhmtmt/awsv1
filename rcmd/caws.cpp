@@ -14,6 +14,7 @@ using grpc::Status;
 
 using CommandService::Config;
 using CommandService::Command;
+using CommandService::FltrInfo;
 using CommandService::TblRef;
 using CommandService::TblInfo;
 using CommandService::TblData;
@@ -22,15 +23,17 @@ using CommandService::Result;
 #include "table_util.hpp"
 
 enum cmd_id{
-  GEN_TBL = 0, GET_TBL, SET_TBL, SET_TBL_REF, DEL_TBL,  JSON, UNKNOWN
+  GEN_FLTR=0, DEL_FLTR, GEN_TBL, GET_TBL, SET_TBL, SET_TBL_REF, DEL_TBL,  JSON, UNKNOWN
 };
 
 const char * str_cmd[UNKNOWN] = {
-  "gentbl", "gettbl", "settbl", "settblref", "deltbl", ".json"
+  "genfltr", "delfltr", "gentbl", "gettbl", "settbl", "settblref", "deltbl", ".json"
 };
 
 const char * str_cmd_usage[UNKNOWN] =
 {
+  "<name> <type>",
+  "<name>",
   "<name> <type>",
   "<name> [<type>]",
   "<name> <type> [ -f <json file> | -s <json string> ]",
@@ -76,6 +79,37 @@ public:
   {
   }
 
+  bool GenFltr(const std::string & name, const std::string & type)
+  {
+    FltrInfo info;
+    info.set_type_name(type);
+    info.set_inst_name(name);
+    Result res;
+    ClientContext context;
+    Status status = stub_->GenFltr(&context, info, &res);
+    if(!status.ok()){
+      std::cout << "Error:" << res.message() << std::endl;
+      return false;
+    }
+
+    return true;
+  }
+
+  bool DelFltr(const std::string & name)
+  {
+    FltrInfo info;
+    info.set_inst_name(name);
+    Result res;
+    ClientContext context;
+    Status status = stub_->GenFltr(&context, info, &res);
+    if(!status.ok()){
+      std::cout << "Error:" << res.message() << std::endl;
+      return false;
+    }
+    
+    return true;
+  }
+  
   bool GenTbl(const std::string & name, const std::string & type)
   {
     TblInfo info;
@@ -259,6 +293,18 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
   }
 
   switch(id){
+  case GEN_FLTR:
+    if(argc != 4){
+      dump_usage(id);
+      return false;
+    }
+    return handler.GenFltr(argv[2], argv[3]);
+  case DEL_FLTR:
+    if(argc != 3){
+      dump_usage(id);
+      return false;
+    }
+    return handler.DelFltr(argv[2]);
   case GEN_TBL:
     if(argc != 4){
       dump_usage(id);

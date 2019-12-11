@@ -23,6 +23,35 @@ private:
   c_aws * paws;
 public:
   CommandServiceImpl(c_aws * paws_):paws(paws_){};
+
+  Status GenFltr(ServerContext * context, const FltrInfo * inf,
+		 Result * res) override
+  {
+    if(paws->add_filter(inf->type_name(), inf->inst_name()))
+      res->set_is_ok(true);
+    else{
+      string msg("Failed to generate filter ");
+      msg += inf->inst_name() + " of " + inf->type_name();
+      res->set_is_ok(false);
+      res->set_message(msg);
+      spdlog::error(msg);
+    }
+    return Status::OK;
+  }
+
+  Status DelFltr(ServerContext * context, const FltrInfo * inf,
+		 Result * res) override
+  {
+    if(paws->del_filter(inf->inst_name())){
+      res->set_is_ok(true);
+    }else{
+      string msg("Failed to remove filter ");
+      msg += inf->inst_name() + ".";
+      res->set_message(msg);
+      res->set_is_ok(false);
+    }
+    return Status::OK;
+  }
   
   Status GenTbl(ServerContext * context, const TblInfo * inf,
 		Result * res) override
@@ -983,6 +1012,60 @@ bool c_aws::add_channel(s_cmd & cmd)
   if(pchan == NULL)
     return false;
   m_channels.push_back(pchan);
+  return true;
+}
+
+bool c_aws::add_filter(const string & type, const string & name)
+{
+  if(get_filter(name) != nullptr){
+    spdlog::error("Filter {} of {} has already been instantiated.", name, type);    
+    return false;
+  }
+  auto filter_lib = filter_libs.find(type);
+  if(filter_lib == filter_libs.end()){
+    string path;
+    path = conf.lib_path() + string("/lib") + type + string(".so");
+    
+    unique_ptr<c_filter_lib> lib(new c_filter_lib);
+    if(!lib->load(path)){
+      spdlog::error("Failed to load shared object {}.", path);
+      return false;
+    }
+
+    spdlog::info("{} successfully loaded.", path);
+    filter_libs.insert(
+		       make_pair(type,
+				 std::unique_ptr<c_filter_lib>(move(lib)))
+		       );
+    
+    filter_lib = filter_libs.find(type);
+  }
+
+  f_base * pfilter = filter_lib->second->create(name);
+  if(pfilter == nullptr){
+    spdlog::error("Failed to instantiate filter {0} of {1}", name, type);
+    return false;
+  }
+
+  filters.insert(make_pair(name, pfilter));  
+  
+  spdlog::info("Filter {} created.", name);
+
+  return true;
+}
+
+bool c_aws::del_filter(const string & name)
+{
+  auto itr = filters.find(name);
+  if(itr != filters.end()){
+    filters.erase(itr);
+    spdlog::info("Filter {} removed.", name);    
+  }else{
+    string message("Filter named ");
+    message += name + " cannot be found.";
+    spdlog::error(message);
+    return false;
+  }
   return true;
 }
 
