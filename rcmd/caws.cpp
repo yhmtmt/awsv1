@@ -101,7 +101,7 @@ public:
     info.set_inst_name(name);
     Result res;
     ClientContext context;
-    Status status = stub_->GenFltr(&context, info, &res);
+    Status status = stub_->DelFltr(&context, info, &res);
     if(!status.ok()){
       std::cout << "Error:" << res.message() << std::endl;
       return false;
@@ -227,10 +227,9 @@ public:
     return true;
   }
   
-  bool DelTbl(const std::string & name, const std::string type)
+  bool DelTbl(const std::string & name)
   {
     TblInfo info;
-    info.set_type_name(type);
     info.set_inst_name(name);
 
     Result res;
@@ -334,7 +333,7 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
       dump_usage(id);
       return false;
     }
-    return handler.DelTbl(argv[2], argv[3]);
+    return handler.DelTbl(argv[2]);
   default:
     return false;
   }
