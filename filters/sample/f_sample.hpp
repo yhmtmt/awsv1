@@ -24,29 +24,14 @@ using namespace Filter::Sample;
 class f_sample: public f_base // 1) inherit from f_base
 {
 private:
-
+  // 2) Define pointers of some flatbuffers tables
   const Sample * sample; // sample table
   
-  // 2) define variables used in this filter (you can define channel aliases)
-  double m_f64par;
-  long long m_s64par;
-  unsigned long long m_u64par;
-  int val;
-  bool increment;
 public:
   // 3) constructor should have an object name as a c-string. Then the object name should be passed to the f_base constructor.
-  f_sample(const char * fname): f_base(fname), sample(nullptr),
-				m_f64par(0.), m_s64par(0), m_u64par(0),
-				val(0), increment(false)
+  f_sample(const char * fname): f_base(fname), sample(nullptr)
   {
-    // 3-1) register variables to be accessed from consoles by calling register_fpar. These parameters are set via fset command.
-    // 3-1-1) Channels can be registered as parameters. (Channels are the data object which can be shared with other filter objects.)
-    
-    // 3-1-2) Typical types are also supported.
-    register_fpar("f64par", &m_f64par, "Double precision floating point number.");
-    register_fpar("s64par", &m_s64par, "64 bit signed integer.");
-    register_fpar("u64par", &m_u64par, "64 bit unsigned integer.");
-    register_fpar("increment", &increment, "Enable incrementing val");
+    // 3-1) register table defined in (2). "sample" means the table name refered in the filter. The table content would be automatically updated. 
     register_table("sample", (const void**)&sample);
   }
   
@@ -55,16 +40,15 @@ public:
     //		open file or communication channels, set up and check channels and their aliases.
     return true;
   }
-  
+
+  // override this function if you need to do something in stopping filter thread
   virtual void destroy_run(){
-    // override this function if you need to do something in stopping filter thread
   }
-  
+
+  // 5) implement your filter body. this function is called in the loop of fthread.  
   virtual bool proc();
-    // 5) implement your filter body. this function is called in the loop of fthread.
+    
 };
-// 6) you should jump toward f_base.cpp and add the line of creation code to f_base::create the factory function.
-// 7) If you are the linux builder, the filter object should be added to the Makefile.
 
 
 #endif

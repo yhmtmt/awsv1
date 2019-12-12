@@ -110,6 +110,8 @@ public:
 	  ti.data = ti.table->get_data();
 	  (*ti.obj) = flatbuffers::GetRoot<void>((const void*)ti.data.get());
 	}
+      }else{
+	(*ti.obj) = nullptr;
       }
     }
   }
