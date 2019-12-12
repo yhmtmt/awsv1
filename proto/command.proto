@@ -3,6 +3,10 @@ syntax = "proto3";
 package CommandService;
 
 service Command{
+	rpc Run(RunParam) returns (Result) {}
+	rpc Stop(StopParam) returns (Result) {}
+	rpc Quit(QuitParam) returns (Result) {}
+	
 	rpc GenFltr(FltrInfo) returns (Result) {}
 	rpc DelFltr(FltrInfo) returns (Result) {}
 
@@ -11,6 +15,15 @@ service Command{
 	rpc SetTbl(TblData) returns (Result) {}
 	rpc SetTblRef(TblRef) returns (Result) {}
 	rpc DelTbl(TblInfo) returns (Result) {}	
+}
+
+message RunParam{
+}
+
+message StopParam{
+}
+
+message QuitParam{
 }
 
 message FltrInfo{

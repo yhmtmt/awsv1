@@ -1056,8 +1056,13 @@ bool c_aws::add_filter(const string & type, const string & name)
 
 bool c_aws::del_filter(const string & name)
 {
-  auto itr = filters.find(name);
+  auto itr = filters.find(name);  
   if(itr != filters.end()){
+    if(itr->second->is_active()){
+      spdlog::error("Filer {} is active.", name);      
+      return false;
+    }
+    
     filters.erase(itr);
     spdlog::info("Filter {} removed.", name);    
   }else{
