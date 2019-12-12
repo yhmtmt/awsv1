@@ -14,6 +14,9 @@ using grpc::Status;
 
 using CommandService::Config;
 using CommandService::Command;
+using CommandService::RunParam;
+using CommandService::StopParam;
+using CommandService::QuitParam;
 using CommandService::FltrInfo;
 using CommandService::TblRef;
 using CommandService::TblInfo;
@@ -23,15 +26,18 @@ using CommandService::Result;
 #include "table_util.hpp"
 
 enum cmd_id{
-  GEN_FLTR=0, DEL_FLTR, GEN_TBL, GET_TBL, SET_TBL, SET_TBL_REF, DEL_TBL,  JSON, UNKNOWN
+  RUN=0, STOP, QUIT, GEN_FLTR, DEL_FLTR, GEN_TBL, GET_TBL, SET_TBL, SET_TBL_REF, DEL_TBL,  JSON, UNKNOWN
 };
 
 const char * str_cmd[UNKNOWN] = {
-  "genfltr", "delfltr", "gentbl", "gettbl", "settbl", "settblref", "deltbl", ".json"
+  "run", "stop", "quit", "genfltr", "delfltr", "gentbl", "gettbl", "settbl", "settblref", "deltbl", ".json"
 };
 
 const char * str_cmd_usage[UNKNOWN] =
 {
+  "<filter name>",
+  "<filter type>",
+  "",
   "<name> <type>",
   "<name>",
   "<name> <type>",
@@ -77,6 +83,50 @@ public:
     : stub_(CommandService::Command::NewStub(channel)),
       lib_path_(lib_path)
   {
+  }
+
+  bool Run(const std::string & name)
+  {
+    RunParam par;
+    par.set_fltr_name(name);
+    Result res;
+    ClientContext context;
+    Status status = stub_->Run(&context, par, &res);
+    if(!status.ok()){
+      std::cout << "Error:" << res.message() << std::endl;
+      return false;
+    }
+
+    return true;
+  }
+
+  bool Stop(const std::string & name)
+  {
+    StopParam par;
+    par.set_fltr_name(name);
+    Result res;
+    ClientContext context;
+    Status status = stub_->Stop(&context, par, &res);
+    if(!status.ok()){
+      std::cout << "Error:" << res.message() << std::endl;
+      return false;
+    }
+
+    return true;
+  }
+
+  bool Quit()
+  {
+    QuitParam par;
+    Result res;
+    ClientContext context;
+    Status status = stub_->Quit(&context, par, &res);
+    if(!status.ok()){
+      std::cout << "Error:" << res.message() << std::endl;
+      return false;
+    }
+
+    return true;    
   }
 
   bool GenFltr(const std::string & name, const std::string & type)

@@ -18,9 +18,11 @@ service Command{
 }
 
 message RunParam{
+	string fltr_name = 1;
 }
 
 message StopParam{
+	string fltr_name = 1;
 }
 
 message QuitParam{

@@ -24,6 +24,44 @@ private:
 public:
   CommandServiceImpl(c_aws * paws_):paws(paws_){};
 
+  Status Run(ServerContext * context, const RunParam * par,
+	     Result * res) override
+  {
+    if(paws->run_filter(par->fltr_name())){
+      res->set_is_ok(true);
+    }else{
+      string msg ("Failed to run filter ");
+      msg += par->fltr_name() + ".";
+      res->set_is_ok(false);
+      res->set_message(msg);
+      spdlog::error(msg);
+    }
+    return Status::OK;
+  }
+
+  Status Stop(ServerContext * context, const StopParam * par,
+	      Result * res) override
+  {
+    if(paws->stop_filter(par->fltr_name())){
+      res->set_is_ok(true);
+    }else{
+      string msg("Failed to stop filter ");
+      msg += par->fltr_name() + ".";
+      res->set_is_ok(false);
+      res->set_message(msg);
+      spdlog::error(msg);
+    }
+    return Status::OK;
+  }
+
+  Status Quit(ServerContext * context, const QuitParam * par,
+	      Result * res) override
+  {
+    paws->quit();
+    res->set_is_ok(true);
+    return Status::OK;
+  }
+  
   Status GenFltr(ServerContext * context, const FltrInfo * inf,
 		 Result * res) override
   {
@@ -334,6 +372,7 @@ bool c_aws::push_command(const char * cmd_str, char * ret_str,
 }
 
 ///////////////////////// command handler
+
 // handle_stop stops all the filters in the graph
 bool c_aws::handle_stop()
 {
@@ -1216,6 +1255,14 @@ bool c_aws::main()
   thread server_thread([&](){server->Wait();});
   spdlog::info("Command service started on {}.", server_address);
   
+  f_base::set_tz(m_time_zone_minute);
+  m_bonline = true;
+  m_start_time = (long long) time(NULL) * SEC; 
+  m_end_time = LLONG_MAX;
+  f_base::m_clk.start((unsigned) m_cycle_time, 
+		      (unsigned) m_cycle_time, m_start_time, 
+		      m_bonline, m_time_rate);
+    
   while(!m_exit){
     proc_command();
     if(!f_base::m_clk.is_stop()){
@@ -1233,27 +1280,9 @@ bool c_aws::main()
 	  itr != filters.end(); itr++){
 	if(itr->second->is_main_thread())
 	  itr->second->fthread();
-	if(!itr->second->is_active()){
-	  cout << itr->second->get_name() << " stopped." << endl;
-	  f_base::m_clk.stop();
-	  break;
-	}
-      }
-      
-      // Time is exceeded over m_end_time, automatically pause.
-      if(!m_bonline && m_time >= m_end_time){
-	f_base::m_clk.pause();
-      }
-      
-      if(f_base::m_clk.is_stop()){
-	// stop all the filters
-	handle_stop();
-	m_exit = true;
-      }
+      }      
     }
   }
-
-  handle_stop();
 
   server->Shutdown();
   server_thread.join();

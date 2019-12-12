@@ -52,6 +52,9 @@ using grpc::Status;
 
 using CommandService::Config;
 using CommandService::Command;
+using CommandService::RunParam;
+using CommandService::StopParam;
+using CommandService::QuitParam;
 using CommandService::FltrInfo;
 using CommandService::TblRef;
 using CommandService::TblInfo;
@@ -123,6 +126,47 @@ public:
 class c_aws: public CmdAppBase
 {
 public:
+  bool run_filter(const string & name)
+  {
+    auto itr = filters.find(name);
+    if(itr == filters.end()){
+      spdlog::error("Failed to run filter {}.", name);
+      return false;
+    }
+
+    f_base * filter = itr->second;
+    
+    if(!filter->run()){
+      spdlog::error("Failed to run filter {}.", name);      
+      return false;
+    }
+    
+    return true;
+  }
+  
+  bool stop_filter(const string & name)
+  {
+    auto itr = filters.find(name);
+    if(itr == filters.end()){
+      spdlog::error("No filter {} found, cannot be stopped.", name);
+      return false;
+    }
+
+    f_base * filter = itr->second;
+    while(!filter->stop());
+    
+    filter->destroy();
+    filter->runstat();
+    
+    return true;
+  }
+
+  void quit()
+  {
+    spdlog::info("Quit aws");
+    m_exit = true;
+  }
+  
   bool add_filter(const string & type, const string & name);  
   bool del_filter(const string & name);
   
@@ -263,14 +307,15 @@ protected:
   bool handle_rcmd(s_cmd & cmd);
   bool handle_trat(s_cmd & cmd);
   bool handle_run(s_cmd & cmd);
-  bool handle_stop();
   bool handle_frm(s_cmd & cmd);
   bool handle_chrm(s_cmd & cmd);
+  bool handle_stop();
   
 public:
   c_aws(int argc, char ** argv);
   virtual ~c_aws();
 
+ 
   // getting a pointer of a channel object by its name.
   ch_base * get_channel(const char * name);
 

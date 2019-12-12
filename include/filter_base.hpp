@@ -374,6 +374,25 @@ public:
   }
   
   // invoke main thread.
+  virtual bool run()
+  {
+    if(!init_run()){
+      return false;
+    }
+    
+    m_prev_time = get_time();
+        
+    m_bactive = true;
+    m_bstopped = false;
+    m_count_proc =  0;	
+    m_max_cycle = 0;
+    m_cycle = 0;
+    m_count_pre = m_count_post = m_count_clock;
+    if (!is_main_thread())
+      m_fthread = new thread(sfthread, this);
+    return true;    
+  }
+  
   virtual bool run(long long start_time, long long end_time)
   {
     if(!init_run()){
