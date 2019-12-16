@@ -381,7 +381,8 @@ public:
     }
     
     m_prev_time = get_time();
-        
+    spdlog::info("Starting filter {} at {}.", m_name, m_prev_time);
+    
     m_bactive = true;
     m_bstopped = false;
     m_count_proc =  0;	

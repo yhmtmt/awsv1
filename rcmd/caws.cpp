@@ -342,6 +342,24 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
   }
 
   switch(id){
+  case RUN:
+    if(argc != 3){
+      dump_usage(id);
+      return false;
+    }
+    return handler.Run(argv[2]);
+  case STOP:
+    if(argc != 3){
+      dump_usage(id);
+      return false;
+    }
+    return handler.Stop(argv[2]);
+  case QUIT:
+    if(argc != 2){
+      dump_usage(id);
+      return false;
+    }
+    return handler.Quit();
   case GEN_FLTR:
     if(argc != 4){
       dump_usage(id);
