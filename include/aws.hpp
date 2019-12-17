@@ -56,15 +56,20 @@ using CommandService::RunParam;
 using CommandService::StopParam;
 using CommandService::QuitParam;
 using CommandService::FltrInfo;
+using CommandService::ChInfo;
 using CommandService::TblRef;
 using CommandService::TblInfo;
 using CommandService::TblData;
 using CommandService::Result;
 
+
+#include "aws_const.hpp"
 #include "aws_stdlib.hpp"
 #include "aws_sock.hpp"
+#include "aws_coord.hpp"
 #include "aws_thread.hpp"
 #include "aws_clock.hpp"
+#include "aws_map.hpp"
 
 #include "table_base.hpp"
 #include "channel_base.hpp"
@@ -169,6 +174,8 @@ public:
   
   bool add_filter(const string & type, const string & name);  
   bool del_filter(const string & name);
+  bool add_channel(const string & type, const string & name);
+  bool del_channel(const string & name);
   
   bool gen_table(const string & type_name, const string & inst_name)
   {
@@ -224,6 +231,11 @@ public:
   f_base * get_filter(const string & name)
   {
     return get_filter(name.c_str());
+  }
+
+  ch_base * get_channel(const string & name)
+  {
+    return get_channel(name.c_str());
   }
 protected:
   s_cmd m_cmd;

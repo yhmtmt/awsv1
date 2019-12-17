@@ -90,6 +90,35 @@ public:
     }
     return Status::OK;
   }
+
+  Status GenCh(ServerContext * context, const ChInfo * inf,
+	       Result * res) override
+  {
+    if(paws->add_channel(inf->type_name(), inf->inst_name()))
+      res->set_is_ok(true);
+    else{
+      string msg("Failed to generate channel ");
+      msg += inf->inst_name() + " of " + inf->type_name() + ".";
+      res->set_is_ok(false);
+      res->set_message(msg);
+      spdlog::error(msg);
+    }
+    return Status::OK;
+  }
+
+  Status DelCh(ServerContext * context, const ChInfo * inf,
+	       Result * res) override
+  {
+    if(paws->del_channel(inf->inst_name())){
+      res->set_is_ok(true);
+    }else{
+      string msg("Failed to remove channel ");
+      msg += inf->inst_name() + ".";
+      res->set_message(msg);
+      res->set_is_ok(false);
+    }
+    return Status::OK;
+  }
   
   Status GenTbl(ServerContext * context, const TblInfo * inf,
 		Result * res) override
@@ -1113,6 +1142,33 @@ bool c_aws::del_filter(const string & name)
   return true;
 }
 
+bool c_aws::add_channel(const string & type, const string & name)
+{
+  if(get_channel(name) != NULL){
+    spdlog::error("Channel {} of {} has already been instantiated.", name, type);
+    return false;
+  }
+  ch_base * pchan = ch_base::create(name.c_str(), type.c_str());
+  if(pchan == NULL)
+    return false;
+
+  m_channels.push_back(pchan);
+  return true;
+}
+
+bool c_aws::del_channel(const string & name)
+{
+  for(auto itr = m_channels.begin();
+      itr != m_channels.end(); itr++){
+    if(strcmp(name.c_str(), (*itr)->get_name()) == 0){
+      m_channels.erase(itr);
+      break;
+    }
+  }
+  return true;
+}
+
+
 bool c_aws::add_filter(s_cmd & cmd)
 {
   char ** tok = cmd.args;
@@ -1239,7 +1295,6 @@ bool c_aws::main()
     if(chdir(m_working_path) != 0)
       spdlog::error("Failed to change working path to {}.", m_working_path);
   }
-
 
   spdlog::info("Filter path is configured as {}.", conf.lib_path());
   

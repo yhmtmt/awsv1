@@ -10,6 +10,9 @@ service Command{
 	rpc GenFltr(FltrInfo) returns (Result) {}
 	rpc DelFltr(FltrInfo) returns (Result) {}
 
+	rpc GenCh(ChInfo) returns (Result) {}
+	rpc DelCh(ChInfo) returns (Result) {}
+	
 	rpc GenTbl(TblInfo) returns (Result) {}
 	rpc GetTbl(TblInfo) returns (TblData) {}
 	rpc SetTbl(TblData) returns (Result) {}
@@ -29,6 +32,11 @@ message QuitParam{
 }
 
 message FltrInfo{
+	string type_name = 1;
+	string inst_name = 2;
+}
+
+message ChInfo{
 	string type_name = 1;
 	string inst_name = 2;
 }

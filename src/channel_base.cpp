@@ -1,5 +1,4 @@
-// Copyright(c) 2012 Yohei Matsumoto, Tokyo University of Marine
-// Science and Technology, All right reserved. 
+// Copyright(c) 2019 Yohei Matsumoto, All right reserved. 
 
 // ch_base is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -27,21 +26,4 @@ ch_base * ch_base::create(const char * type_name, const char * chan_name)
   CreateChannel creator = itr->second;
   
   return (ch_base*) creator(chan_name);
-}
-
-
-// Initialization function. 
-// This function is called at the begining of the aws process start. If you
-// need to initialize global and static data structure related to channel
-// please insert your initialization code here.
-void ch_base::init()
-{
-}
-
-// Uninitialization function. 
-// This function is called at the end of the aws process. If you add your
-// initialization code, correspodning destruction code should be added to
-// this function.
-void ch_base::uninit()
-{
 }

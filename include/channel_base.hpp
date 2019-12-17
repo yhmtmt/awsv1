@@ -1,7 +1,6 @@
 #ifndef _CH_BASE_H_
 #define _CH_BASE_H_
-// Copyright(c) 2012 Yohei Matsumoto, Tokyo University of Marine
-// Science and Technology, All right reserved. 
+// Copyright(c) 2019 Yohei Matsumoto, All right reserved. 
 
 // ch_base.h is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,6 +15,26 @@
 // You should have received a copy of the GNU General Public License
 // along with ch_base.h.  If not, see <http://www.gnu.org/licenses/>. 
 
+#include <typeinfo>
+#include <iostream>
+#include <memory>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <climits>
+#include <cfloat>
+#include <vector>
+#include <map>
+#include <list>
+#include <queue>
+using namespace std;
+
+#include "aws_const.hpp"
+#include "aws_coord.hpp"
+#include "aws_clock.hpp"
+#include "aws_stdlib.hpp"
+#include "aws_sock.hpp"
+#include "aws_thread.hpp"
 #include "aws_command.hpp"
 
 class f_base;
@@ -49,6 +68,9 @@ public:
   
   // uninitialize mutex and signal objects. called by the c_aws destoractor
   static void uninit();
+
+  static void register_factory();
+  
 protected:
   char * m_name;
   mutex m_mtx;

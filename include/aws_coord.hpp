@@ -35,6 +35,6 @@ void eceftowrld(const double * Rrot,
 		double & xwrld, double & ywrld, double & zwrld
 		);
 
-void getwrldrot(const double lat, const double lon, const double * Rwrld);
+void getwrldrot(const double lat, const double lon, double * Rwrld);
 
 #endif
