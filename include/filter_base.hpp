@@ -40,6 +40,7 @@
 
 #include <typeinfo>
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <cmath>
 #include <cstdlib>

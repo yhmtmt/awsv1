@@ -22,6 +22,7 @@ set(FLAT_SRC_DIR ${PROJECT_SOURCE_DIR}/fbs/src)
 include_directories(PUBLIC ${FLAT_SRC_DIR})
 
 file(GLOB CHANS ${PROJECT_SOURCE_DIR}/channels/*.cpp)
+include_directories(PUBLIC ${PROJECT_SOURCE_DIR}/channels)
 
 flatc_generate_cpp(FLAT_HDRS FLAT_BFBS ${FLAT_SRC_DIR} ${FLATS})
 add_custom_target(generate-protosrcs ALL DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
