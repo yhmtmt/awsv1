@@ -1,13 +1,13 @@
-#ifndef F_BASE_H
-#define F_BASE_H
+#ifndef FILTER_BASE_H
+#define FILTER_BASE_H
 // Copyright(c) 2012,2019 Yohei Matsumoto,  All right reserved. 
 
-// f_base.hpp is free software: you can redistribute it and/or modify
+// filter_base.hpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// f_base.hpp is distributed in the hope that it will be useful,
+// filter_base.hpp is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
@@ -64,6 +64,7 @@ using namespace std;
 #include "aws_stdlib.hpp"
 #include "aws_sock.hpp"
 #include "aws_thread.hpp"
+#include "aws_serial.hpp"
 #include "aws_command.hpp"
 #include "table_base.hpp"
 #include "channel_base.hpp"

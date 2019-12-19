@@ -17,8 +17,47 @@
 
 
 #include "channel_base.hpp"
-#include "socketutil.h"
-#include "garminxhd.h"
+
+// This constants are temporal ones.  Make the file independent from
+// radar type.
+#define GARMIN_XHD_SPOKES 1440
+#define GARMIN_XHD_MAX_SPOKE_LEN 705
+
+
+struct GeoPosition {
+  double lat;
+  double lon;
+};
+
+enum RadarControlState {
+  RCS_OFF = -1,
+  RCS_MANUAL = 0,
+  RCS_AUTO_1,
+  RCS_AUTO_2,
+  RCS_AUTO_3,
+  RCS_AUTO_4,
+  RCS_AUTO_5,
+  RCS_AUTO_6,
+  RCS_AUTO_7,
+  RCS_AUTO_8,
+  RCS_AUTO_9
+};
+
+enum radar_command_id{
+  RC_TXOFF, RC_TXON, RC_RANGE,
+  RC_BEARING_ALIGNMENT,
+  RC_NO_TRANSMIT_START,
+  RC_NO_TRANSMIT_END,  
+  RC_GAIN,
+  RC_SEA,
+  RC_RAIN,
+  RC_INTERFERENCE_REJECTION,
+  RC_SCAN_SPEED,
+  RC_TIMED_IDLE,
+  RC_TIMED_RUN,
+  RC_IMG,
+  RC_NONE
+};
 
 struct radar_command{
   radar_command_id id;
