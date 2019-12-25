@@ -202,7 +202,7 @@ public:
     m_dtype = (e_obj_data_type)(m_dtype & ~EOD_POS_ECEF & ~EOD_VEL_ECEF);
   }
   
-  bool get_pos_ecef(float & x, float & y, float & z){
+  bool get_pos_ecef(double & x, double & y, double & z){
     x = m_x;
     y = m_y;
     z = m_z;
