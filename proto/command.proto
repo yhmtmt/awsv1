@@ -9,15 +9,20 @@ service Command{
 	
 	rpc GenFltr(FltrInfo) returns (Result) {}
 	rpc DelFltr(FltrInfo) returns (Result) {}
+	rpc LstFltrs(LstFltrsParam) returns (FltrLst) {}
+	rpc SetFltrPar(FltrInfo) returns (Result) {}
+	rpc GetFltrPar(FltrInfo) returns (FltrInfo) {}
 
 	rpc GenCh(ChInfo) returns (Result) {}
 	rpc DelCh(ChInfo) returns (Result) {}
+	rpc LstChs(LstChsParam) returns (ChLst) {}
 	
 	rpc GenTbl(TblInfo) returns (Result) {}
 	rpc GetTbl(TblInfo) returns (TblData) {}
 	rpc SetTbl(TblData) returns (Result) {}
 	rpc SetTblRef(TblRef) returns (Result) {}
-	rpc DelTbl(TblInfo) returns (Result) {}	
+	rpc DelTbl(TblInfo) returns (Result) {}
+	rpc LstTbls(LstTblsParam) returns (TblLst) {}
 }
 
 message RunParam{
@@ -34,11 +39,32 @@ message QuitParam{
 message FltrInfo{
 	string type_name = 1;
 	string inst_name = 2;
+	repeated FltrParInfo pars = 3;
+}
+
+message FltrParInfo{
+	string name = 1;
+	string exp = 2;
+	string val = 3;
+}
+
+message LstFltrsParam{
+}
+
+message FltrLst{
+	repeated FltrInfo fltrs = 1;
 }
 
 message ChInfo{
 	string type_name = 1;
 	string inst_name = 2;
+}
+
+message LstChsParam{
+}
+
+message ChLst{
+	repeated ChInfo chs = 1;
 }
 
 message TblRef{
@@ -56,6 +82,13 @@ message TblData{
 	string inst_name = 1;
 	string type_name = 2;
 	bytes tbl = 3;
+}
+
+message LstTblsParam{
+}
+
+message TblLst{
+	repeated TblInfo tbls = 1;
 }
 
 message Result {
