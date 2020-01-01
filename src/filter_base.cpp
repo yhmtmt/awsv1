@@ -173,6 +173,17 @@ tmex f_base::m_tm;
 c_clock f_base::m_clk;
 c_aws * f_base::m_paws = NULL;
 
+void f_base::set_lib(c_filter_lib * lib)
+{
+  m_lib = lib;
+  m_lib->ref_up();
+}
+
+const string & f_base::get_type_name()
+{
+  return m_lib->get_type_name();  
+}
+
 
 // this is the filter thread function, but actually called from main thread.
 // this function is used if the filter should be executed in the main thread such as the case using OpenGL
@@ -278,7 +289,8 @@ void f_base::clock(long long cur_time)
   m_cond.notify_all();
 }
 
-f_base::f_base(const char * name):m_offset_time(0), m_bactive(false),
+f_base::f_base(const char * name):m_lib(nullptr),
+				  m_offset_time(0), m_bactive(false),
 				  m_fthread(NULL), m_intvl(1), m_bstopped(true),
 				  m_cmd(false), m_mutex_cmd()
 {
@@ -298,6 +310,7 @@ f_base::~f_base()
   m_chin.clear();
   m_chout.clear();
   delete [] m_name;
+  m_lib->ref_down();
 }
 
 

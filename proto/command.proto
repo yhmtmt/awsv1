@@ -39,7 +39,8 @@ message QuitParam{
 message FltrInfo{
 	string type_name = 1;
 	string inst_name = 2;
-	repeated FltrParInfo pars = 3;
+	bool is_active = 3;
+	repeated FltrParInfo pars = 4;
 }
 
 message FltrParInfo{

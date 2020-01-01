@@ -74,6 +74,7 @@ using namespace std;
   
 class f_base;
 class c_aws;
+class c_filter_lib;
 
 #define DEFINE_FILTER(class_name) \
   extern "C" f_base * factory(const std::string & name){\
@@ -93,6 +94,7 @@ public:
   static void uninit();
   
 protected:
+  c_filter_lib * m_lib;
   char * m_name; // filter name
   struct s_table_info
   {
@@ -147,11 +149,20 @@ public:
     }
     return false; // no such table
   }
+
+  void set_lib(c_filter_lib * lib);
+
+  const c_filter_lib * get_lib()
+  {
+    return m_lib;
+  }
   
   const char * get_name()
   {
     return m_name;
   };
+
+  const string & get_type_name();
   
   ///////////////////////////////////////// channel and the methods
 protected:

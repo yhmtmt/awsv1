@@ -91,6 +91,13 @@ public:
     return Status::OK;
   }
 
+  Status LstFltrs(ServerContext * context, const LstFltrsParam * par,
+		  FltrLst * lst) override
+  {
+    paws->get_fltr_lst(lst);
+    return Status::OK;
+  }
+
   Status GenCh(ServerContext * context, const ChInfo * inf,
 	       Result * res) override
   {
@@ -1086,21 +1093,18 @@ bool c_aws::add_channel(s_cmd & cmd)
 bool c_aws::add_filter(const string & type, const string & name)
 {
   if(get_filter(name) != nullptr){
-    spdlog::error("Filter {} of {} has already been instantiated.", name, type);    
+    spdlog::error("Filter {} of {} has already been instantiated.", name, type);
     return false;
   }
   auto filter_lib = filter_libs.find(type);
-  if(filter_lib == filter_libs.end()){
-    string path;
-    path = conf.lib_path() + string("/lib") + type + string(".so");
-    
+  if(filter_lib == filter_libs.end()){   
     unique_ptr<c_filter_lib> lib(new c_filter_lib);
-    if(!lib->load(path)){
-      spdlog::error("Failed to load shared object {}.", path);
+    if(!lib->load(conf.lib_path(), type)){
+      spdlog::error("Failed to load filter library {}.", type);
       return false;
     }
 
-    spdlog::info("{} successfully loaded.", path);
+    spdlog::info("Filter library {} successfully loaded.", type);
     filter_libs.insert(
 		       make_pair(type,
 				 std::unique_ptr<c_filter_lib>(move(lib)))
@@ -1131,8 +1135,20 @@ bool c_aws::del_filter(const string & name)
       return false;
     }
     
+    f_base * f = itr->second;
+    const c_filter_lib * lib = f->get_lib();
+    
     filters.erase(itr);
-    spdlog::info("Filter {} removed.", name);    
+    delete f;    
+    spdlog::info("Filter {} removed.", name);
+
+    // remove library if the ref-count is zero.
+    if(lib->ref() == 0){
+      string type_name = lib->get_type_name();
+      auto filter_lib = filter_libs.find(type_name);
+      filter_libs.erase(filter_lib);
+      spdlog::info("Filter lib {} is unloaded.", type_name);
+    }
   }else{
     string message("Filter named ");
     message += name + " cannot be found.";
@@ -1181,17 +1197,14 @@ bool c_aws::add_filter(s_cmd & cmd)
 
   string type_str(tok[itok]);
   auto filter_lib = filter_libs.find(type_str);
-  if(filter_lib == filter_libs.end()){
-    string path;
-    path = conf.lib_path() + string("/lib") + type_str + string(".so");
-    
+  if(filter_lib == filter_libs.end()){   
     unique_ptr<c_filter_lib> lib(new c_filter_lib);
-    if(!lib->load(path)){
-      spdlog::error("Failed to load shared object {}.", path);
+    if(!lib->load(conf.lib_path(), type_str)){
+      spdlog::error("Failed to load fliter library {}.", type_str);
       return false;
     }
 
-    spdlog::info("{} successfully loaded.", path);
+    spdlog::info("Filter library {} successfully loaded.", type_str);
     filter_libs.insert(
 		       make_pair(type_str,
 				 std::unique_ptr<c_filter_lib>(move(lib)))

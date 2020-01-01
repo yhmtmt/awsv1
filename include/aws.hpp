@@ -45,6 +45,7 @@ using namespace std;
 #include <flatbuffers/util.h>
 
 #include "command.grpc.pb.h"
+
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
@@ -55,13 +56,23 @@ using CommandService::Command;
 using CommandService::RunParam;
 using CommandService::StopParam;
 using CommandService::QuitParam;
+
 using CommandService::FltrInfo;
+using CommandService::FltrParInfo;
+using CommandService::LstFltrsParam;
+using CommandService::FltrLst;
+
 using CommandService::ChInfo;
+using CommandService::LstChsParam;
+using CommandService::ChLst;
+
 using CommandService::TblRef;
 using CommandService::TblInfo;
 using CommandService::TblData;
-using CommandService::Result;
+using CommandService::LstTblsParam;
+using CommandService::TblLst;
 
+using CommandService::Result;
 
 #include "aws_const.hpp"
 #include "aws_stdlib.hpp"
@@ -85,10 +96,12 @@ class c_rcmd;
 class c_filter_lib
 {
 private:
+  string m_type_name;
   void * m_handle;
+  int m_ref;
 public:
 
-  c_filter_lib():m_handle(nullptr)
+  c_filter_lib():m_handle(nullptr), m_ref(0)
   {
   }
   
@@ -100,8 +113,11 @@ public:
     }
   }
   
-  bool load(const string & path)
+  bool load(const string & lib_path, const string & type_name)
   {
+    m_type_name = type_name;
+    string path;
+    path = lib_path + string("/lib") + type_name + string(".so");    
     m_handle = dlopen(path.c_str(), RTLD_NOW);
     if(!m_handle){
       cerr << path << " no such lib." << endl;
@@ -120,7 +136,28 @@ public:
     fptr = (f_base* (*)(const string &))ptr;
     f_base * filter = fptr(name);
 
+    filter->set_lib(this);
     return filter;
+  }
+
+  const string & get_type_name() const
+  {
+    return m_type_name;
+  }
+
+  void ref_up()
+  {
+    m_ref++;
+  }
+
+  void ref_down()
+  {
+    m_ref--;
+  }
+  
+  const int ref() const
+  {
+    return m_ref;
   }
 };
 
@@ -233,6 +270,18 @@ public:
     return get_filter(name.c_str());
   }
 
+  void get_fltr_lst(FltrLst * lst)
+  {
+    for(auto itr = filters.begin(); itr != filters.end(); itr++){
+      f_base * f = itr->second;
+      FltrInfo * info = lst->add_fltrs();
+      info->set_inst_name(f->get_name());
+      info->set_type_name(f->get_type_name());
+      info->set_is_active(f->is_active());
+      
+    }
+  }
+  
   ch_base * get_channel(const string & name)
   {
     return get_channel(name.c_str());

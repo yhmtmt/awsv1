@@ -17,38 +17,61 @@ using CommandService::Command;
 using CommandService::RunParam;
 using CommandService::StopParam;
 using CommandService::QuitParam;
+
 using CommandService::FltrInfo;
+using CommandService::FltrParInfo;
+using CommandService::LstFltrsParam;
+using CommandService::FltrLst;
+
 using CommandService::ChInfo;
+using CommandService::LstChsParam;
+using CommandService::ChLst;
+
 using CommandService::TblRef;
 using CommandService::TblInfo;
 using CommandService::TblData;
+using CommandService::LstTblsParam;
+using CommandService::TblLst;
+
 using CommandService::Result;
 
 #include "table_util.hpp"
 
 enum cmd_id{
-  RUN=0, STOP, QUIT, GEN_FLTR, DEL_FLTR, GEN_CH, DEL_CH, GEN_TBL, GET_TBL, SET_TBL, SET_TBL_REF, DEL_TBL,  JSON, UNKNOWN
+  RUN=0, STOP, QUIT,
+  GEN_FLTR, DEL_FLTR, LST_FLTRS, SET_FLTR_PAR, GET_FLTR_PAR,
+  GEN_CH, DEL_CH, LST_CHS,
+  GEN_TBL, GET_TBL, SET_TBL, SET_TBL_REF, DEL_TBL, LST_TBLS,
+  JSON, UNKNOWN
 };
 
 const char * str_cmd[UNKNOWN] = {
-  "run", "stop", "quit", "genfltr", "delfltr", "gench", "delch",
-  "gentbl", "gettbl", "settbl", "settblref", "deltbl", ".json"
+  "run", "stop", "quit",
+  "genfltr", "delfltr", "lstfltrs", "setfltrpar", "getfltrpar",
+  "gench", "delch", "lstchs",
+  "gentbl", "gettbl", "settbl", "settblref", "deltbl", "lsttbl",
+  ".json"
 };
 
 const char * str_cmd_usage[UNKNOWN] =
 {
-  "<filter name>",
-  "<filter type>",
-  "",
-  "<name> <type>",
-  "<name>",
-  "<name> <type>",
-  "<name>",
-  "<name> <type>",
-  "<name> [<type>]",
-  "<name> <type> [ -f <json file> | -s <json string> ]",
-  "<table name> <filter name> <filter table name>",
-  "<table name>",
+  "<filter name>", // RUN
+  "<filter type>", // STOP
+  "", // QUIT
+  "<name> <type>", // GEN_FLTR
+  "<name>", // DEL_FLTR
+  "", // LST_FLTRS
+  "<filter name> [<par name> <val> ...]", // SET_FLTR_PAR
+  "<filter name> [<par name> ...]", // GET_FLTR_PAR
+  "<name> <type>", // GEN_CH
+  "<name>", // DEL_CH
+  "", // LST_CHS
+  "<name> <type>", // GEN_TBL
+  "<name> [<type>]", // GET_TBL
+  "<name> <type> [ -f <json file> | -s <json string> ]", // SET_TBL
+  "<table name> <filter name> <filter table name>", // SET_TBL_REF
+  "<table name>", // DEL_TBL
+  "", // LST_TBL
   "<json file>"
 };
 
@@ -151,14 +174,37 @@ public:
 
   bool DelFltr(const std::string & name)
   {
-    FltrInfo info;
+    FltrInfo info;    
     info.set_inst_name(name);
-    Result res;
+    Result res;    
     ClientContext context;
     Status status = stub_->DelFltr(&context, info, &res);
     if(!status.ok()){
       std::cout << "Error:" << res.message() << std::endl;
       return false;
+    }
+
+    return true;
+  }
+
+  bool LstFltrs()
+  {
+    LstFltrsParam par;
+    FltrLst lst;
+    ClientContext context;
+    Status status = stub_->LstFltrs(&context, par, &lst);
+    if(!status.ok()){
+      std::cout << "Error in LstFltrs" << std::endl;
+      return false;
+    }
+
+    for(int ifltr = 0; ifltr < lst.fltrs_size(); ifltr++){
+      const FltrInfo & info = lst.fltrs(ifltr);
+      std::cout << info.inst_name() << "\t" << info.type_name() << "\t";
+      if(info.is_active())
+	std::cout << "active" << std::endl;
+      else
+	std::cout << "inactive" << std::endl;
     }
     
     return true;
