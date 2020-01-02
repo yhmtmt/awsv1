@@ -461,6 +461,12 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
       return false;
     }
     return handler.DelFltr(argv[2]);
+  case LST_FLTRS:
+    if(argc != 2){
+      dump_usage(id);
+      return false;
+    }
+    return handler.LstFltrs();
   case GEN_TBL:
     if(argc != 4){
       dump_usage(id);
