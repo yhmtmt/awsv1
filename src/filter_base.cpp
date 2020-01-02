@@ -100,6 +100,50 @@ bool f_base::s_fpar::set(const char * valstr)
   return true;
 }
 
+bool f_base::s_fpar::get(string & valstr)
+{
+  int n;
+  ostringstream strm;
+  switch(type){
+  case F64:
+    strm << *f64; break;
+  case S64:
+    strm << *s64; break;
+  case U64:
+    strm << *u64; break;
+  case F32:
+    strm << *f32; break;
+  case S32:
+    strm << *s32; break;
+  case U32:
+    strm << *u32; break;
+  case S16:
+    strm << *s16; break;
+  case U16:
+    strm << *u16; break;
+  case S8:
+    strm << *s8; break;
+  case U8:
+    strm << *u8; break;
+  case BIN:
+    strm << ( *bin ? "y" : "n"); break;
+  case CSTR:
+    strm << cstr; break;
+  case ENUM:
+    strm << str_enum[*s32]; break;
+  case CH:
+    if(*ppch)
+      strm << (*ppch)->get_name();
+    else
+      strm << "NULL";
+    break;
+  default:
+    return false;
+  }
+  valstr = strm.str();
+  return true;  
+}
+
 bool f_base::s_fpar::get(char * valstr, size_t sz){
   int n;
   switch(type){
@@ -160,6 +204,11 @@ void f_base::s_fpar::get_info(s_cmd & cmd)
     ptr[slen-1] = '}';
     cout << endl;
   }
+}
+
+void f_base::s_fpar::get_info(string & expstr)
+{
+  expstr = string(explanation);
 }
 
 ////////////////////////////////////////////////////// f_base members
@@ -314,6 +363,18 @@ f_base::~f_base()
 }
 
 
+bool f_base::set_par(const string & par, const string & val)
+{
+  int ipar = find_par(par.c_str());
+  if(ipar < 0){
+    spdlog::error("No parameter named {} in filter {}.", par, get_name()); 
+    return false;
+  }
+  
+  m_pars[ipar].set(val.c_str());
+  return true;
+}
+
 bool f_base::set_par(s_cmd & cmd)
 {
   int iarg, ipar;
@@ -336,6 +397,48 @@ bool f_base::set_par(s_cmd & cmd)
   }
   
   return true;
+}
+
+bool f_base::get_par(const string & par, string & val)
+{
+  int ipar = find_par(par.c_str());
+  if(ipar < 0){
+    spdlog::error("No parameter named {} in filter {}.", par, get_name()); 
+    return false;
+  }
+
+  return m_pars[ipar].get(val);
+}
+
+bool f_base::get_par(const int ipar, string & par, string & val)
+{
+  if(m_pars.size() > ipar && ipar >= 0){
+    par = string(m_pars[ipar].name);
+    return m_pars[ipar].get(val);
+  }
+  return false;
+}
+
+bool f_base::get_par(const string & par, string & val, string & exp)
+{
+  int ipar = find_par(par.c_str());
+  if(ipar < 0){
+    spdlog::error("No parameter named {} in filter {}.", par, get_name());     
+    return false;
+  }
+  
+  m_pars[ipar].get_info(exp);
+  return m_pars[ipar].get(val);  
+}
+
+bool f_base::get_par(const int ipar, string & par,  string & val, string & exp)
+{
+  if(m_pars.size() > ipar && ipar >= 0){
+    par = string(m_pars[ipar].name);
+    m_pars[ipar].get_info(exp);
+    return m_pars[ipar].get(val);
+  }
+  return false;  
 }
 
 bool f_base::get_par(s_cmd & cmd)

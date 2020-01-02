@@ -221,12 +221,16 @@ protected:
     // function returns false if the length of return string exceeds
 		// sz.
     bool get(char * valstr, size_t sz);
+
+    bool get(string & valstr);
     
     // get_info() returns parameter explanation.
     void get_info(s_cmd & cmd);
+
+    void get_info(string & expstr);
   };
   
-	vector<s_fpar> m_pars; // parameter table
+  vector<s_fpar> m_pars; // parameter table
   
   // helper function for registering parameters onto the table
   
@@ -612,13 +616,23 @@ public:
   {
     m_mutex_cmd.unlock();
   }
+
+  const int get_num_pars()
+  {
+    return m_pars.size();
+  }
   
   // set list of parameters
   bool set_par(s_cmd & cmd);
+  bool set_par(const string & par, const string & val);
   
   // returns list of parameters as a string to cmd.ret.
   // function returns false if the return values exceed run out the buffer cmd.ret.
   bool get_par(s_cmd & cmd);
+  bool get_par(const int ipar, string & par, string & val);
+  bool get_par(const int ipar, string & par, string & val, string & exp);
+  bool get_par(const string & par, string & val);
+  bool get_par(const string & par, string & val, string & exp);
 };
 
 #endif

@@ -55,22 +55,22 @@ const char * str_cmd[UNKNOWN] = {
 
 const char * str_cmd_usage[UNKNOWN] =
 {
-  "<filter name>", // RUN
-  "<filter type>", // STOP
+  "<filter inst name>", // RUN
+  "<filter inst name>", // STOP
   "", // QUIT
-  "<name> <type>", // GEN_FLTR
-  "<name>", // DEL_FLTR
+  "<type name> <inst name>", // GEN_FLTR
+  "<inst name>", // DEL_FLTR
   "", // LST_FLTRS
-  "<filter name> [<par name> <val> ...]", // SET_FLTR_PAR
-  "<filter name> [<par name> ...]", // GET_FLTR_PAR
-  "<name> <type>", // GEN_CH
-  "<name>", // DEL_CH
+  "<inst name> [<par name> <val> ...]", // SET_FLTR_PAR
+  "<inst name> [<par name> ...]", // GET_FLTR_PAR
+  "<type name> <inst name>", // GEN_CH
+  "<inst name>", // DEL_CH
   "", // LST_CHS
-  "<name> <type>", // GEN_TBL
-  "<name> [<type>]", // GET_TBL
+  "<type name> <inst name>", // GEN_TBL
+  "<inst name>", // GET_TBL
   "<name> <type> [ -f <json file> | -s <json string> ]", // SET_TBL
-  "<table name> <filter name> <filter table name>", // SET_TBL_REF
-  "<table name>", // DEL_TBL
+  "<table inst name> <filter inst name> <filter table name>", // SET_TBL_REF
+  "<inst name>", // DEL_TBL
   "", // LST_TBL
   "<json file>"
 };
@@ -156,11 +156,11 @@ public:
     return true;    
   }
 
-  bool GenFltr(const std::string & name, const std::string & type)
+  bool GenFltr(const std::string & inst_name, const std::string & type_name)
   {
     FltrInfo info;
-    info.set_type_name(type);
-    info.set_inst_name(name);
+    info.set_type_name(type_name);
+    info.set_inst_name(inst_name);
     Result res;
     ClientContext context;
     Status status = stub_->GenFltr(&context, info, &res);
@@ -210,11 +210,63 @@ public:
     return true;
   }
 
-  bool GenCh(const std::string & name)
+  bool SetFltrPar(const std::string & fltr_name,
+		  const std::vector<std::string> & pars,
+		  const std::vector<std::string> & vals)
+  {
+    if(pars.size() != vals.size()){
+      return false;
+    }
+    
+    FltrInfo info;
+    info.set_inst_name(fltr_name);
+    for(int ipar = 0; ipar < pars.size(); ipar++){
+      FltrParInfo & par = *info.add_pars();
+      par.set_name(pars[ipar]);
+      par.set_val(vals[ipar]);
+    }
+
+    Result res;
+    ClientContext context;
+    Status status = stub_->SetFltrPar(&context, info, &res);
+    if(!status.ok()){
+      std::cout << "Error: " << res.message() << std::endl;
+      return false;
+    }
+
+    return true;
+  }
+
+  bool GetFltrPar(const std::string & fltr_name,
+		  const std::vector<std::string> & pars)
+  {
+    FltrInfo info_req, info_rep;
+    info_req.set_inst_name(fltr_name);
+    for (int ipar = 0; ipar < pars.size(); ipar++){
+      FltrParInfo & par = *info_req.add_pars();
+      par.set_name(pars[ipar]);
+    }
+
+    Result res;
+    ClientContext context;
+    Status status = stub_->GetFltrPar(&context, info_req, &info_rep);
+    if(!status.ok()){
+      std::cout << "Error in GetFltrPar." << std::endl;
+      return false;
+    }
+
+    for (int ipar = 0; ipar < pars.size(); ipar++){
+      const FltrParInfo & par = info_rep.pars(ipar);
+      std::cout << par.name() << " " << par.val() << std::endl;
+    }
+    return true;
+  }
+  
+  bool GenCh(const std::string & inst_name, const std::string & type_name)
   {
     ChInfo info;
-    info.set_inst_name(name);
-    info.set_type_name(name);
+    info.set_inst_name(inst_name);
+    info.set_type_name(type_name);
     Result res;
     ClientContext context;
     Status status = stub_->GenCh(&context, info, &res);
@@ -230,7 +282,6 @@ public:
   {
     ChInfo info;
     info.set_inst_name(name);
-    info.set_type_name(name);
     Result res;
     ClientContext context;
     Status status = stub_->DelCh(&context, info, &res);
@@ -241,12 +292,32 @@ public:
 
     return true;
   }
+
+  bool LstChs()
+  {
+    LstChsParam par;
+    ChLst lst;
+    ClientContext context;
+    Status status = stub_->LstChs(&context, par, &lst);
+    if(!status.ok()){
+      std::cout << "Error in LstChs" << std::endl;
+      return false;
+    }
+
+    for(int ich = 0; ich < lst.chs_size(); ich++){
+      const ChInfo & info = lst.chs(ich);
+      std::cout << info.inst_name() << "\t" << info.type_name() << "\t" << std::endl;
+    }
+    
+    return true;
+  }
+
   
-  bool GenTbl(const std::string & name, const std::string & type)
+  bool GenTbl(const std::string & inst_name, const std::string & type_name)
   {
     TblInfo info;
-    info.set_type_name(type);
-    info.set_inst_name(name);
+    info.set_type_name(type_name);
+    info.set_inst_name(inst_name);
 
     Result res;
     ClientContext context;
@@ -259,10 +330,9 @@ public:
     return true;
   }
 
-  bool GetTbl(const std::string & name, const std::string & type)
+  bool GetTbl(const std::string & name)
   {
     TblInfo info;
-    info.set_type_name(type);
     info.set_inst_name(name);
 
     TblData data;
@@ -373,7 +443,26 @@ public:
     }
       
     return true;
-  }  
+  }
+
+  bool LstTbls()
+  {
+    LstTblsParam par;
+    TblLst lst;
+    ClientContext context;
+    Status status = stub_->LstTbls(&context, par, &lst);
+    if(!status.ok()){
+      std::cout << "Error in LstTbls" << std::endl;
+      return false;
+    }
+
+    for(int itbl = 0; itbl < lst.tbls_size(); itbl++){
+      const TblInfo & info = lst.tbls(itbl);
+      std::cout << info.inst_name() << "\t" << info.type_name() << "\t" << std::endl;
+    }
+    
+    return true;
+  } 
 };
 
 void dump_usage(const cmd_id & id = UNKNOWN)
@@ -397,18 +486,18 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
   }
   
 // argv[1] : command string
-// run <filter name>
-// stop <filter name>
+// run <filter inst name>
+// stop <filter inst name>
 // quit
-// genfltr <name> <type>
+// genfltr <type name> <inst name>
 // delfltr <name>
-// gench <name> <type>
-// delch <name> <type>
-// gentbl <name> <type> 
-// gettbl <name> [<type>]
-// settbl <name> <type> [-f <jsonfile> | -s <jsonstring>]
-// settblref <table_name> <filter_name> <filter_table_name>
-// deltbl <table_name> 
+// gench <type name> <inst name>
+// delch <inst name> 
+// gentbl <type name> <inst name> 
+// gettbl <inst name> [<type name>]
+// settbl <type name> <inst name> [-f <jsonfile> | -s <jsonstring>]
+// settblref <table inst name> <filter inst name> <filter table name>
+// deltbl <inst name> 
 // <jsonfile>
   std::string server_address = conf.address() + ":" + conf.port();
 
@@ -454,7 +543,7 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
       dump_usage(id);
       return false;
     }
-    return handler.GenFltr(argv[2], argv[3]);
+    return handler.GenFltr(argv[3], argv[2]);
   case DEL_FLTR:
     if(argc != 3){
       dump_usage(id);
@@ -467,18 +556,61 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
       return false;
     }
     return handler.LstFltrs();
+  case SET_FLTR_PAR:
+    if(argc < 3 || (argc % 2 == 0)){
+      dump_usage(id);
+      return false;      
+    }else{      
+      std::string fltr_name(argv[2]);
+      std::vector<std::string> pars, vals;
+      for(int iarg = 3; iarg < argc; iarg += 2){
+	pars.push_back(std::string(argv[iarg]));
+	vals.push_back(std::string(argv[iarg+1]));
+      }
+      return handler.SetFltrPar(fltr_name, pars, vals);
+    }    
+  case GET_FLTR_PAR:
+    if(argc < 3){
+      dump_usage(id);
+      return false;
+    }else{
+      std::string fltr_name(argv[2]);
+      std::vector<std::string> pars;
+      for(int iarg = 3; iarg < argc; iarg++){
+	pars.push_back(std::string(argv[iarg]));
+      }
+      return handler.GetFltrPar(fltr_name, pars);
+    }
+  case GEN_CH:
+    if(argc != 4){
+      dump_usage(id);
+      return false;
+    }
+    return handler.GenCh(argv[3], argv[2]);
+  case DEL_CH:
+    if(argc != 3){
+      dump_usage(id);
+      return false;
+    }
+    return handler.DelCh(argv[2]);
+  case LST_CHS:
+    if(argc != 2){
+      dump_usage(id);
+      return false;
+    }
+    return handler.LstChs();
   case GEN_TBL:
     if(argc != 4){
       dump_usage(id);
       return false;
     }
-    return handler.GenTbl(argv[2], argv[3]);
+    return handler.GenTbl(argv[3], argv[2]);
   case GET_TBL:
-    if(argc != 3 && argc != 4){
+    if(argc != 3){
       dump_usage(id);
       return false;
     }
-    return handler.GetTbl(argv[2], (argc == 4 ? argv[3] : std::string()));
+    return handler.GetTbl(argv[2]);
   case SET_TBL:
     if(argc != 6){
       dump_usage(id);
@@ -497,6 +629,12 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
       return false;
     }
     return handler.DelTbl(argv[2]);
+  case LST_TBLS:
+    if(argc != 2){
+      dump_usage(id);
+      return false;
+    }
+    return handler.LstTbls();	       
   default:
     return false;
   }

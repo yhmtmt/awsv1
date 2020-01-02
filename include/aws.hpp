@@ -120,7 +120,7 @@ public:
     path = lib_path + string("/lib") + type_name + string(".so");    
     m_handle = dlopen(path.c_str(), RTLD_NOW);
     if(!m_handle){
-      cerr << path << " no such lib." << endl;
+      spdlog::error("Failed to open {}.", path);
       return false;
     }
     return true;
@@ -211,6 +211,58 @@ public:
   
   bool add_filter(const string & type, const string & name);  
   bool del_filter(const string & name);
+  bool set_fltr_par(const FltrInfo * inf)
+  {
+    f_base * f = get_filter(inf->inst_name());
+    int num_pars = inf->pars_size();
+    bool suc = true;
+    for(int ipar = 0; ipar < num_pars; ipar++){
+      const FltrParInfo & par_inf = inf->pars(ipar);
+      if(!f->set_par(par_inf.name(), par_inf.val())){
+	spdlog::error("Failed to set parameter {} in {}.",
+		      par_inf.name(), f->get_name());
+	suc = false;
+      }
+    }
+    return suc;
+  }
+  
+  bool get_fltr_par(const FltrInfo * inf_req, FltrInfo * inf_rep)
+  {
+    f_base * f = get_filter(inf_req->inst_name());
+    int num_pars = inf_req->pars_size();
+
+    bool suc = true;
+    if(num_pars == 0){ // all parameters
+      for (int ipar = 0; ipar < f->get_num_pars(); ipar++){
+	auto par = inf_rep->add_pars();
+	string name, val, exp;
+	if(!f->get_par(ipar, name, val, exp)){
+	  suc = false;
+	}else{
+	  par->set_name(name);
+	  par->set_val(val);
+	  par->set_exp(exp);
+	}
+      }
+    }else{
+      for(int ipar = 0; ipar < num_pars; ipar++){
+	auto par_req = inf_req->pars(ipar);
+	auto par = inf_rep->add_pars();
+	string val;
+	if(!f->get_par(par_req.name(), val)){
+	  spdlog::error("Failed to get parameter {} in {}.",
+			par_req.name(), f->get_name());
+	  suc = false;
+	}else{
+	  par->set_val(val);
+	}
+      }
+    }
+    
+    return suc;
+  }
+  
   bool add_channel(const string & type, const string & name);
   bool del_channel(const string & name);
   
@@ -277,8 +329,7 @@ public:
       FltrInfo * info = lst->add_fltrs();
       info->set_inst_name(f->get_name());
       info->set_type_name(f->get_type_name());
-      info->set_is_active(f->is_active());
-      
+      info->set_is_active(f->is_active());      
     }
   }
   
@@ -286,6 +337,27 @@ public:
   {
     return get_channel(name.c_str());
   }
+
+  void get_ch_lst(ChLst * lst)
+  {
+    for(auto itr = m_channels.begin() ;itr != m_channels.end(); itr++){
+      ch_base * ch = *itr;
+      ChInfo * info = lst->add_chs();
+      info->set_inst_name(ch->get_name());
+      info->set_type_name(typeid(*ch).name());
+    }
+  }
+
+  void get_tbl_lst(TblLst * lst)
+  {
+    for(auto itr = tbls.begin(); itr != tbls.end(); itr++){
+      t_base * t = itr->second;
+      TblInfo * info = lst->add_tbls();
+      info->set_inst_name(t->get_name());
+      info->set_type_name(t->get_type());
+    }
+  }
+  
 protected:
   s_cmd m_cmd;
   mutex m_mtx;

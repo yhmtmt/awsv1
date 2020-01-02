@@ -91,6 +91,26 @@ public:
     return Status::OK;
   }
 
+  Status SetFltrPar(ServerContext * context, const FltrInfo * inf,
+		    Result * res) override
+  {
+    if(paws->set_fltr_par(inf)){
+      res->set_is_ok(true);
+    }else{
+      string msg("Failed to set filter parameters.");
+      res->set_message(msg);
+      res->set_is_ok(false);
+    }
+    return Status::OK;
+  }
+
+  Status GetFltrPar(ServerContext * context, const FltrInfo * inf_req,
+		    FltrInfo * inf_rep) override
+  {
+    paws->get_fltr_par(inf_req, inf_rep);
+    return Status::OK;
+  }
+  
   Status LstFltrs(ServerContext * context, const LstFltrsParam * par,
 		  FltrLst * lst) override
   {
@@ -124,6 +144,13 @@ public:
       res->set_message(msg);
       res->set_is_ok(false);
     }
+    return Status::OK;
+  }
+
+  Status LstChs(ServerContext * context, const LstChsParam * par,
+		ChLst * lst) override
+  {
+    paws->get_ch_lst(lst);
     return Status::OK;
   }
   
@@ -213,6 +240,13 @@ public:
       res->set_message(msg);
     }
       
+    return Status::OK;
+  }
+
+  Status LstTbls(ServerContext * context, const LstTblsParam * par,
+		 TblLst * lst)
+  {
+    paws->get_tbl_lst(lst);
     return Status::OK;
   }
 };
