@@ -36,6 +36,5 @@ bool t_base::set_flt_ref(const string & flt_tbl_name, f_base * flt)
 void t_base::del_flt_ref(f_base * flt)
 {
   unique_lock<mutex> lock(mtx);
-  flt->del_table(this);
   refs.erase(flt->get_name());    
 }

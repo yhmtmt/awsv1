@@ -1,5 +1,4 @@
 #!/bin/sh
-
 caws genfltr sample fltr1
 caws genfltr sample fltr2
 caws gentbl sample tbl1
@@ -17,11 +16,11 @@ caws getfltrpar fltr2 ch
 caws lstfltrs
 caws lsttbls
 caws lstchs
-exit
 caws run fltr1;
 caws run fltr2;
 sleep 2
 caws settbl sample tbl1 -f ../fbs/sample2.json
+caws settbl sample tbl2 -f ../fbs/sample.json
 sleep 2
 caws delfltr fltr1
 caws delfltr fltr2

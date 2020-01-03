@@ -356,6 +356,7 @@ f_base::f_base(const char * name):m_lib(nullptr),
 
 f_base::~f_base()
 {
+  del_table();
   m_chin.clear();
   m_chout.clear();
   delete [] m_name;

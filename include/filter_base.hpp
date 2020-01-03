@@ -132,17 +132,38 @@ public:
   bool set_table(const string & name, t_base * tbl_)
   {
     auto tbl = tables.find(name);
-    if(tbl == tables.end())
+    if(tbl == tables.end()){
+      spdlog::error("No table named {} ", name);
       return false;
-   
+    }
+    
+    if(tbl->second.table == tbl_)
+      return true;
+    
+    if(tbl->second.table != nullptr){
+      tbl->second.table->del_flt_ref(this);
+      tbl->second.table = nullptr;
+    }
+    
     tbl->second.table = tbl_;
     return true;
   }
 
+  void del_table()
+  {
+    for(auto itr = tables.begin(); itr != tables.end(); itr++){
+      if(itr->second.table != nullptr){
+	itr->second.table->del_flt_ref(this);
+	itr->second.table = nullptr;
+      }
+    }
+  }
+  
   bool del_table(t_base * tbl_)
   {
     for(auto itr = tables.begin(); itr != tables.end(); itr++){
       if(itr->second.table == tbl_){
+	itr->second.table->del_flt_ref(this);
 	itr->second.table = nullptr;
 	return true;
       }
