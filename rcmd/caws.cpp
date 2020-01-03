@@ -49,7 +49,7 @@ const char * str_cmd[UNKNOWN] = {
   "run", "stop", "quit",
   "genfltr", "delfltr", "lstfltrs", "setfltrpar", "getfltrpar",
   "gench", "delch", "lstchs",
-  "gentbl", "gettbl", "settbl", "settblref", "deltbl", "lsttbl",
+  "gentbl", "gettbl", "settbl", "settblref", "deltbl", "lsttbls",
   ".json"
 };
 
