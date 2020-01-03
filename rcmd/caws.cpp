@@ -636,6 +636,8 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
     }
     return handler.LstTbls();	       
   default:
+    std::cerr << "Unknown command " << argv[1] << "." << std::endl;
+    dump_usage();
     return false;
   }
   

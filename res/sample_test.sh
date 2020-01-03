@@ -8,8 +8,12 @@ caws settbl sample tbl1 -f ../fbs/sample.json
 caws settbl sample tbl2 -f ../fbs/sample2.json
 caws gench sample ch1
 caws gench sample ch2
-caws settblref tbl1 fltr1 sample
-caws settblref tbl2 fltr2 sample
+caws settblref tbl1 fltr1 tbl
+caws settblref tbl2 fltr2 tbl
+caws setfltrpar fltr1 ch ch1
+caws setfltrpar fltr2 ch ch2
+caws getfltrpar fltr1 ch
+caws getfltrpar fltr2 ch
 caws lstfltrs
 caws lsttbls
 caws lstchs

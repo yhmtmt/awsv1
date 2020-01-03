@@ -214,6 +214,10 @@ public:
   bool set_fltr_par(const FltrInfo * inf)
   {
     f_base * f = get_filter(inf->inst_name());
+    if(!f){
+      spdlog::error("Cannot find filter {}.", inf->inst_name());
+      return false;
+    }
     int num_pars = inf->pars_size();
     bool suc = true;
     for(int ipar = 0; ipar < num_pars; ipar++){
