@@ -1198,7 +1198,7 @@ bool c_aws::add_channel(const string & type, const string & name)
     spdlog::error("Channel {} of {} has already been instantiated.", name, type);
     return false;
   }
-  ch_base * pchan = ch_base::create(name.c_str(), type.c_str());
+  ch_base * pchan = ch_base::create(type.c_str(), name.c_str());
   if(pchan == NULL)
     return false;
 

@@ -616,7 +616,7 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
       dump_usage(id);
       return false;
     }
-    return handler.SetTbl(argv[2], argv[3], argv[4], argv[5]);
+    return handler.SetTbl(argv[3], argv[2], argv[4], argv[5]);
   case SET_TBL_REF:
     if(argc != 5){
       dump_usage(id);
