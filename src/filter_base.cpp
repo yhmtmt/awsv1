@@ -122,9 +122,9 @@ bool f_base::s_fpar::get(string & valstr)
   case U16:
     strm << *u16; break;
   case S8:
-    strm << *s8; break;
+    strm << (int) *s8; break;
   case U8:
-    strm << *u8; break;
+    strm << (unsigned int)*u8; break;
   case BIN:
     strm << ( *bin ? "y" : "n"); break;
   case CSTR:
