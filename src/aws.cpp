@@ -27,6 +27,7 @@ public:
   Status Run(ServerContext * context, const RunParam * par,
 	     Result * res) override
   {
+    paws->lock();
     if(paws->run_filter(par->fltr_name())){
       res->set_is_ok(true);
     }else{
@@ -36,12 +37,14 @@ public:
       res->set_message(msg);
       spdlog::error(msg);
     }
+    paws->unlock();
     return Status::OK;
   }
 
   Status Stop(ServerContext * context, const StopParam * par,
 	      Result * res) override
   {
+    paws->lock();
     if(paws->stop_filter(par->fltr_name())){
       res->set_is_ok(true);
     }else{
@@ -51,20 +54,24 @@ public:
       res->set_message(msg);
       spdlog::error(msg);
     }
+    paws->unlock();
     return Status::OK;
   }
 
   Status Quit(ServerContext * context, const QuitParam * par,
 	      Result * res) override
   {
+    paws->lock();
     paws->quit();
     res->set_is_ok(true);
+    paws->unlock();
     return Status::OK;
   }
   
   Status GenFltr(ServerContext * context, const FltrInfo * inf,
 		 Result * res) override
   {
+    paws->lock();
     if(paws->add_filter(inf->type_name(), inf->inst_name()))
       res->set_is_ok(true);
     else{
@@ -74,12 +81,14 @@ public:
       res->set_message(msg);
       spdlog::error(msg);
     }
+    paws->unlock();
     return Status::OK;
   }
 
   Status DelFltr(ServerContext * context, const FltrInfo * inf,
 		 Result * res) override
   {
+    paws->lock();
     if(paws->del_filter(inf->inst_name())){
       res->set_is_ok(true);
     }else{
@@ -88,12 +97,14 @@ public:
       res->set_message(msg);
       res->set_is_ok(false);
     }
+    paws->unlock();
     return Status::OK;
   }
 
   Status SetFltrPar(ServerContext * context, const FltrInfo * inf,
 		    Result * res) override
   {
+    paws->lock();
     if(paws->set_fltr_par(inf)){
       res->set_is_ok(true);
     }else{
@@ -101,26 +112,32 @@ public:
       res->set_message(msg);
       res->set_is_ok(false);
     }
+    paws->unlock();
     return Status::OK;
   }
 
   Status GetFltrPar(ServerContext * context, const FltrInfo * inf_req,
 		    FltrInfo * inf_rep) override
   {
+    paws->lock();
     paws->get_fltr_par(inf_req, inf_rep);
+    paws->unlock();
     return Status::OK;
   }
   
   Status LstFltrs(ServerContext * context, const LstFltrsParam * par,
 		  FltrLst * lst) override
   {
+    paws->lock();
     paws->get_fltr_lst(lst);
+    paws->unlock();
     return Status::OK;
   }
 
   Status GenCh(ServerContext * context, const ChInfo * inf,
 	       Result * res) override
   {
+    paws->lock();
     if(paws->add_channel(inf->type_name(), inf->inst_name()))
       res->set_is_ok(true);
     else{
@@ -130,12 +147,14 @@ public:
       res->set_message(msg);
       spdlog::error(msg);
     }
+    paws->unlock();
     return Status::OK;
   }
 
   Status DelCh(ServerContext * context, const ChInfo * inf,
 	       Result * res) override
   {
+    paws->lock();
     if(paws->del_channel(inf->inst_name())){
       res->set_is_ok(true);
     }else{
@@ -144,19 +163,23 @@ public:
       res->set_message(msg);
       res->set_is_ok(false);
     }
+    paws->unlock();
     return Status::OK;
   }
 
   Status LstChs(ServerContext * context, const LstChsParam * par,
 		ChLst * lst) override
   {
+    paws->lock();
     paws->get_ch_lst(lst);
+    paws->unlock();
     return Status::OK;
   }
   
   Status GenTbl(ServerContext * context, const TblInfo * inf,
 		Result * res) override
   {
+    paws->lock();
     if(paws->gen_table(inf->type_name(), inf->inst_name()))
       res->set_is_ok(true);
     else{
@@ -166,12 +189,14 @@ public:
       res->set_message(msg);
       spdlog::error(msg);
     }
+    paws->unlock();
     return Status::OK;
   }
 
   Status GetTbl(ServerContext * context, const TblInfo * inf,
 		TblData * data) override
   {
+    paws->lock();
     t_base * tbl;
     if(inf->type_name().length()){
       tbl = paws->get_table(inf->type_name(), inf->inst_name());
@@ -189,12 +214,14 @@ public:
     }else{
       data->set_tbl(string());
     }
+    paws->unlock();
     return Status::OK;    
   }
 
   Status SetTbl(ServerContext * context, const TblData * data,
 		Result * res) override
   {
+    paws->lock();
     auto tbl = paws->get_table(data->type_name(), data->inst_name());
     if(tbl){
       tbl->set(data->tbl());
@@ -206,13 +233,14 @@ public:
       res->set_message(msg);
       spdlog::error(msg);
     }
-        
+    paws->unlock();
     return Status::OK;    
   }
 
   Status SetTblRef(ServerContext * context, const TblRef * ref,
 		   Result * res) override
   {
+    paws->lock();
     auto tbl = paws->get_table(ref->tbl_name());
     auto flt = paws->get_filter(ref->flt_name());
     if(tbl && flt && tbl->set_flt_ref(ref->flt_tbl_name(), flt)){
@@ -224,12 +252,14 @@ public:
       res->set_message(msg);
       spdlog::error(msg);      
     }
+    paws->unlock();
     return Status::OK;    
   }
 
   Status DelTbl(ServerContext * context, const TblInfo * inf,
 		Result * res) override
   {
+    paws->lock();
     if(paws->del_table(inf->inst_name())){
       res->set_is_ok(true);
     }else{
@@ -239,14 +269,16 @@ public:
       msg += ".";
       res->set_message(msg);
     }
-      
+    paws->unlock();
     return Status::OK;
   }
 
   Status LstTbls(ServerContext * context, const LstTblsParam * par,
 		 TblLst * lst)
   {
+    paws->lock();
     paws->get_tbl_lst(lst);
+    paws->unlock();
     return Status::OK;
   }
 };

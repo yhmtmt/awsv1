@@ -91,8 +91,6 @@ using CommandService::Result;
 
 class c_rcmd;
 
-
-
 class c_filter_lib
 {
 private:
@@ -218,6 +216,7 @@ public:
       spdlog::error("Cannot find filter {}.", inf->inst_name());
       return false;
     }
+    f->lock_cmd();
     int num_pars = inf->pars_size();
     bool suc = true;
     for(int ipar = 0; ipar < num_pars; ipar++){
@@ -228,14 +227,21 @@ public:
 	suc = false;
       }
     }
+    f->unlock_cmd();
     return suc;
   }
   
   bool get_fltr_par(const FltrInfo * inf_req, FltrInfo * inf_rep)
   {
     f_base * f = get_filter(inf_req->inst_name());
+    if(!f){
+      spdlog::error("Cannot find filter {}.", inf_req->inst_name());
+      return false;
+    }
+    
     int num_pars = inf_req->pars_size();
 
+    f->lock_cmd();
     bool suc = true;
     if(num_pars == 0){ // all parameters
       for (int ipar = 0; ipar < f->get_num_pars(); ipar++){
@@ -263,7 +269,7 @@ public:
 	}
       }
     }
-    
+    f->unlock_cmd();
     return suc;
   }
   
@@ -365,7 +371,7 @@ public:
 protected:
   s_cmd m_cmd;
   mutex m_mtx;
-  condition_variable m_cnd_ret, m_cnd_none;
+  condition_variable m_cnd_ret;
 
   Config conf;
   int m_cmd_port;
@@ -452,6 +458,15 @@ public:
   c_aws(int argc, char ** argv);
   virtual ~c_aws();
 
+  void lock()
+  {
+    m_mtx.lock();
+  }
+
+  void unlock()
+  {
+    m_mtx.unlock();
+  }
  
   // getting a pointer of a channel object by its name.
   ch_base * get_channel(const char * name);
@@ -503,7 +518,7 @@ private:
 public:
   c_rcmd(c_aws * paws, unsigned short port);
   ~c_rcmd();
-
+  
   bool is_exit();
 };
 
