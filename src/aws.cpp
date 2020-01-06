@@ -1391,6 +1391,7 @@ bool c_aws::main()
 
   
   f_base::set_tz(m_time_zone_minute);
+  f_base::init_run_all();
   m_bonline = true;
   m_start_time = (long long) time(NULL) * SEC; 
   m_end_time = LLONG_MAX;
@@ -1415,8 +1416,11 @@ bool c_aws::main()
       // checking activity of filters. 
       for(auto itr = filters.begin(); 
 	  itr != filters.end(); itr++){
-	if(itr->second->is_main_thread())
-	  itr->second->fthread();
+	auto f = itr->second;
+	f->lock_cmd();
+	if(f->is_main_thread() && f->is_active())
+	  f->fthread();
+	f->unlock_cmd();
       }      
     }
   }

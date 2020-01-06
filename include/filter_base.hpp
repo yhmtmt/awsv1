@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with f_base.h.  If not, see <http://www.gnu.org/licenses/>. 
+// along with filter_base.hpp.  If not, see <http://www.gnu.org/licenses/>. 
 
 // README: The basis of the filter class. All the filters should be the 
 // subclass of f_base. Filter classes are to be registered to the factory 
@@ -23,20 +23,7 @@
 // * f_base::proc is the main function which is executed synchronous to the clock. you can 
 // implements any functions using data in input channels and transfer the results
 // to the next filter via output channels. Or you can control the latency of the proc
-// by setting m_intvl with cmd_proc.
-// * f_base::cmd_proc is the processing function for filter command. by overriding
-// the function, you can change the internal parameters of the filter you desgined.
-// cmd_proc is called by c_aws for each cycle. because f_base members 
-// are manipulated with the function, you should execute the f_base::cmd_proc
-// in your original cmd_proc.
-// * f_base::check is called by framework before the filter graph is started.
-// if at least one filter failed the method, graph wont be started. you can use
-// the function to check validity of the input and output channels, or other 
-// states of your filters.
-// * f_base::seek is called meaningful only if c_aws is in the offline mode. 
-// the function is assumed to seek for the state at the time specified.
-// you should implement this function if you assume that the filter is used 
-// in the offline mode.
+// by setting m_intvl
 
 #include <typeinfo>
 #include <iostream>
@@ -383,7 +370,7 @@ protected:
   bool m_bactive; // if it is true, filter thread continues to loop
   bool m_bstopped; //true indicates filter is stopped. 
   // count number of proc() executed
-  long long m_count_pre, m_count_post;
+  long long m_count_pre, m_count_post, m_start_clock, m_stop_clock;
   int m_cycle;
   long long m_count_proc;
   double m_proc_rate;
@@ -421,14 +408,14 @@ public:
     }
     
     m_prev_time = get_time();
-    spdlog::info("Starting filter {} at {}.", m_name, m_prev_time);
+    spdlog::info("Starting filter {} at {}({}).", m_name, m_prev_time, m_count_clock);
     
     m_bactive = true;
-    m_bstopped = false;
     m_count_proc =  0;	
     m_max_cycle = 0;
     m_cycle = 0;
     m_count_pre = m_count_post = m_count_clock;
+    m_start_clock = m_stop_clock = m_count_clock;
     if (!is_main_thread())
       m_fthread = new thread(sfthread, this);
     return true;    
@@ -460,12 +447,14 @@ public:
   // stop main thread. the function is called from c_aws until the thread stops.
   virtual bool stop();
   void destroy(){
+    m_stop_clock = m_count_clock;
     destroy_run();
+    runstat();
   }
   
   void runstat(){
-    m_proc_rate = (double) m_count_proc / (double) m_count_clock;
-    spdlog::info("[{}] ProcRate {}({}/{}), Max Cycles {}", get_name(), m_proc_rate, m_count_proc, m_count_clock, m_max_cycle);
+    m_proc_rate = (double) m_count_proc / (double) (m_stop_clock - m_start_clock);
+    spdlog::info("[{}] ProcRate {}({}/{}), Max Cycles {}", get_name(), m_proc_rate, m_count_proc, m_stop_clock - m_start_clock, m_max_cycle);
   }
   
   // check the filter activity condition
@@ -508,7 +497,7 @@ protected:
   
   long long m_prev_time;
   long long m_time_diff;
-
+  
   static tmex m_tm;
   
   // time string 

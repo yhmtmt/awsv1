@@ -238,25 +238,26 @@ const string & f_base::get_type_name()
 // this function is used if the filter should be executed in the main thread such as the case using OpenGL
 void f_base::fthread()
 {
+  m_count_pre = m_count_clock;
   if((unsigned int) m_cycle < m_intvl){
     m_cycle++;
     return;
   }
   
-  if(m_bactive){
-    update_table_objects();    
-    calc_time_diff();
+  update_table_objects();    
+  calc_time_diff();
     
-    if (!proc()){
-      m_bactive = false;
-      destroy();
-    }
-    
-    if(m_clk.is_run()){
-      m_count_proc++;
-      m_max_cycle = max(m_cycle, m_max_cycle);
-      m_proc_rate = (double)  m_count_proc / (double) m_count_clock;
-    }
+  if (!proc()){
+    m_bactive = false;
+    destroy();
+  }
+  
+  if(m_clk.is_run()){
+    m_count_proc++;
+    m_max_cycle = max(m_cycle, m_max_cycle);
+    m_count_post = m_count_clock;
+    m_cycle = (int)(m_count_post - m_count_pre);
+    m_cycle -= m_intvl;
   }
 }
 
@@ -279,6 +280,7 @@ void f_base::sfthread(f_base * filter)
       filter->m_bactive = false;
       filter->destroy();      
     }
+    
     if(filter->m_clk.is_run()){
       filter->m_count_proc++;
       filter->m_max_cycle = max(filter->m_cycle, filter->m_max_cycle);
@@ -289,8 +291,6 @@ void f_base::sfthread(f_base * filter)
     
     filter->unlock_cmd();
   }
-
-  filter->m_bstopped = true;
 }
 
 bool f_base::stop()
@@ -300,7 +300,10 @@ bool f_base::stop()
     m_bactive = false;
   }
   if(is_main_thread()){
-    spdlog::info("Filter {} sotpped.", m_name);    
+    spdlog::info("Filter {} sotpped at {}({})", m_name, get_time(), m_stop_clock);
+    lock_cmd();
+    destroy();
+    unlock_cmd();
     return true;
   }
   
@@ -308,7 +311,8 @@ bool f_base::stop()
     m_fthread->join();
     delete m_fthread;
     m_fthread = NULL;
-    spdlog::info("Filter {} sotpped.", m_name);
+    destroy();
+    spdlog::info("Filter {} sotpped at {}({})", m_name, get_time(), m_stop_clock);
     return true;	          
   }
   

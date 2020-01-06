@@ -193,10 +193,8 @@ public:
     }
 
     f_base * filter = itr->second;
-    while(!filter->stop());
-    
-    filter->runstat();
-    
+    filter->stop();
+       
     return true;
   }
 
