@@ -464,6 +464,7 @@ public:
   }
   
   void runstat(){
+    m_proc_rate = (double) m_count_proc / (double) m_count_clock;
     spdlog::info("[{}] ProcRate {}({}/{}), Max Cycles {}", get_name(), m_proc_rate, m_count_proc, m_count_clock, m_max_cycle);
   }
   

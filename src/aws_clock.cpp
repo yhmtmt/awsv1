@@ -203,31 +203,11 @@ bool c_clock::start(unsigned period, unsigned delay,
     m_rate = 1; // clock rate is forced to be zero.
   else
     m_rate = rate;
+  
   m_offset = offset;
   m_tcyc = m_rate * period;
   
   if(m_state == STOP){
-#ifdef _WIN32
-    HRESULT hr;
-    static const GUID IID_IReferenceClock = 
-      {0x56a86897,0x0ad4,0x11ce,0xb0,0x3a,0x00,0x20,0xaf,0x0b,0xa7,0x70};
-    static const GUID CLSID_SystemClock = 
-      {0xe436ebb1, 0x524f, 0x11ce, 0x9f, 0x53, 0x00, 0x20, 0xaf, 0x0b, 0xa7, 0x70};
-    hr = CoCreateInstance(CLSID_SystemClock, NULL ,CLSCTX_INPROC_SERVER,
-			  IID_IReferenceClock , (LPVOID*)&m_pclk);
-    
-    if(FAILED(hr)){
-      cerr << "Failed to get interface to the ref clock" << endl;
-      return false;
-    }
-    
-    m_sem = CreateSemaphore(NULL, 0, 0x7FFFFFFF, NULL);
-    REFERENCE_TIME ts;
-    m_pclk->GetTime(&ts);
-    ts += (REFERENCE_TIME) delay;
-    m_pclk->AdvisePeriodic(ts, (REFERENCE_TIME) period, m_sem, &m_token); 
-    m_tcur = offset;
-#else 		
     clock_gettime(CLOCK_REALTIME, &m_ts_start);
     if(m_bonline){
       m_tcur = (long long)
@@ -240,9 +220,7 @@ bool c_clock::start(unsigned period, unsigned delay,
       m_offset = 0;
     }else{
       m_tcur = 0;
-    }
-#endif
-    
+    }   
   }else if(m_state == RUN){
     stop();
     start(period, delay, offset, online, rate);
@@ -287,20 +265,11 @@ bool c_clock::step(long long tabs)
 void c_clock::set_time(tmex & tm)
 {
   long long new_time = mkgmtimeex(tm) * MSEC; // converting to 100ns precision
-#ifdef _WIN32
-  m_delta = new_time - m_tcur;
-#else 
   m_delta = new_time - m_tcur - m_offset;
-  cout << "new_time " << new_time << " cur_time " << m_tcur << " offset " << m_offset << endl;
-#endif
 }
 
 void c_clock::set_time(long long & t){
-#ifdef _WIN32
-  m_delta = t - m_tcur;
-#else
   m_delta = t - m_tcur - m_offset;
-#endif
 }
 
 void c_clock::set_time_delta(long long & delta){
@@ -312,24 +281,16 @@ long long c_clock::get_time()
   switch(m_state){
   case STOP:
     {
-#ifdef _WIN32
-      return (long long)time(NULL) * SEC;
-#else 
       timespec ts;
       clock_gettime(CLOCK_REALTIME, &ts);
       return(long long)
 	((long long)ts.tv_sec * SEC + (long long) (ts.tv_nsec / 100));
-#endif
 
     }
   case PAUSE:
     return m_tcur;
   default:
-#ifdef _WIN32
-  return m_tcur;
-#else
   return m_tcur + m_offset;
-#endif
   }
 }
 
@@ -343,13 +304,6 @@ void c_clock::wait()
   else
     delta_adjust = (m_delta < 0 ? -m_delta_adjust : m_delta_adjust);
   
-#ifdef _WIN32
-  WaitForSingleObject(m_sem, INFINITE);
-  if(m_state == RUN){
-    m_tcur +=  (long long) m_tcyc + delta_adjust;
-    m_delta -= delta_adjust;
-  }
-#else
   timespec ts, trem;
 
   clock_gettime(CLOCK_REALTIME, &ts);	
@@ -398,21 +352,10 @@ void c_clock::wait()
   }else{
     m_offset -= max(tslp, (long long)0);
   }
-
-#endif
 }
 
 void c_clock::stop()
 {
-#ifdef _WIN32
-  if (m_state == RUN){
-    m_pclk->Unadvise(m_token);
-    m_pclk->Release();
-    CloseHandle(m_sem);
-    m_sem = NULL;
-  }
-#endif
-
   m_state = STOP;
 }
 

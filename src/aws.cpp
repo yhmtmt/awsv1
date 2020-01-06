@@ -1197,7 +1197,7 @@ bool c_aws::del_filter(const string & name)
   auto itr = filters.find(name);  
   if(itr != filters.end()){
     if(itr->second->is_active()){
-      spdlog::error("Filer {} is active.", name);      
+      spdlog::error("Filter {} is active.", name);      
       return false;
     }
     
@@ -1388,11 +1388,14 @@ bool c_aws::main()
 
   thread server_thread([&](){server->Wait();});
   spdlog::info("Command service started on {}.", server_address);
+
   
   f_base::set_tz(m_time_zone_minute);
   m_bonline = true;
   m_start_time = (long long) time(NULL) * SEC; 
   m_end_time = LLONG_MAX;
+  m_cycle_time = conf.cycle_time();
+  
   f_base::m_clk.start((unsigned) m_cycle_time, 
 		      (unsigned) m_cycle_time, m_start_time, 
 		      m_bonline, m_time_rate);

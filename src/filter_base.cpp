@@ -249,6 +249,7 @@ void f_base::fthread()
     
     if (!proc()){
       m_bactive = false;
+      destroy();
     }
     
     if(m_clk.is_run()){
@@ -274,8 +275,9 @@ void f_base::sfthread(f_base * filter)
     
     filter->calc_time_diff();
     
-    if(!filter->proc()){
+    if(!filter->proc()){      
       filter->m_bactive = false;
+      filter->destroy();      
     }
     if(filter->m_clk.is_run()){
       filter->m_count_proc++;
@@ -283,36 +285,31 @@ void f_base::sfthread(f_base * filter)
       filter->m_count_post = filter->m_count_clock;
       filter->m_cycle = (int)(filter->m_count_post - filter->m_count_pre);
       filter->m_cycle -= filter->m_intvl;
-      filter->m_proc_rate = (double)  filter->m_count_proc / (double) filter->m_count_clock;
     }
     
     filter->unlock_cmd();
   }
-  
+
   filter->m_bstopped = true;
 }
 
 bool f_base::stop()
 {
   if(m_bactive){
-    cout << "Stopping " << m_name << "." << endl;
+    spdlog::info("Stopping {}.", m_name);
     m_bactive = false;
   }
   if(is_main_thread()){
-    if(!m_bstopped)
-      cout << m_name << " stopped." << endl;
-    m_bstopped = true;
+    spdlog::info("Filter {} sotpped.", m_name);    
     return true;
   }
   
-  if(m_bstopped){
-    if(m_fthread){
-      m_fthread->join();
-      delete m_fthread;
-      m_fthread = NULL;
-      cout << m_name << " stopped." << endl;
-    }
-    return true;	      
+  if(m_fthread){
+    m_fthread->join();
+    delete m_fthread;
+    m_fthread = NULL;
+    spdlog::info("Filter {} sotpped.", m_name);
+    return true;	          
   }
   
   return false;

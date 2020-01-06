@@ -195,7 +195,6 @@ public:
     f_base * filter = itr->second;
     while(!filter->stop());
     
-    filter->destroy();
     filter->runstat();
     
     return true;
