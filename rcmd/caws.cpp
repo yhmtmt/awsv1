@@ -255,10 +255,19 @@ public:
       return false;
     }
 
-    for (int ipar = 0; ipar < pars.size(); ipar++){
-      const FltrParInfo & par = info_rep.pars(ipar);
-      std::cout << par.name() << " " << par.val() << std::endl;
+    if(pars.size() == 0){
+      for (int ipar = 0; ipar < info_rep.pars_size(); ipar++){
+	const FltrParInfo & par = info_rep.pars(ipar);
+	std::cout << par.name() << "(" << par.val() << ") " << par.exp() << std::endl;
+      }
+    }else{
+      for (int ipar = 0; ipar < info_rep.pars_size(); ipar++){
+	const FltrParInfo & par = info_rep.pars(ipar);
+	std::cout << par.val() << " ";
+      }
+      std::cout << std::endl;
     }
+    
     return true;
   }
   
