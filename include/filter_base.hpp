@@ -1,5 +1,5 @@
-#ifndef FILTER_BASE_H
-#define FILTER_BASE_H
+#ifndef FILTER_BASE_HPP
+#define FILTER_BASE_HPP
 // Copyright(c) 2012,2019 Yohei Matsumoto,  All right reserved. 
 
 // filter_base.hpp is free software: you can redistribute it and/or modify
@@ -52,7 +52,6 @@ using namespace std;
 #include "aws_sock.hpp"
 #include "aws_thread.hpp"
 #include "aws_serial.hpp"
-#include "aws_command.hpp"
 #include "aws_nmea.hpp"
 
 #include "table_base.hpp"
@@ -261,14 +260,9 @@ protected:
     // return paramter to valstr as a null terminated string
     // valstr should be the buffer with length sz, and
     // function returns false if the length of return string exceeds
-		// sz.
+    // sz.
     bool get(char * valstr, size_t sz);
-
-    bool get(string & valstr);
-    
-    // get_info() returns parameter explanation.
-    void get_info(s_cmd & cmd);
-
+    bool get(string & valstr);    
     void get_info(string & expstr);
   };
   
@@ -402,7 +396,6 @@ protected:
   static void sfthread(f_base * filter);
   
   bool m_bactive; // if it is true, filter thread continues to loop
-  bool m_bstopped; //true indicates filter is stopped. 
   // count number of proc() executed
   long long m_count_pre, m_count_post, m_start_clock, m_stop_clock;
   int m_cycle;
@@ -454,30 +447,7 @@ public:
       m_fthread = new thread(sfthread, this);
     return true;    
   }
-  
-  virtual bool run(long long start_time, long long end_time)
-  {
-    if(!init_run()){
-      return false;
-    }
-    
-    m_prev_time = start_time;
-    
-    if(!seek(start_time)){
-      return false;
-    }
-    
-    m_bactive = true;
-    m_bstopped = false;
-    m_count_proc =  0;	
-    m_max_cycle = 0;
-    m_cycle = 0;
-    m_count_pre = m_count_post = m_count_clock;
-    if (!is_main_thread())
-      m_fthread = new thread(sfthread, this);
-    return true;
-  }
-  
+   
   // stop main thread. the function is called from c_aws until the thread stops.
   virtual bool stop();
   void destroy(){
@@ -592,37 +562,7 @@ public:
   static const unsigned get_period(){
     return m_clk.get_period();
   }
-  
-  void get_info(s_cmd & cmd, int ifilter){
-    // currentlly returning filter name, id, number of parameters, number of input channels and output channels.
-    snprintf(cmd.get_ret_str(), RET_LEN, "%s(%s) %d %d %d %d", m_name, typeid(*this).name(), ifilter, (int) m_pars.size(), (int) m_chin.size(), (int) m_chout.size());
-  }
-  
-  bool get_par_info(s_cmd & cmd){
-    if(cmd.num_args == 2){ // if parameter index is not specified, the number of parameters is returned.
-      snprintf(cmd.get_ret_str(), RET_LEN, "%d", (int) m_pars.size());
-      return false;
-    }
-		
-    int ipar = atoi(cmd.args[2]);
-    if(ipar >= m_pars.size()){
-      snprintf(cmd.get_ret_str(), RET_LEN, "Filter %s does not have parameter id=%d", m_name, ipar);
-      return false;
-    }
-    m_pars[ipar].get_info(cmd);
-    return true;
-  }
-  
-  bool get_par_info_by_fset(s_cmd & cmd){
-    int ipar = find_par(cmd.args[2]);
-    if(ipar < 0){		
-      snprintf(cmd.get_ret_str(), RET_LEN, "Filter %s does not have parameter %s", m_name, cmd.args[2]);
-      return false;
-		}
-    m_pars[ipar].get_info(cmd);
-    return true;	
-  }
-  
+    
   void set_offset_time(long long offset)
   {
     m_offset_time = offset;
@@ -668,12 +608,10 @@ public:
   }
   
   // set list of parameters
-  bool set_par(s_cmd & cmd);
   bool set_par(const string & par, const string & val);
   
   // returns list of parameters as a string to cmd.ret.
   // function returns false if the return values exceed run out the buffer cmd.ret.
-  bool get_par(s_cmd & cmd);
   bool get_par(const int ipar, string & par, string & val);
   bool get_par(const int ipar, string & par, string & val, string & exp);
   bool get_par(const string & par, string & val);

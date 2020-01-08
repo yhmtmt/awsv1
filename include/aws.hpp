@@ -87,7 +87,6 @@ using CommandService::Result;
 #include "table_base.hpp"
 #include "channel_base.hpp"
 #include "filter_base.hpp"
-#include "aws_command.hpp"
 
 #include "CmdAppBase.hpp"
 

@@ -182,29 +182,6 @@ bool f_base::s_fpar::get(char * valstr, size_t sz){
   return n < sz;
 }
 
-void f_base::s_fpar::get_info(s_cmd & cmd)
-{
-  snprintf(cmd.get_ret_str(), CMD_LEN, "%s: %s", name, explanation);
-  if(type == ENUM){
-    int slen = (int) strlen(cmd.get_ret_str());
-    char * ptr = cmd.get_ret_str() + slen;
-    *ptr = ' ';
-    slen++;
-    snprintf(ptr, CMD_LEN - slen, " value in {");
-    ptr = cmd.get_ret_str();
-    slen = (int) strlen(ptr);
-    for(int i = 0; i < len; i++){
-      int _slen = (int) strlen(str_enum[i]);
-      if(slen + _slen  + 1 >= CMD_LEN)
-	break;
-      snprintf(ptr + slen, CMD_LEN - slen, "%s,", str_enum[i]);
-      slen += _slen + 1;
-    }
-    slen = (int) strlen(cmd.get_ret_str());
-    ptr[slen-1] = '}';
-    cout << endl;
-  }
-}
 
 void f_base::s_fpar::get_info(string & expstr)
 {
@@ -341,7 +318,7 @@ void f_base::clock(long long cur_time)
 
 f_base::f_base(const char * name):m_lib(nullptr),
 				  m_offset_time(0), m_bactive(false),
-				  m_fthread(NULL), m_intvl(1), m_bstopped(true),
+				  m_fthread(NULL), m_intvl(1),
 				  m_cmd(false), m_mutex_cmd()
 {
   m_name = new char[strlen(name) + 1];
@@ -374,30 +351,6 @@ bool f_base::set_par(const string & par, const string & val)
   }
   
   m_pars[ipar].set(val.c_str());
-  return true;
-}
-
-bool f_base::set_par(s_cmd & cmd)
-{
-  int iarg, ipar;
-  for(iarg = 2; iarg < cmd.num_args; iarg++){
-    ipar = find_par(cmd.args[iarg]);
-    if(ipar < 0){
-      snprintf(cmd.get_ret_str(),  RET_LEN, "Filter %s does not have parameter %s.", cmd.args[1], cmd.args[iarg]);
-			return false;
-    }
-    iarg++;
-    if(iarg >= cmd.num_args){
-      snprintf(cmd.get_ret_str(),  RET_LEN, "Value is not specifeid for parameter %s of %s.", cmd.args[iarg--], cmd.args[1]);
-      return false;
-    }
-    
-    if(!m_pars[ipar].set(cmd.args[iarg])){
-      snprintf(cmd.get_ret_str(),  RET_LEN, "Failed to set parameter %s of %s", cmd.args[iarg--], cmd.args[1]);
-      return false;
-    }
-  }
-  
   return true;
 }
 
@@ -441,37 +394,5 @@ bool f_base::get_par(const int ipar, string & par,  string & val, string & exp)
     return m_pars[ipar].get(val);
   }
   return false;  
-}
-
-bool f_base::get_par(s_cmd & cmd)
-{
-  int iarg, ipar;
-  int len = 0;
-  char * valstr = cmd.get_ret_str();
-  char * valsubstr = valstr;
-  for(iarg = 2; iarg < cmd.num_args; iarg++){
-    ipar = find_par(cmd.args[iarg]);
-    if(ipar < 0){
-      snprintf(cmd.get_ret_str(), RET_LEN, "Filter %s does not have parameter %s.", cmd.args[1], cmd.args[iarg]);
-      return false;
-    }
-
-    if(!m_pars[ipar].get(valsubstr, RET_LEN - len - 1)){
-      snprintf(cmd.get_ret_str(), RET_LEN, "Failed to get parameter %s of %s",  cmd.args[iarg], cmd.args[1]);
-      return false;
-    }
-
-    len += (int) strlen(valsubstr);
-    if (len >= RET_LEN - 3) {
-      snprintf(cmd.get_ret_str(), RET_LEN, "Too long parameter lists. Return values cannot be packed.");
-      return false;
-    }
-    valstr[len] = ' ';
-    len += 1;
-    valsubstr = valstr + len;
-  }
-  valstr[len] = '\0';
-  
-  return true;
 }
 

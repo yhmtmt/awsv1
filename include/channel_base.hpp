@@ -35,7 +35,6 @@ using namespace std;
 #include "aws_stdlib.hpp"
 #include "aws_sock.hpp"
 #include "aws_thread.hpp"
-#include "aws_command.hpp"
 
 class f_base;
 class ch_base;
@@ -95,12 +94,7 @@ public:
   }
 	
   const char * get_name(){ return m_name;};
-  
-  void get_info(s_cmd & rcmd, int ich)
-  {
-    snprintf(rcmd.get_ret_str(), RET_LEN, "%s(%s) %d", m_name, typeid(*this).name(), ich);
-  }
-  
+   
   virtual size_t get_dsize()
   { 
     return 0;
