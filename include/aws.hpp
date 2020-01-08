@@ -165,261 +165,34 @@ public:
 class c_aws: public CmdAppBase
 {
 public:
-  bool run_filter(const string & name)
-  {
-    auto itr = filters.find(name);
-    if(itr == filters.end()){
-      spdlog::error("Failed to run filter {}.", name);
-      return false;
-    }
-
-    f_base * filter = itr->second;
-    
-    if(!filter->run()){
-      spdlog::error("Failed to run filter {}.", name);      
-      return false;
-    }
-    
-    return true;
-  }
-  
-  bool stop_filter(const string & name)
-  {
-    auto itr = filters.find(name);
-    if(itr == filters.end()){
-      spdlog::error("No filter {} found, cannot be stopped.", name);
-      return false;
-    }
-
-    f_base * filter = itr->second;
-    filter->stop();
-       
-    return true;
-  }
-
-  void quit()
-  {
-    spdlog::info("Quit aws");
-    m_exit = true;
-  }
-  
+  bool run_filter(const string & name);  
+  bool stop_filter(const string & name);
+  void quit();  
   bool add_filter(const string & type, const string & name);  
   bool del_filter(const string & name);
-  bool set_fltr_par(const FltrInfo * inf)
-  {
-    f_base * f = get_filter(inf->inst_name());
-    if(!f){
-      spdlog::error("Cannot find filter {}.", inf->inst_name());
-      return false;
-    }
-    f->lock_cmd();
-    int num_pars = inf->pars_size();
-    bool suc = true;
-    for(int ipar = 0; ipar < num_pars; ipar++){
-      const FltrParInfo & par_inf = inf->pars(ipar);
-      if(!f->set_par(par_inf.name(), par_inf.val())){
-	spdlog::error("Failed to set parameter {} in {}.",
-		      par_inf.name(), f->get_name());
-	suc = false;
-      }
-    }
-    f->unlock_cmd();
-    return suc;
-  }
-  
-  bool get_fltr_par(const FltrInfo * inf_req, FltrInfo * inf_rep)
-  {
-    f_base * f = get_filter(inf_req->inst_name());
-    if(!f){
-      spdlog::error("Cannot find filter {}.", inf_req->inst_name());
-      return false;
-    }
-    
-    int num_pars = inf_req->pars_size();
-
-    f->lock_cmd();
-    bool suc = true;
-    if(num_pars == 0){ // all parameters
-      for (int ipar = 0; ipar < f->get_num_pars(); ipar++){
-	auto par = inf_rep->add_pars();
-	string name, val, exp;
-	if(!f->get_par(ipar, name, val, exp)){
-	  suc = false;
-	}else{
-	  par->set_name(name);
-	  par->set_val(val);
-	  par->set_exp(exp);
-	}
-      }
-    }else{
-      for(int ipar = 0; ipar < num_pars; ipar++){
-	auto par_req = inf_req->pars(ipar);
-	auto par = inf_rep->add_pars();
-	string val;
-	if(!f->get_par(par_req.name(), val)){
-	  spdlog::error("Failed to get parameter {} in {}.",
-			par_req.name(), f->get_name());
-	  suc = false;
-	}else{
-	  par->set_val(val);
-	}
-      }
-    }
-    f->unlock_cmd();
-    return suc;
-  }
-
-  bool set_fltr_io_chs(const FltrIOChs * lst)
-  {
-    f_base * f = get_filter(lst->inst_name());
-    if(!f){
-      spdlog::error("Cannot find filter {}.", lst->inst_name());
-      return false;
-    }
-    f->lock_cmd();
-    if(lst->dir() == FltrIODir::IN){
-      for(int ich = 0; ich < lst->lst_size(); ich++){
-	ch_base * ch = get_channel(lst->lst(ich).inst_name());
-	f->set_ichan(ch);
-      }
-    }else{
-      for(int ich = 0; ich < lst->lst_size(); ich++){
-	ch_base * ch = get_channel(lst->lst(ich).inst_name());
-	f->set_ochan(ch);
-      }      
-    }
-    f->unlock_cmd();    
-    return true;
-  }
-
-  bool get_fltr_io_chs(const FltrIOChs * lst_req, FltrIOChs * lst_rep)
-  {
-    f_base * f = get_filter(lst_req->inst_name());
-    if(!f){
-      spdlog::error("Cannot find filter {}.", lst_req->inst_name());
-      return false;
-    }
-    f->lock_cmd();
-    lst_rep->set_inst_name(lst_req->inst_name());
-    lst_rep->set_dir(lst_req->dir());
-    if(lst_req->dir() == FltrIODir::IN){
-      for(int ich = 0; ich < f->get_num_ichan(); ich++){
-	ch_base * ch = f->get_ichan(ich);
-	if(ch){
-	  auto info = lst_rep->add_lst();
-	  info->set_inst_name(ch->get_name());
-	  info->set_type_name(typeid(*ch).name());	  
-	}
-      }
-    }else{
-      for(int ich = 0; ich < f->get_num_ochan(); ich++){
-	ch_base * ch = f->get_ochan(ich);
-	if(ch){
-	  auto info = lst_rep->add_lst();
-	  info->set_inst_name(ch->get_name());
-	  info->set_type_name(typeid(*ch).name());
-	}
-      }
-    }    
-    f->unlock_cmd();
-
-    return true;
-  }
-  
+  bool set_fltr_par(const FltrInfo * inf);
+  bool get_fltr_par(const FltrInfo * inf_req, FltrInfo * inf_rep);  
+  bool set_fltr_io_chs(const FltrIOChs * lst);
+  bool get_fltr_io_chs(const FltrIOChs * lst_req, FltrIOChs * lst_rep);  
   bool add_channel(const string & type, const string & name);
-  bool del_channel(const string & name);
-  
-  bool gen_table(const string & type_name, const string & inst_name)
-  {
-    auto tbl = get_table(inst_name);
-    if(tbl){ // the instance name has already been used      
-      spdlog::error("Table {} has already been instantiated.", inst_name);
-      return false;
-    }
-
-    tbl = new t_base(type_name, inst_name);
-    if(tbl)
-      tbls[inst_name] = tbl;
-    else{
-      spdlog::error("Table {} of {} cannot be instantiated because of the memory allocation error.", inst_name, type_name);
-      return false;
-    }
-
-    spdlog::info("Table {} of {} created.", inst_name, type_name);
-    return true;
-  }
-
-  bool del_table(const string & inst_name)
-  {
-    auto tbl = get_table(inst_name);
-    if(!tbl){ // No such table      
-      spdlog::error("In del_table(), table {} not found.", inst_name);
-      return false;
-    }
-    delete tbl;
-    tbls.erase(inst_name);
-    spdlog::info("Table {} deleted.", inst_name);
-    return true;
-  }
-  
-  t_base * get_table(const string & inst_name)
-  {
-    auto itr = tbls.find(inst_name);
-    if(itr == tbls.end())
-      return nullptr;
-    
-    return itr->second;
-  }
-
-  t_base * get_table(const string & type_name, const string & inst_name)
-  {
-    auto tbl = get_table(inst_name);
-    if(tbl->is_type(type_name))
-      return tbl;
-    spdlog::error("Talbe {} found, but type is not {}.", inst_name, type_name);
-    return nullptr;
-  }
-
+  bool del_channel(const string & name);  
+  bool gen_table(const string & type_name, const string & inst_name);
+  bool del_table(const string & inst_name);    
+  t_base * get_table(const string & inst_name);
+  t_base * get_table(const string & type_name, const string & inst_name);
+  f_base * get_filter(const char * name);
   f_base * get_filter(const string & name)
   {
     return get_filter(name.c_str());
-  }
-
-  void get_fltr_lst(FltrLst * lst)
-  {
-    for(auto itr = filters.begin(); itr != filters.end(); itr++){
-      f_base * f = itr->second;
-      FltrInfo * info = lst->add_fltrs();
-      info->set_inst_name(f->get_name());
-      info->set_type_name(f->get_type_name());
-      info->set_is_active(f->is_active());      
-    }
-  }
-  
+  }  
+  ch_base * get_channel(const char * name);
   ch_base * get_channel(const string & name)
   {
     return get_channel(name.c_str());
-  }
-
-  void get_ch_lst(ChLst * lst)
-  {
-    for(auto itr = m_channels.begin() ;itr != m_channels.end(); itr++){
-      ch_base * ch = *itr;
-      ChInfo * info = lst->add_chs();
-      info->set_inst_name(ch->get_name());
-      info->set_type_name(typeid(*ch).name());
-    }
-  }
-
-  void get_tbl_lst(TblLst * lst)
-  {
-    for(auto itr = tbls.begin(); itr != tbls.end(); itr++){
-      t_base * t = itr->second;
-      TblInfo * info = lst->add_tbls();
-      info->set_inst_name(t->get_name());
-      info->set_type_name(t->get_type());
-    }
-  }
+  }  
+  void get_fltr_lst(FltrLst * lst);
+  void get_ch_lst(ChLst * lst);
+  void get_tbl_lst(TblLst * lst);
   
 protected:
   mutex m_mtx;
@@ -465,13 +238,7 @@ public:
   {
     m_mtx.unlock();
   }
- 
-  // getting a pointer of a channel object by its name.
-  ch_base * get_channel(const char * name);
-
-  // getting a pointer of a filter object by its name
-  f_base * get_filter(const char * name);
-  
+   
   long long  get_cycle_time(){
     return m_cycle_time;
   }

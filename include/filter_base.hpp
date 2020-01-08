@@ -420,13 +420,7 @@ protected:
   virtual void destroy_run()
   {
   }
-public:	
-  
-  virtual bool check()
-  {
-    return true;
-  }
-  
+public:	  
   // invoke main thread.
   virtual bool run()
   {
@@ -450,17 +444,14 @@ public:
    
   // stop main thread. the function is called from c_aws until the thread stops.
   virtual bool stop();
+  
   void destroy(){
     m_stop_clock = m_count_clock;
     destroy_run();
-    runstat();
-  }
-  
-  void runstat(){
     m_proc_rate = (double) m_count_proc / (double) (m_stop_clock - m_start_clock);
     spdlog::info("[{}] ProcRate {}({}/{}), Max Cycles {}", get_name(), m_proc_rate, m_count_proc, m_stop_clock - m_start_clock, m_max_cycle);
   }
-  
+    
   // check the filter activity condition
   virtual bool is_active(){
     return m_bactive;
