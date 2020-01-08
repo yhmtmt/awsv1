@@ -30,7 +30,6 @@ add_custom_target(generate-grpcsrcs ALL DEPENDS ${GRPC_SRCS} ${GRPC_HDRS})
 add_custom_target(generate-flatobjs ALL DEPENDS ${FLAT_HDRS} ${FLAT_BFBS})
 add_subdirectory(src)
 add_subdirectory(filters)
-add_subdirectory(rcmd)
 
 enable_testing()
 add_subdirectory(test)
