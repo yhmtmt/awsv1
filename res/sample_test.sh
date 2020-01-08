@@ -17,6 +17,10 @@ caws getfltrpar fltr1
 caws getfltrpar fltr2
 caws getfltrpar fltr1 ch f64 u64 s64 f32 u32 s32 s16 u16 s8 u8 b str e
 caws getfltrpar fltr2 ch f64 u64 s64 f32 u32 s32 s16 u16 s8 u8 b str e
+caws setfltrinchs fltr1 ch1 ch2
+caws setfltroutchs fltr1 ch2 ch1
+caws getfltrinchs fltr1
+caws getfltroutchs fltr1
 caws lstfltrs
 caws lsttbls
 caws lstchs

@@ -22,6 +22,8 @@ using CommandService::FltrInfo;
 using CommandService::FltrParInfo;
 using CommandService::LstFltrsParam;
 using CommandService::FltrLst;
+using CommandService::FltrIODir;
+using CommandService::FltrIOChs;
 
 using CommandService::ChInfo;
 using CommandService::LstChsParam;
@@ -40,6 +42,7 @@ using CommandService::Result;
 enum cmd_id{
   RUN=0, STOP, QUIT,
   GEN_FLTR, DEL_FLTR, LST_FLTRS, SET_FLTR_PAR, GET_FLTR_PAR,
+  SET_FLTR_INCHS, SET_FLTR_OUTCHS, GET_FLTR_INCHS, GET_FLTR_OUTCHS,
   GEN_CH, DEL_CH, LST_CHS,
   GEN_TBL, GET_TBL, SET_TBL, SET_TBL_REF, DEL_TBL, LST_TBLS,
   JSON, UNKNOWN
@@ -48,6 +51,7 @@ enum cmd_id{
 const char * str_cmd[UNKNOWN] = {
   "run", "stop", "quit",
   "genfltr", "delfltr", "lstfltrs", "setfltrpar", "getfltrpar",
+  "setfltrinchs", "setfltroutchs", "getfltrinchs", "getfltroutchs",
   "gench", "delch", "lstchs",
   "gentbl", "gettbl", "settbl", "settblref", "deltbl", "lsttbls",
   ".json"
@@ -58,11 +62,15 @@ const char * str_cmd_usage[UNKNOWN] =
   "<filter inst name>", // RUN
   "<filter inst name>", // STOP
   "", // QUIT
-  "<type name> <inst name>", // GEN_FLTR
-  "<inst name>", // DEL_FLTR
+  "<filter type name> <filter inst name>", // GEN_FLTR
+  "<filter inst name>", // DEL_FLTR
   "", // LST_FLTRS
-  "<inst name> [<par name> <val> ...]", // SET_FLTR_PAR
-  "<inst name> [<par name> ...]", // GET_FLTR_PAR
+  "<filter inst name> [<par name> <val> ...]", // SET_FLTR_PAR
+  "<filter inst name> [<par name> ...]", // GET_FLTR_PAR
+  "<filter inst name>", // SET_FLTR_INCHS
+  "<filter inst name>", // SET_FLTR_OUTCHS
+  "<filter inst name>", // GET_FLTR_INCHS
+  "<filter inst name>", // GET_FLTR_OUTCHS
   "<type name> <inst name>", // GEN_CH
   "<inst name>", // DEL_CH
   "", // LST_CHS
@@ -268,6 +276,45 @@ public:
       std::cout << std::endl;
     }
     
+    return true;
+  }
+
+  bool SetFltrChs(const std::string & inst_name, const FltrIODir dir, const std::vector<std::string> & chs)
+  {
+    FltrIOChs lst;
+    lst.set_inst_name(inst_name);
+    lst.set_dir(dir);
+    for(int ich = 0; ich < chs.size(); ich++){
+      auto ch = lst.add_lst();
+      ch->set_inst_name(chs[ich]);
+    }
+    Result res;
+    ClientContext context;
+    Status status = stub_->SetFltrIOChs(&context, lst, &res);
+    if(!status.ok()){
+      std::cerr << "Error: " << res.message() << std::endl;
+      return false;
+    }
+
+    return true;
+  }
+
+  bool GetFltrChs(const std::string & inst_name, const FltrIODir dir)
+  {
+    FltrIOChs lst_req, lst_rep;
+    lst_req.set_inst_name(inst_name);
+    lst_req.set_dir(dir);
+    ClientContext context;
+    Status status = stub_->GetFltrIOChs(&context, lst_req, &lst_rep);
+    if(!status.ok()){
+      std::cerr << "Error in GetFltrChs." << std::endl;
+      return false;
+    }
+    for(int ich = 0; ich < lst_rep.lst_size(); ich++){
+      auto ch = lst_rep.lst(ich);
+      std::cout << ch.inst_name() << "\t" << ch.type_name() << "\t" << std::endl;      
+    }
+          
     return true;
   }
   
@@ -589,6 +636,46 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
 	pars.push_back(std::string(argv[iarg]));
       }
       return handler.GetFltrPar(fltr_name, pars);
+    }
+  case SET_FLTR_INCHS:
+    if(argc < 3){
+      dump_usage(id);
+      return false;
+    }else{
+      std::string fltr_name(argv[2]);
+      std::vector<std::string> chs;
+      for(int iarg = 3; iarg < argc; iarg++){
+	chs.push_back(std::string(argv[iarg]));
+      }
+      return handler.SetFltrChs(fltr_name, FltrIODir::IN, chs);
+    }
+  case SET_FLTR_OUTCHS:
+    if(argc < 3){
+      dump_usage(id);
+      return false;
+    }else{
+      std::string fltr_name(argv[2]);
+      std::vector<std::string> chs;
+      for(int iarg = 3; iarg < argc; iarg++){
+	chs.push_back(std::string(argv[iarg]));
+      }
+      return handler.SetFltrChs(fltr_name, FltrIODir::OUT, chs);
+    }
+  case GET_FLTR_INCHS:
+    if(argc != 3){
+      dump_usage(id);
+      return false;
+    }else{
+      std::string fltr_name(argv[2]);
+      return handler.GetFltrChs(fltr_name, FltrIODir::IN);
+    }    
+  case GET_FLTR_OUTCHS:
+    if(argc != 3){
+      dump_usage(id);
+      return false;
+    }else{
+      std::string fltr_name(argv[2]);
+      return handler.GetFltrChs(fltr_name, FltrIODir::OUT);
     }
   case GEN_CH:
     if(argc != 4){

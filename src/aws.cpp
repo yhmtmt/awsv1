@@ -134,6 +134,48 @@ public:
     return Status::OK;
   }
 
+  Status SetFltrIOChs(ServerContext * context, const FltrIOChs * lst, Result * res)
+  {
+    paws->lock();
+    if(!paws->set_fltr_io_chs(lst)){
+      string message("Failed to set ");
+      if(lst->dir() == FltrIODir::IN){
+	message += "input channels of ";
+      }else{
+	message += "output channels of ";
+      }
+      message += lst->inst_name() + ".";
+      res->set_message(message);
+      res->set_is_ok(false);
+      spdlog::error(message);
+    }else{
+      res->set_is_ok(true);
+    }
+       
+    paws->unlock();
+    return Status::OK;
+  }  
+
+  Status GetFltrIOChs(ServerContext * context, const FltrIOChs * lst_req, FltrIOChs * lst_rep)
+  {
+    paws->lock();
+    if(!paws->get_fltr_io_chs(lst_req, lst_rep)){
+      string message("Failed to get ");
+      if(lst_req->dir() == FltrIODir::IN){
+	message += "input channels of ";
+      }else{
+	message += "output channels of ";
+      }
+      message += lst_req->inst_name() + ".";
+      spdlog::error(message);
+    }
+       
+    paws->unlock();
+    return Status::OK;
+  }
+  
+    
+  
   Status GenCh(ServerContext * context, const ChInfo * inf,
 	       Result * res) override
   {

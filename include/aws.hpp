@@ -1,19 +1,19 @@
 #ifndef AWS_H
 #define AWS_H
-// Copyright(c) 2014,2019 Yohei Matsumoto, All right reserved. 
+// Copyright(c) 2014-2020 Yohei Matsumoto, All right reserved. 
 
-// c_aws.h is free software: you can redistribute it and/or modify
+// aws.hpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Publica License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// c_aws.h is distributed in the hope that it will be useful,
+// aws.hpp is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with c_aws.h.  If not, see <http://www.gnu.org/licenses/>.
+// along with aws.hpp.  If not, see <http://www.gnu.org/licenses/>.
 #include <cstdio>
 #include <cstdlib>
 #include <climits>
@@ -61,6 +61,8 @@ using CommandService::FltrInfo;
 using CommandService::FltrParInfo;
 using CommandService::LstFltrsParam;
 using CommandService::FltrLst;
+using CommandService::FltrIODir;
+using CommandService::FltrIOChs;
 
 using CommandService::ChInfo;
 using CommandService::LstChsParam;
@@ -268,6 +270,63 @@ public:
     }
     f->unlock_cmd();
     return suc;
+  }
+
+  bool set_fltr_io_chs(const FltrIOChs * lst)
+  {
+    f_base * f = get_filter(lst->inst_name());
+    if(!f){
+      spdlog::error("Cannot find filter {}.", lst->inst_name());
+      return false;
+    }
+    f->lock_cmd();
+    if(lst->dir() == FltrIODir::IN){
+      for(int ich = 0; ich < lst->lst_size(); ich++){
+	ch_base * ch = get_channel(lst->lst(ich).inst_name());
+	f->set_ichan(ch);
+      }
+    }else{
+      for(int ich = 0; ich < lst->lst_size(); ich++){
+	ch_base * ch = get_channel(lst->lst(ich).inst_name());
+	f->set_ochan(ch);
+      }      
+    }
+    f->unlock_cmd();    
+    return true;
+  }
+
+  bool get_fltr_io_chs(const FltrIOChs * lst_req, FltrIOChs * lst_rep)
+  {
+    f_base * f = get_filter(lst_req->inst_name());
+    if(!f){
+      spdlog::error("Cannot find filter {}.", lst_req->inst_name());
+      return false;
+    }
+    f->lock_cmd();
+    lst_rep->set_inst_name(lst_req->inst_name());
+    lst_rep->set_dir(lst_req->dir());
+    if(lst_req->dir() == FltrIODir::IN){
+      for(int ich = 0; ich < f->get_num_ichan(); ich++){
+	ch_base * ch = f->get_ichan(ich);
+	if(ch){
+	  auto info = lst_rep->add_lst();
+	  info->set_inst_name(ch->get_name());
+	  info->set_type_name(typeid(*ch).name());	  
+	}
+      }
+    }else{
+      for(int ich = 0; ich < f->get_num_ochan(); ich++){
+	ch_base * ch = f->get_ochan(ich);
+	if(ch){
+	  auto info = lst_rep->add_lst();
+	  info->set_inst_name(ch->get_name());
+	  info->set_type_name(typeid(*ch).name());
+	}
+      }
+    }    
+    f->unlock_cmd();
+
+    return true;
   }
   
   bool add_channel(const string & type, const string & name);

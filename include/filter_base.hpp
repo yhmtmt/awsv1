@@ -182,9 +182,43 @@ public:
   void set_ichan(ch_base * pchan){
     m_chin.push_back(pchan);
   }
+
+  ch_base * get_ichan(int ichan)
+  {
+    if(m_chin.size() > ichan)
+      return m_chin[ichan];
+    return nullptr;
+  }
+  
+  void reset_ichan()
+  {
+    m_chin.clear();
+  }
+
+  const size_t get_num_ichan()
+  {
+    return m_chin.size();
+  }
   
   void set_ochan(ch_base * pchan){
     m_chout.push_back(pchan);
+  }
+
+  void reset_ochan()
+  {
+    m_chout.clear();
+  }
+
+  const size_t get_num_ochan()
+  {
+    return m_chout.size();
+  }
+
+  ch_base * get_ochan(const int ichan)
+  {
+    if(m_chout.size() > ichan)
+      return m_chout[ichan];
+    return nullptr;
   }
 
 protected:
