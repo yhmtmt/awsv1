@@ -1,17 +1,17 @@
 // Copyright(c) 2012-2019 Yohei Matsumoto, All right reserved. 
 
-// c_aws is free software: you can redistribute it and/or modify
+// aws.cpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// c_aws is distributed in the hope that it will be useful,
+// aws.cpp is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with c_aws.  If not, see <http://www.gnu.org/licenses/>.
+// along with aws.cpp.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "aws.hpp"
 
@@ -793,9 +793,7 @@ bool c_aws::main()
   m_end_time = LLONG_MAX;
   m_cycle_time = conf.cycle_time();
   
-  f_base::m_clk.start((unsigned) m_cycle_time, 
-		      (unsigned) m_cycle_time, m_start_time, 
-		      true, m_time_rate);
+  f_base::m_clk.start((unsigned) m_cycle_time, m_start_time, true, m_time_rate);
     
   while(!m_exit){
     if(!f_base::m_clk.is_stop()){

@@ -195,12 +195,11 @@ c_clock::~c_clock(void)
 {
 }
 
-bool c_clock::start(unsigned period, unsigned delay,
-	long long offset, bool online, int rate)
+bool c_clock::start(unsigned period, long long offset, bool online, int rate)
 {
   m_bonline = online;
   if(m_bonline)
-    m_rate = 1; // clock rate is forced to be zero.
+    m_rate = 1; // clock rate is forced to be one.
   else
     m_rate = rate;
   
@@ -223,7 +222,7 @@ bool c_clock::start(unsigned period, unsigned delay,
     }   
   }else if(m_state == RUN){
     stop();
-    start(period, delay, offset, online, rate);
+    start(period, offset, online, rate);
   }
   
   m_state = RUN;

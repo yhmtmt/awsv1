@@ -12,8 +12,8 @@
 
 // You should have received a copy of the GNU General Public License
 // along with aws_clock.hpp.  If not, see <http://www.gnu.org/licenses/>. 
-#ifndef C_CLOCK_H
-#define C_CLOCK_H
+#ifndef AWS_CLOCK_HPP
+#define AWS_CLOCK_HPP
 
 #include <sys/time.h>
 
@@ -83,7 +83,7 @@ class c_clock
   c_clock(void);
   ~c_clock(void);
   
-  bool start(unsigned period = 166667, unsigned delay = 0,
+  bool start(unsigned period = 166667, 
 	     long long offset = 0, bool online = true, int rate = 1); // pause or stop to run transition
   void stop(); // run or pause to stop transition
   bool pause();// run to pause transition

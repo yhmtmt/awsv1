@@ -22,7 +22,7 @@
 //
 // * f_base::proc is the main function which is executed synchronous to the clock. you can 
 // implements any functions using data in input channels and transfer the results
-// to the next filter via output channels. Or you can control the latency of the proc
+// to the next filter via output channels. you can control the latency of the proc
 // by setting m_intvl
 
 #include <typeinfo>
@@ -78,10 +78,29 @@ public:
   
   // uninitialize mutex and signal objects. called by the c_aws destoractor
   static void uninit();
-  
+
+  //////////////////////////////////////////////////// core members
 protected:
   c_filter_lib * m_lib;
-  char * m_name; // filter name
+  char * m_name;
+  
+public:
+  void set_lib(c_filter_lib * lib);
+
+  const c_filter_lib * get_lib()
+  {
+    return m_lib;
+  }
+  
+  const char * get_name()
+  {
+    return m_name;
+  };
+
+  const string & get_type_name();
+
+  //////////////////////////////////////// tables and the methods
+protected:
   struct s_table_info
   {
     t_base * table;
@@ -156,20 +175,6 @@ public:
     }
     return false; // no such table
   }
-
-  void set_lib(c_filter_lib * lib);
-
-  const c_filter_lib * get_lib()
-  {
-    return m_lib;
-  }
-  
-  const char * get_name()
-  {
-    return m_name;
-  };
-
-  const string & get_type_name();
   
   ///////////////////////////////////////// channel and the methods
 protected:
@@ -221,14 +226,14 @@ public:
   }
 
 protected:
-  ///////////////////////////////////////// parameter table and the methods
-  // filter parameter structure 
+  ///////////////////////////////////////// parameters and the methods
   struct s_fpar{ 
     const char * name; // name of the parameter
     const char * explanation; // explanation of the parameter
     enum e_par_type{
-      F64, S64, U64, F32, S32, U32, S16, U16, S8, U8, BIN, CSTR, ENUM, CH, UNKNOWN
-    } type; 	// parameter type
+      F64, S64, U64, F32, S32, U32, S16, U16, S8, U8,
+      BIN, CSTR, ENUM, CH, UNKNOWN
+    } type;
     
     union{
       double * f64;
@@ -244,7 +249,7 @@ protected:
       char * cstr;
       ch_base ** ppch ;
       bool * bin;
-    }; // parameter variable (shared field)
+    }; 
     
     int len; // length of the string (only for CSTR) or 
     // lengtho of the string list of ENUM
