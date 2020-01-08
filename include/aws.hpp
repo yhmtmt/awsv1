@@ -1,5 +1,5 @@
-#ifndef AWS_H
-#define AWS_H
+#ifndef AWS_HPP
+#define AWS_HPP
 // Copyright(c) 2014-2020 Yohei Matsumoto, All right reserved. 
 
 // aws.hpp is free software: you can redistribute it and/or modify
@@ -90,8 +90,6 @@ using CommandService::Result;
 #include "aws_command.hpp"
 
 #include "CmdAppBase.hpp"
-
-class c_rcmd;
 
 class c_filter_lib
 {
@@ -425,18 +423,12 @@ public:
   }
   
 protected:
-  s_cmd m_cmd;
   mutex m_mtx;
-  condition_variable m_cnd_ret;
 
   Config conf;
-  int m_cmd_port;
   char * m_config_file;
   char * m_working_path;
   
-  // for remote command processor
-  vector<c_rcmd*> m_rcmds;
-
   int m_time_rate;
 
   // start time and end time
@@ -453,63 +445,14 @@ protected:
 
   map<string, unique_ptr<c_filter_lib>> filter_libs;
   map<string, f_base*> filters;
-
-  map<string, t_base*> tbls;
-  
+  map<string, t_base*> tbls;  
   vector<ch_base *> m_channels;
 
-  bool m_blk_cmd;
-  int skip_space(const char * ptr, int len)
-  {
-    int len_skip = 0;
-    while (*ptr == ' ' || *ptr == '\t') {
-      ptr++;
-      len_skip++;
-      if (len_skip >= len)
-	return len;
-    }
-    return len_skip;
-  }
-
-  void proc_command();
-  
   void clear();
   
   // flag for exiting function run()
   bool m_exit;
-  
-  bool m_bonline;
-  
-  // create and add channel
-  bool add_channel(s_cmd & cmd);
-  
-  // create and add filter
-  bool add_filter(s_cmd & cmd);
-   
-  // check filter graph
-  bool check_graph();
-  
-  // command handlers
-  bool handle_chan(s_cmd & cmd);
-  bool handle_fltr(s_cmd & cmd);
-  bool handle_fcmd(s_cmd & cmd);
-  bool handle_fset(s_cmd & cmd);
-  bool handle_fget(s_cmd & cmd);
-  bool handle_finf(s_cmd & cmd);
-  bool handle_fpar(s_cmd & cmd);
-  bool handle_chinf(s_cmd & cmd);
-  bool handle_quit(s_cmd & cmd);
-  bool handle_step(s_cmd & cmd);
-  bool handle_cyc(s_cmd & cmd);
-  bool handle_pause(s_cmd & cmd);
-  bool handle_clear(s_cmd & cmd);
-  bool handle_rcmd(s_cmd & cmd);
-  bool handle_trat(s_cmd & cmd);
-  bool handle_run(s_cmd & cmd);
-  bool handle_frm(s_cmd & cmd);
-  bool handle_chrm(s_cmd & cmd);
-  bool handle_stop();
-  
+      
 public:
   c_aws(int argc, char ** argv);
   virtual ~c_aws();
@@ -530,8 +473,6 @@ public:
   // getting a pointer of a filter object by its name
   f_base * get_filter(const char * name);
   
-  bool push_command(const char * cmd_str, char * ret_str, bool & ret_stat);
-  
   long long  get_cycle_time(){
     return m_cycle_time;
   }
@@ -543,41 +484,5 @@ public:
   virtual void print_title();
   virtual bool main();
 };
-
-// class for remote command processor 
-// this class is instanciated when the rcmd command is issued.
-// aws instantiate at least one.
-class c_rcmd
-{
-private:
-  c_aws * m_paws;		// pointer to the system
-  SOCKET m_svr_sock;		// socket waiting for commands
-  sockaddr_in m_svr_addr;       // server address initiating socket
-  sockaddr_in m_client;	        // client address initiating socket
-  thread * m_th_rcmd;
-
-  fd_set m_fdread;		// for use select() in recieving command
-  fd_set m_fdwrite;		// for use select() in transmitting return value
-  fd_set m_fderr;			// for use select() 
-  timeval m_to;			// for use select()
-  bool m_exit;			// thread termination flag
-
-  char m_buf_recv[CMD_LEN];     // buffer for recieving command
-  char m_buf_send[RET_LEN];     // buffer for return value 
-
-  static void thrcmd(c_rcmd * ptr); // command processing thread function
-  bool wait_connection(SOCKET & s); 
-  bool wait_receive(SOCKET & s, char * buf, int & total);
-  bool push_command(const char * cmd_str, char * ret_str, bool ret_stat);
-  bool wait_send(SOCKET & s, char * buf);
-
-public:
-  c_rcmd(c_aws * paws, unsigned short port);
-  ~c_rcmd();
-  
-  bool is_exit();
-};
-
-extern bool g_kill;
 
 #endif
