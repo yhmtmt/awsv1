@@ -6,6 +6,8 @@ service Command{
 	rpc Run(RunParam) returns (Result) {}
 	rpc Stop(StopParam) returns (Result) {}
 	rpc Quit(QuitParam) returns (Result) {}
+	rpc SetClockState(ClockParam) returns (Result) {}
+	rpc GetTime(TimeInfo) returns (Time) {}
 	
 	rpc GenFltr(FltrInfo) returns (Result) {}
 	rpc DelFltr(FltrInfo) returns (Result) {}
@@ -15,7 +17,6 @@ service Command{
 	rpc SetFltrIOChs(FltrIOChs) returns (Result) {}
 	rpc GetFltrIOChs(FltrIOChs) returns (FltrIOChs) {}
 
-	
 	rpc GenCh(ChInfo) returns (Result) {}
 	rpc DelCh(ChInfo) returns (Result) {}
 	rpc LstChs(LstChsParam) returns (ChLst) {}
@@ -37,6 +38,31 @@ message StopParam{
 }
 
 message QuitParam{
+}
+
+
+message TimeInfo{
+}
+
+message Time{
+	uint64 t = 1;
+}
+
+enum ClockState{
+     RUN = 0;
+     STOP = 1;
+     PAUSE = 2;
+     STEP = 3;
+};
+
+message ClockParam{
+	ClockState state = 1;	
+	bool online = 2;
+	uint64 cycle_time = 3;
+	uint64 tstart = 4;
+	uint64 tend = 5;
+	int32 rate = 6;
+	int32 step = 7;
 }
 
 message FltrInfo{

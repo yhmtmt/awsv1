@@ -289,7 +289,7 @@ long long c_clock::get_time()
   case PAUSE:
     return m_tcur;
   default:
-  return m_tcur + m_offset;
+    return m_tcur + m_offset;
   }
 }
 

@@ -56,6 +56,10 @@ using CommandService::Command;
 using CommandService::RunParam;
 using CommandService::StopParam;
 using CommandService::QuitParam;
+using CommandService::TimeInfo;
+using CommandService::Time;
+using CommandService::ClockParam;
+using CommandService::ClockState;
 
 using CommandService::FltrInfo;
 using CommandService::FltrParInfo;
@@ -238,7 +242,12 @@ public:
   {
     m_mtx.unlock();
   }
-   
+
+  void set_end_time(long long tend)
+  {
+    m_end_time = tend;
+  }
+  
   long long  get_cycle_time(){
     return m_cycle_time;
   }

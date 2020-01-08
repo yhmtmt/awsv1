@@ -412,11 +412,6 @@ protected:
   static mutex m_mutex;
   static condition_variable m_cond;
   
-  virtual bool seek(long long seek_time)
-  {
-    return true;
-  }
-  
   virtual bool init_run()
   {
     return true;
