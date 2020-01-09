@@ -53,6 +53,7 @@ enum ClockState{
      STOP = 1;
      PAUSE = 2;
      STEP = 3;
+     UNDEF = 4;
 };
 
 message ClockParam{

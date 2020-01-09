@@ -18,6 +18,11 @@ using CommandService::RunParam;
 using CommandService::StopParam;
 using CommandService::QuitParam;
 
+using CommandService::TimeInfo;
+using CommandService::Time;
+using CommandService::ClockParam;
+using CommandService::ClockState;
+
 using CommandService::FltrInfo;
 using CommandService::FltrParInfo;
 using CommandService::LstFltrsParam;
@@ -40,7 +45,7 @@ using CommandService::Result;
 #include "table_util.hpp"
 
 enum cmd_id{
-  RUN=0, STOP, QUIT,
+  RUN=0, STOP, QUIT, CLOCK, GET_TIME,
   GEN_FLTR, DEL_FLTR, LST_FLTRS, SET_FLTR_PAR, GET_FLTR_PAR,
   SET_FLTR_INCHS, SET_FLTR_OUTCHS, GET_FLTR_INCHS, GET_FLTR_OUTCHS,
   GEN_CH, DEL_CH, LST_CHS,
@@ -49,7 +54,7 @@ enum cmd_id{
 };
 
 const char * str_cmd[UNKNOWN] = {
-  "run", "stop", "quit",
+  "run", "stop", "quit", "clock", "gettime",
   "genfltr", "delfltr", "lstfltrs", "setfltrpar", "getfltrpar",
   "setfltrinchs", "setfltroutchs", "getfltrinchs", "getfltroutchs",
   "gench", "delch", "lstchs",
@@ -57,11 +62,76 @@ const char * str_cmd[UNKNOWN] = {
   ".json"
 };
 
+const char * str_clock_cmd[ClockState::UNDEF] ={
+  "run", "stop", "pause", "step"
+};
+
+ClockState get_clock_state(const char * str)
+{
+  for(int i = 0; i < ClockState::UNDEF; i++){
+    if(str_clock_cmd[i][0] == str[0]){
+      if(strcmp(str, str_clock_cmd[i]) == 0)
+	return (ClockState) i;
+    }
+  }
+  
+  std::cerr << "Unknown command " << str << "." << std::endl;
+  return ClockState::UNDEF;
+}
+
+bool parse_clock_option(int argc, char ** argv,
+			unsigned long long & period,
+			unsigned long long & tstart,
+			unsigned long long & tend,
+			int & rate,
+			int & step,
+			bool & online)
+{
+  for (int i = 3; i < argc; i++){
+    const char * str = argv[i];
+    if(i+1 == argc){
+      std::cerr << "Missing variable for option " << str << "." << std::endl;
+      return false;
+    }
+    
+    if(str[0] == '-'){
+      switch(str[1]){
+      case 'p':
+	period = atoll(argv[i+1]);
+	break;
+      case 's':
+	tstart = atoll(argv[i+1]);
+	break;
+      case 'e':
+	tend = atoll(argv[i+1]);
+	break;
+      case 'r':
+	rate = atoi(argv[i+1]);
+	break;
+      case 'c':
+	step = atoi(argv[i+1]);
+	break;
+      case 'o':
+	online = argv[i+1][0] == 'y' ? true : false;
+	break;
+      default:
+	std::cerr << "Unknown option: " << str << std::endl;
+	return false;
+      }
+      i++;
+    }
+  }
+  return true;
+}
+
+  
 const char * str_cmd_usage[UNKNOWN] =
 {
   "<filter inst name>", // RUN
   "<filter inst name>", // STOP
   "", // QUIT
+  "{run | pause | step | stop} [-p <period>] [-s <start time>] [-e <end time>] [-r <speed>] [-c <step cycles>] [-o {y | n}]",
+  "", // GET_TIME
   "<filter type name> <filter inst name>", // GEN_FLTR
   "<filter inst name>", // DEL_FLTR
   "", // LST_FLTRS
@@ -128,10 +198,15 @@ public:
     ClientContext context;
     Status status = stub_->Run(&context, par, &res);
     if(!status.ok()){
-      std::cout << "Error:" << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;      
       return false;
     }
 
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      return false;
+    }
+    
     return true;
   }
 
@@ -143,13 +218,65 @@ public:
     ClientContext context;
     Status status = stub_->Stop(&context, par, &res);
     if(!status.ok()){
-      std::cout << "Error:" << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
+      return false;
+    }
+    
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
       return false;
     }
 
     return true;
   }
 
+  bool SetClockState(const ClockState st,
+		     const unsigned long long period,
+		     const unsigned long long tstart,
+		     const unsigned long long tend,
+		     const int rate,
+		     const int steps,
+		     const bool online)
+  {
+    ClockParam par;
+    Result res;
+    ClientContext context;
+    par.set_state(st);
+    par.set_cycle_time(period);
+    par.set_tstart(tstart);
+    par.set_tend(tend);
+    par.set_rate(rate);
+    par.set_step(steps);
+    par.set_online(online);
+    Status status = stub_->SetClockState(&context, par, &res);
+    if(!status.ok()){
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;      
+      return false;
+    }
+
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      return false;
+    }
+    
+    return true;
+  }
+
+  bool GetTime()
+  {
+    TimeInfo inf;
+    Time t;
+    ClientContext context;
+    Status status = stub_->GetTime(&context, inf, &t);
+    if(!status.ok()){
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;     
+      return false;
+    }
+
+    std::cout << t.t() << std::endl;
+    return true;
+  }
+  
   bool Quit()
   {
     QuitParam par;
@@ -157,10 +284,16 @@ public:
     ClientContext context;
     Status status = stub_->Quit(&context, par, &res);
     if(!status.ok()){
-      std::cout << "Error:" << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
+      
       return false;
     }
 
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      return false;
+    }
+    
     return true;    
   }
 
@@ -173,10 +306,16 @@ public:
     ClientContext context;
     Status status = stub_->GenFltr(&context, info, &res);
     if(!status.ok()){
-      std::cout << "Error:" << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
+
       return false;
     }
 
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      return false;
+    }
+    
     return true;
   }
 
@@ -188,10 +327,15 @@ public:
     ClientContext context;
     Status status = stub_->DelFltr(&context, info, &res);
     if(!status.ok()){
-      std::cout << "Error:" << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
       return false;
     }
 
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      return false;
+    }
+    
     return true;
   }
 
@@ -238,10 +382,15 @@ public:
     ClientContext context;
     Status status = stub_->SetFltrPar(&context, info, &res);
     if(!status.ok()){
-      std::cout << "Error: " << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
       return false;
     }
 
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      return false;
+    }
+    
     return true;
   }
 
@@ -275,6 +424,11 @@ public:
       }
       std::cout << std::endl;
     }
+
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      return false;
+    }
     
     return true;
   }
@@ -292,10 +446,15 @@ public:
     ClientContext context;
     Status status = stub_->SetFltrIOChs(&context, lst, &res);
     if(!status.ok()){
-      std::cerr << "Error: " << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
       return false;
     }
 
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      return false;
+    }
+    
     return true;
   }
 
@@ -327,10 +486,16 @@ public:
     ClientContext context;
     Status status = stub_->GenCh(&context, info, &res);
     if(!status.ok()){
-      std::cout << "Error:" << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
+      
       return false;
     }
 
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      return false;
+    }
+    
     return true;
   }
 
@@ -342,10 +507,16 @@ public:
     ClientContext context;
     Status status = stub_->DelCh(&context, info, &res);
     if(!status.ok()){
-      std::cout << "Error:" << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
+
       return false;
     }
 
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      return false;
+    }
+    
     return true;
   }
 
@@ -379,7 +550,12 @@ public:
     ClientContext context;
     Status status = stub_->GenTbl(&context, info, &res);
     if(!status.ok()){
-      std::cout << "Error:" << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
+      return false;
+    }
+
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
       return false;
     }
     
@@ -458,10 +634,14 @@ public:
     Status status = stub_->SetTbl(&context, data, &res);
 
     if(!status.ok()){
-      std::cout << "Error:" << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
       return false;
     }
-    
+
+    if(!res.is_ok()){
+      std::cerr << "Error: " << res.message() << "." << std::endl;
+      return false;
+    }
     return true;
   }
 
@@ -478,7 +658,12 @@ public:
     Status status = stub_->SetTblRef(&context, ref, &res);
 
     if(!status.ok()){
-      std::cout << "Error:" << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;
+      return false;
+    }
+
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
       return false;
     }
    
@@ -494,9 +679,14 @@ public:
     ClientContext context;
     Status status = stub_->DelTbl(&context, info, &res);
     if(!status.ok()){
-      std::cout << "Error:" << res.message() << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;      
       return false;
     }
+
+    if(!res.is_ok()){
+      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      return false;
+    }    
       
     return true;
   }
@@ -508,7 +698,7 @@ public:
     ClientContext context;
     Status status = stub_->LstTbls(&context, par, &lst);
     if(!status.ok()){
-      std::cout << "Error in LstTbls" << std::endl;
+      std::cerr << "Error " << status.error_code() << ": " << status.error_message() << std::endl;      
       return false;
     }
 
@@ -541,20 +731,6 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
     return false;
   }
   
-// argv[1] : command string
-// run <filter inst name>
-// stop <filter inst name>
-// quit
-// genfltr <type name> <inst name>
-// delfltr <name>
-// gench <type name> <inst name>
-// delch <inst name> 
-// gentbl <type name> <inst name> 
-// gettbl <inst name> [<type name>]
-// settbl <type name> <inst name> [-f <jsonfile> | -s <jsonstring>]
-// settblref <table inst name> <filter inst name> <filter table name>
-// deltbl <inst name> 
-// <jsonfile>
   std::string server_address = conf.address() + ":" + conf.port();
 
   CommandHandler handler(grpc::CreateChannel(server_address,
@@ -582,6 +758,31 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
       return false;
     }
     return handler.Run(argv[2]);
+  case CLOCK:
+    {
+      ClockState st;
+      unsigned long long period, tstart, tend;
+      int rate, steps;
+      bool online;
+      period = 0;
+      tstart = 0;
+      tend = LLONG_MAX;
+      rate = steps = 1;
+      online = true;
+      if(argc < 3 || argc > 14 ||
+	 (st = get_clock_state(argv[2])) == ClockState::UNDEF ||
+	 !parse_clock_option(argc, argv, period, tstart, tend, rate, steps, online)){
+	dump_usage(id);
+	return false;
+      }
+      return handler.SetClockState(st, period, tstart, tend, rate, steps, online);
+    }
+  case GET_TIME:
+    if(argc != 2){
+      dump_usage(id);
+      return false;
+    }
+    return handler.GetTime();
   case STOP:
     if(argc != 3){
       dump_usage(id);

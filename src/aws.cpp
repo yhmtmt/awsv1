@@ -19,9 +19,9 @@
 
 class CommandServiceImpl final : public Command::Service
 {
- private:
+private:
   c_aws * paws;
- public:
+public:
   CommandServiceImpl(c_aws * paws_):paws(paws_){};
 
   Status Run(ServerContext * context, const RunParam * par,
@@ -71,74 +71,83 @@ class CommandServiceImpl final : public Command::Service
   Status SetClockState(ServerContext * context, const ClockParam * par,
 		       Result * res) override
   {
+    ostringstream strm;
     if(f_base::m_clk.is_run()){
       switch(par->state()){
       case ClockState::RUN:
 	{
+	  long long tstart = (par->online() ? 0 : par->tstart());
 	  unsigned int cycle_time = (unsigned int) paws->get_cycle_time();
 	  if(par->cycle_time() > 0)
-	    cycle_time = (unsigned int) par->cycle_time();
-	
-	  f_base::m_clk.start(cycle_time, par->tstart(), par->online(), par->rate());
-	
-	  spdlog::info("Clock started at {}: Cycle time: {}, Start Time {}, End Time {}, Speed Rate {}",
-		       cycle_time,
-		       (par->online() ? f_base::m_clk.get_time() : par->tstart()),
-		       par->tend(), par->rate());
+	    cycle_time = (unsigned int) par->cycle_time();	
+	  f_base::m_clk.start(cycle_time, tstart, par->online(), par->rate());
+	  long long tcur = f_base::m_clk.get_time();	  
+	  strm << "Clock started at " << tcur << " Cycle time: " << cycle_time << " Start Time: " << tstart << " End Time: " << par->tend() << " Speed Rate: " << par->rate();
+	  res->set_is_ok(true);
 	}
 	break;
       case ClockState::PAUSE:	
 	f_base::m_clk.pause();
-	spdlog::info("Clock is paused at {}.", f_base::m_clk.get_time());
+	strm << "Clock is paused at " << f_base::m_clk.get_time() << ".";
+	res->set_is_ok(true);	
 	break;
       case ClockState::STOP:
 	f_base::m_clk.stop();
-	spdlog::info("Clock is stopped at {}.", f_base::m_clk.get_time());
+	strm << "Clock is stopped at " << f_base::m_clk.get_time() << ".";
+	res->set_is_ok(true);	
 	break;
       } 
-    }else
-      if(f_base::m_clk.is_stop()){
-	switch(par->state()){
-	case ClockState::RUN:
-	  {
-	    unsigned cycle_time = (unsigned) paws->get_cycle_time();
-	    if(par->cycle_time() > 0)
-	      cycle_time = (unsigned) par->cycle_time();
-	
-	    f_base::m_clk.start(cycle_time, par->tstart(), par->online(), par->rate());
-	
-	    spdlog::info("Clock started at {}: Cycle time: {}, Start Time {}, End Time {}, Speed Rate {}",
-			 cycle_time,
-			 (par->online() ? f_base::m_clk.get_time() : par->tstart()),
-			 par->tend(), par->rate());
-	    break;
-	  }
-	case ClockState::PAUSE:
-	case ClockState::STEP:
-	case ClockState::STOP:
-	  spdlog::error("Clock state is in state STOP state.");
+    }else if(f_base::m_clk.is_stop()){
+      switch(par->state()){
+      case ClockState::RUN:
+	{
+	  long long tstart = (par->online() ? 0 : par->tstart());
+	  unsigned int cycle_time = (unsigned int) paws->get_cycle_time();
+	  if(par->cycle_time() > 0)
+	    cycle_time = (unsigned int) par->cycle_time();
+	    
+	  f_base::m_clk.start(cycle_time, tstart, par->online(), par->rate());
+	  long long tcur = f_base::m_clk.get_time();	  
+	  strm << "Clock started at " << tcur << " Cycle time: " << cycle_time << " Start Time: " << tstart << " End Time: " << par->tend() << " Speed Rate: " << par->rate();
+	  res->set_is_ok(true);
 	}
-      }else
-	if(f_base::m_clk.is_pause()){
-	  switch(par->state()){
-	  case ClockState::RUN:
-	    f_base::m_clk.restart();
-	    spdlog::info("Clock is restarted at {}.", f_base::m_clk.get_time());
-	    break;
-	  case ClockState::STEP:
-	    f_base::m_clk.step(par->step());
-	    spdlog::info("Clock is stepped by {} cycles, now at {}", par->step(),
-			 f_base::m_clk.get_time());
-	    break;
-	  case ClockState::PAUSE:
-	    spdlog::error("Clock is in state PAUSE");
-	    break;
-	  case ClockState::STOP:
-	    f_base::m_clk.stop();
-	    spdlog::info("Clock is stopped at {}.", f_base::m_clk.get_time());	
-	    break;
-	  }      
-	}
+	break;
+      case ClockState::PAUSE:
+      case ClockState::STEP:
+      case ClockState::STOP:
+	strm << "Clock state has already been in state STOP.";
+	res->set_is_ok(false);	  
+      }
+    }else if(f_base::m_clk.is_pause()){
+      switch(par->state()){
+      case ClockState::RUN:
+	f_base::m_clk.restart();
+	strm << "Clock is restarted at " << f_base::m_clk.get_time() << ".";
+	res->set_is_ok(true);
+	break;
+      case ClockState::STEP:
+	f_base::m_clk.step(par->step());
+	strm << "Clock is stepped by " <<  par->step() << " cycles, now at " << f_base::m_clk.get_time() << ".";
+	res->set_is_ok(true);
+	break;
+      case ClockState::PAUSE:
+	strm << "Clock has already been in state PAUSE.";
+	res->set_is_ok(true);
+	break;
+      case ClockState::STOP:
+	f_base::m_clk.stop();
+	strm << "Clock is stopped at " << f_base::m_clk.get_time() << ".";
+	res->set_is_ok(true);
+	break;
+      }      
+    }
+    
+    if(res->is_ok()){
+      spdlog::info(strm.str());
+    }else{
+      spdlog::error(strm.str());
+      res->set_message(strm.str());
+    }
     
     return Status::OK;
   }
@@ -146,6 +155,7 @@ class CommandServiceImpl final : public Command::Service
   Status GetTime(ServerContext * context, const TimeInfo * inf,
 		 Time * t) override
   {
+    t->set_t(f_base::m_clk.get_time());
     return Status::OK;
   }
   
@@ -866,7 +876,6 @@ bool c_aws::main()
 
   thread server_thread([&](){server->Wait();});
   spdlog::info("Command service started on {}.", server_address);
-
   
   f_base::set_tz(m_time_zone_minute);
   f_base::init_run_all();
@@ -875,7 +884,6 @@ bool c_aws::main()
   m_cycle_time = conf.cycle_time();
      
   while(!m_exit){
-    
     if(!f_base::m_clk.is_stop()){
       // wait the time specified in cyc command.
       f_base::m_clk.wait();

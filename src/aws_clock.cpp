@@ -1,18 +1,18 @@
 // Copyright(c) 2012 Yohei Matsumoto, Tokyo University of Marine
 // Science and Technology, All right reserved. 
 
-// c_clock.cpp is free software: you can redistribute it and/or modify
+// aws_clock.cpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// c_clock.cpp is distributed in the hope that it will be useful,
+// aws_clock.cpp is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with c_clock.cpp.  If not, see <http://www.gnu.org/licenses/>. 
+// along with aws_clock.cpp.  If not, see <http://www.gnu.org/licenses/>. 
 #include <time.h>
 
 #include <iostream>
@@ -329,7 +329,7 @@ void c_clock::wait()
     tnew = (long long)
       ((long long)(ts.tv_sec - m_ts_start.tv_sec) * (long long) SEC)
       + (long long)((ts.tv_nsec - m_ts_start.tv_nsec) / 100);
-    tnew *= m_rate;    
+    tnew *= m_rate;
   }
   tdiff = tnew - m_tcur; // time consumed in this cycle
   tslp = m_tcyc - tdiff; // time to sleep
