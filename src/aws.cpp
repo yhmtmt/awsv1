@@ -80,8 +80,7 @@ public:
 	  unsigned int cycle_time = (unsigned int) paws->get_cycle_time();
 	  if(par->cycle_time() > 0)
 	    cycle_time = (unsigned int) par->cycle_time();	
-	  if(par->tend() < LLONG_MAX)
-	    paws->set_end_time(par->tend());
+	  paws->set_end_time(par->tend());
 	  f_base::m_clk.start(cycle_time, tstart, par->online(), par->rate());
 	  long long tcur = f_base::m_clk.get_time();	  
 	  strm << "Clock started at " << tcur << " Cycle time: " << cycle_time << " Start Time: " << tstart << " End Time: " << par->tend() << " Speed Rate: " << par->rate();
@@ -107,9 +106,8 @@ public:
 	  unsigned int cycle_time = (unsigned int) paws->get_cycle_time();
 	  if(par->cycle_time() > 0)
 	    cycle_time = (unsigned int) par->cycle_time();
-	  if(par->tend() < LLONG_MAX)
-	    paws->set_end_time(par->tend());
-	    
+
+	  paws->set_end_time(par->tend());	    
 	  f_base::m_clk.start(cycle_time, tstart, par->online(), par->rate());
 	  long long tcur = f_base::m_clk.get_time();	  
 	  strm << "Clock started at " << tcur << " Cycle time: " << cycle_time << " Start Time: " << tstart << " End Time: " << par->tend() << " Speed Rate: " << par->rate();

@@ -291,18 +291,12 @@ void c_clock::set_time_delta(long long & delta){
 
 long long c_clock::get_time()
 {
-  switch(m_state){
-  case STOP:
-    {
+  if(m_bonline){
       timespec ts;
       clock_gettime(CLOCK_REALTIME, &ts);
       return(long long)
 	((long long)ts.tv_sec * SEC + (long long) (ts.tv_nsec / 100));
-
-    }
-  case PAUSE:
-    return m_tcur;
-  default:
+  }else{
     return m_tcur + m_offset;
   }
 }
@@ -336,15 +330,18 @@ void c_clock::wait()
 	m_delta -= delta_adjust;
 	tnew = tadj;
       }else{
-	cerr << "Failed to adjust time. ts=" << tsadj.tv_sec << "," << tsadj.tv_nsec << " delta=" << delta_adjust << endl;
+	cerr << "Failed to adjust time. ts=" << tsadj.tv_sec
+	     << "," << tsadj.tv_nsec << " delta=" << delta_adjust << endl;
       }
-    }    
+    }
+
   }else{
     tnew = (long long)
       ((long long)(ts.tv_sec - m_ts_start.tv_sec) * (long long) SEC)
       + (long long)((ts.tv_nsec - m_ts_start.tv_nsec) / 100);
     tnew *= m_rate;
   }
+
   tdiff = tnew - m_tcur; // time consumed in this cycle
   tslp = m_tcyc - tdiff; // time to sleep
   if(tslp > 0){
@@ -353,17 +350,16 @@ void c_clock::wait()
     ts.tv_nsec = (tslp_scaled - ts.tv_sec * SEC) * 100;
     while(nanosleep(&ts, &trem)){
       ts = trem;
-    }
-
+    }    
     m_tcur = tnew + tslp * m_rate;
   }else{
     m_tcur = tnew;
   }
-
-  if(m_state != PAUSE){
-    m_tcur = tnew + max(tslp, (long long)0);
-  }else{
-    m_offset -= max(tslp, (long long)0);
+  
+  if(!m_bonline){
+    if(m_state == PAUSE){
+      m_offset -= (tdiff +  max(0LL, tslp * m_rate));
+    }
   }
 }
 
