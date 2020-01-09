@@ -1,5 +1,4 @@
-// Copyright(c) 2012 Yohei Matsumoto, Tokyo University of Marine
-// Science and Technology, All right reserved. 
+// Copyright(c) 2012-2020 Yohei Matsumoto, All right reserved. 
 
 // aws_clock.cpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,12 +16,27 @@
 
 #include <iostream>
 #include <algorithm>
+#include <cstring>
 using namespace std;
 
 #include "aws_clock.hpp"
 
 static const char * strWday[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 static const char * strMonth[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+int mon2i(char * str)
+{
+  if(str[0] <= '9' && str[0] >= '0')
+    return atoi(str);
+
+  for(int i = 0; i < 12; i++){
+    if(strcmp(strMonth[i], str) == 0)
+      return i + 1;
+  }
+
+  return -1;
+}
+
 
 const char * getMonthStr(int month)
 {

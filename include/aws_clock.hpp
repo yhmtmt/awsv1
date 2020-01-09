@@ -48,6 +48,7 @@ struct tmex: public tm{
 
 #define mkgmtime timegm
 
+int mon2i(char * str);
 void gmtimeex(long long msec, tmex & tm);
 long long mkgmtimeex(tmex & tm);
 long long mkgmtimeex_tz(tmex & tm, int tzm);

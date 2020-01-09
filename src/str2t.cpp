@@ -10,22 +10,6 @@ using namespace std;
 #include "aws_clock.hpp"
 #include "aws_stdlib.hpp"
 
-const char * mon_str[12] = {
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Nov", "Dec"
-};
-
-int mon2n(char * str){
-  if(str[0] <= '9' && str[0] >= '0')
-    return atoi(str);
-
-  for(int i = 0; i < 12; i++){
-    if(strcmp(mon_str[i], str) == 0)
-      return i + 1;
-  }
-
-  return -1;
-}
-
 int main(int argc, char ** argv)
 {
   if(argc < 2){
@@ -50,7 +34,7 @@ int main(int argc, char ** argv)
 	tm.tm_year = atoi(argv[i+1]);
 	break;
       case 'M':
-	tm.tm_mon = mon2n(argv[i+1]);
+	tm.tm_mon = mon2i(argv[i+1]);
 	if(tm.tm_mon < 1 || tm.tm_mon >= 12){
 	  cerr << "Invalid month given." << endl;
 	  return 1;
