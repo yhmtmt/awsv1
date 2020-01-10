@@ -217,7 +217,7 @@ protected:
   int m_time_zone_minute;
 
   // cycle time
-  long long m_cycle_time; // in 100ns
+  long long m_period; // in 100ns
 
   map<string, unique_ptr<c_filter_lib>> filter_libs;
   map<string, f_base*> filters;
@@ -248,8 +248,8 @@ public:
     m_end_time = tend;
   }
   
-  long long  get_cycle_time(){
-    return m_cycle_time;
+  long long  get_period(){
+    return m_period;
   }
   
   bool is_exit(){

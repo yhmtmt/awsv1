@@ -59,7 +59,7 @@ enum ClockState{
 message ClockParam{
 	ClockState state = 1;	
 	bool online = 2;
-	uint64 cycle_time = 3;
+	uint64 period = 3;
 	uint64 tstart = 4;
 	uint64 tend = 5;
 	int32 rate = 6;
@@ -143,5 +143,5 @@ message Config {
 	string port = 2;
 	string lib_path = 3;
 	string log_path = 4;
-	uint64 cycle_time = 5;
+	uint64 period = 5;
 }

@@ -242,7 +242,7 @@ public:
     Result res;
     ClientContext context;
     par.set_state(st);
-    par.set_cycle_time(period);
+    par.set_period(period);
     par.set_tstart(tstart);
     par.set_tend(tend);
     par.set_rate(rate);
