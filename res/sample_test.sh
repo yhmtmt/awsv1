@@ -1,6 +1,7 @@
 #!/bin/sh
 caws genfltr sample fltr1
 caws genfltr sample fltr2
+caws clock run
 caws gentbl sample tbl1
 caws gentbl sample tbl2
 caws settbl sample tbl1 -f ../fbs/sample.json
