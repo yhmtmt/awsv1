@@ -399,6 +399,7 @@ protected:
   thread * m_fthread;
   // thread body. called with m_fthread
   static void sfthread(f_base * filter);
+  void fthread();
   
   bool m_bactive; // if it is true, filter thread continues to loop
   // count number of proc() executed

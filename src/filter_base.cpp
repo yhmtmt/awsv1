@@ -210,43 +210,48 @@ const string & f_base::get_type_name()
   return m_lib->get_type_name();  
 }
 
-// Filter thread function
-void f_base::sfthread(f_base * filter)
+void f_base::fthread()
 {
-  if(!filter->init_run()){
-    spdlog::error("[{}] Initialization failed.", filter->get_name());
+  if(!init_run()){
+    spdlog::error("[{}] Initialization failed.", get_name());
     return;
   }
-  filter->m_bactive = true;  
-  while(filter->m_bactive){
-    filter->m_count_pre = filter->m_count_clock;
+  m_bactive = true;  
+  while(m_bactive){
+    m_count_pre = m_count_clock;
     
-    while(filter->m_cycle < (int) filter->m_intvl){
-      filter->clock_wait();
-      filter->m_cycle++;
+    while(m_cycle < (int) m_intvl){
+      clock_wait();
+      m_cycle++;
     }
-    filter->lock_cmd();
-    filter->update_table_objects();
+    lock_cmd();
+    update_table_objects();
     
-    filter->calc_time_diff();
+    calc_time_diff();
     
-    if(!filter->proc()){
+    if(!proc()){
       break;
     }
     
-    if(filter->m_clk.is_run()){
-      filter->m_count_proc++;
-      filter->m_max_cycle = max(filter->m_cycle, filter->m_max_cycle);
-      filter->m_count_post = filter->m_count_clock;
-      filter->m_cycle = (int)(filter->m_count_post - filter->m_count_pre);
-      filter->m_cycle -= filter->m_intvl;
+    if(m_clk.is_run()){
+      m_count_proc++;
+      m_max_cycle = max(m_cycle, m_max_cycle);
+      m_count_post = m_count_clock;
+      m_cycle = (int)(m_count_post - m_count_pre);
+      m_cycle -= m_intvl;
     }
     
-    filter->unlock_cmd();
+    unlock_cmd();
   }
   
-  filter->m_bactive = false;
-  filter->destroy();
+  m_bactive = false;
+  destroy();
+}
+
+// Filter thread function
+void f_base::sfthread(f_base * filter)
+{
+  filter->fthread();
 }
 
 bool f_base::stop()
