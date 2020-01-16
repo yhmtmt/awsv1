@@ -28,15 +28,12 @@ flatc_generate_cpp(FLAT_HDRS FLAT_BFBS ${FLAT_SRC_DIR} ${FLATS})
 add_custom_target(generate-protosrcs ALL DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
 add_custom_target(generate-grpcsrcs ALL DEPENDS ${GRPC_SRCS} ${GRPC_HDRS})
 add_custom_target(generate-flatobjs ALL DEPENDS ${FLAT_HDRS} ${FLAT_BFBS})
-add_subdirectory(src)
-install(DIRECTORY DESTINATION ftest)
-install(FILES res/ftest DESTINATION ftest)
-install(FILES res/aws.conf DESTINATION ftest)
-install(FILES res/env.sh DESTINATION ftest)
-add_subdirectory(filters)
 
 enable_testing()
 add_subdirectory(test)
+add_subdirectory(src)
+add_subdirectory(filters)
+
 
 install(FILES ${FLAT_BFBS} DESTINATION lib)
 

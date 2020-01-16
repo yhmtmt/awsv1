@@ -26,3 +26,7 @@ add_executable(example example.cpp)
 target_link_libraries(example gtest_main)
 add_test(NAME example_test COMMAND example WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+install(DIRECTORY DESTINATION ftest)
+file(GLOB FTESTS ftest/*)
+install(FILES ${FTESTS} DESTINATION ftest)
+
