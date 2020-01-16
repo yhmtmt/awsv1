@@ -210,37 +210,14 @@ const string & f_base::get_type_name()
   return m_lib->get_type_name();  
 }
 
-
-// this is the filter thread function, but actually called from main thread.
-// this function is used if the filter should be executed in the main thread such as the case using OpenGL
-void f_base::fthread()
-{
-  m_count_pre = m_count_clock;
-  if((unsigned int) m_cycle < m_intvl){
-    m_cycle++;
-    return;
-  }
-  
-  update_table_objects();    
-  calc_time_diff();
-    
-  if (!proc()){
-    m_bactive = false;
-    destroy();
-  }
-  
-  if(m_clk.is_run()){
-    m_count_proc++;
-    m_max_cycle = max(m_cycle, m_max_cycle);
-    m_count_post = m_count_clock;
-    m_cycle = (int)(m_count_post - m_count_pre);
-    m_cycle -= m_intvl;
-  }
-}
-
 // Filter thread function
 void f_base::sfthread(f_base * filter)
 {
+  if(!filter->init_run()){
+    spdlog::error("[{}] Initialization failed.", filter->get_name());
+    return;
+  }
+  filter->m_bactive = true;  
   while(filter->m_bactive){
     filter->m_count_pre = filter->m_count_clock;
     
@@ -253,9 +230,8 @@ void f_base::sfthread(f_base * filter)
     
     filter->calc_time_diff();
     
-    if(!filter->proc()){      
-      filter->m_bactive = false;
-      filter->destroy();      
+    if(!filter->proc()){
+      break;
     }
     
     if(filter->m_clk.is_run()){
@@ -268,6 +244,9 @@ void f_base::sfthread(f_base * filter)
     
     filter->unlock_cmd();
   }
+  
+  filter->m_bactive = false;
+  filter->destroy();
 }
 
 bool f_base::stop()
@@ -276,20 +255,11 @@ bool f_base::stop()
     spdlog::info("Stopping {}.", m_name);
     m_bactive = false;
   }
-  if(is_main_thread()){
-    spdlog::info("Filter {} sotpped at {}({})", m_name, get_time(), m_stop_clock);
-    lock_cmd();
-    destroy();
-    unlock_cmd();
-    return true;
-  }
   
   if(m_fthread){
     m_fthread->join();
     delete m_fthread;
     m_fthread = NULL;
-    destroy();
-    spdlog::info("Filter {} sotpped at {}({})", m_name, get_time(), m_stop_clock);
     return true;	          
   }
   

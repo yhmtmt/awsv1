@@ -423,23 +423,18 @@ protected:
 public:	  
   // invoke main thread.
   virtual bool run()
-  {
-    if(!init_run()){
-      return false;
-    }
-    
+  {   
     m_prev_time = get_time();
-    spdlog::info("Starting filter {} at {}({}).", m_name, m_prev_time, m_count_clock);
-    
+   
     m_bactive = true;
     m_count_proc =  0;	
     m_max_cycle = 0;
     m_cycle = 0;
     m_count_pre = m_count_post = m_count_clock;
     m_start_clock = m_stop_clock = m_count_clock;
-    if (!is_main_thread())
-      m_fthread = new thread(sfthread, this);
-    return true;    
+
+    m_fthread = new thread(sfthread, this);
+    return true;
   }
    
   // stop main thread. the function is called from c_aws until the thread stops.
@@ -448,10 +443,11 @@ public:
   void destroy(){
     m_stop_clock = m_count_clock;
     destroy_run();
+    spdlog::info("Filter {} sotpped at {}({})", m_name, get_time(), m_stop_clock);  
     m_proc_rate = (double) m_count_proc / (double) (m_stop_clock - m_start_clock);
     spdlog::info("[{}] ProcRate {}({}/{}), Max Cycles {}", get_name(), m_proc_rate, m_count_proc, m_stop_clock - m_start_clock, m_max_cycle);
   }
-    
+
   // check the filter activity condition
   virtual bool is_active(){
     return m_bactive;
@@ -467,16 +463,6 @@ public:
     return m_time_diff == 0 && m_clk.is_pause();
   }
   
-  // This is the function called in main thread when the filter should be executed in the main thread.
-  // The filter to be executed in main thread should return true for the call of is_main_thread().
-  // f_base::is_main_thread() returns false by default, please override it as you need.
-  void fthread();
-  
-  virtual bool is_main_thread()
-  {
-    return false;
-  }
-
   virtual bool proc() = 0;
   
   ////////////////////////////////////////////////////// time and the methods

@@ -488,7 +488,6 @@ bool c_aws::run_filter(const string & name)
   f_base * filter = itr->second;
   
   if(!filter->run()){
-    spdlog::error("Failed to run filter {}.", name);      
     return false;
   }
   
@@ -894,18 +893,9 @@ bool c_aws::main()
       // getting current time
       m_time = f_base::m_clk.get_time();
       
-      // sending clock signal to each filters. The time string for current time is generated simultaneously
+      // sending clock signal to each filter thread. The time string for current time is generated simultaneously
       f_base::clock(m_time);
       
-      // checking activity of filters. 
-      for(auto itr = filters.begin(); 
-	  itr != filters.end(); itr++){
-	auto f = itr->second;
-	f->lock_cmd();
-	if(f->is_main_thread() && f->is_active())
-	  f->fthread();
-	f->unlock_cmd();
-      }
       if(m_time > m_end_time){
 	f_base::m_clk.stop();
 	spdlog::info("Clock stopped at {} as scheduled.", m_time);
