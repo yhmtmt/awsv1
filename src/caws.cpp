@@ -199,7 +199,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
     
@@ -219,7 +219,7 @@ public:
     }
     
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
 
@@ -249,7 +249,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
     
@@ -284,7 +284,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
     
@@ -306,7 +306,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
     
@@ -326,7 +326,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
     
@@ -381,7 +381,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
     
@@ -420,7 +420,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
     
@@ -445,7 +445,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
     
@@ -486,7 +486,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
     
@@ -507,7 +507,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
     
@@ -549,7 +549,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
     
@@ -633,7 +633,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: " << res.message() << "." << std::endl;
+      std::cerr << "Error: " << res.message() << std::endl;
       return false;
     }
     return true;
@@ -657,7 +657,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }
    
@@ -678,7 +678,7 @@ public:
     }
 
     if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << "." << std::endl;
+      std::cerr << "Error: "<< res.message() << std::endl;
       return false;
     }    
       
