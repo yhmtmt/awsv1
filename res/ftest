@@ -1,0 +1,43 @@
+#!/bin/bash
+
+tests=
+all=n
+
+AWS=../bin/aws
+CAWS=../bin/caws
+
+. ./env.sh
+
+for arg in $*
+do
+	case ${arg} in
+	"all") all=y;;
+	* ) tests+=arg;;
+	esac
+done
+
+if [ ! -d "logs" ]; then
+    mkdir logs
+fi
+
+if [ $all = "y" ]; then
+    echo "Searching Tests"
+   files=`ls test_*`
+   for file in $files
+   do
+	tests+="${file#test_} "
+   done 
+fi
+
+for test in $tests
+do
+    echo "Testing $test"
+    $AWS >& /dev/null &
+    ./test_$test >& ${test}.log
+    if [ $? = 0 ]; then
+	echo "$test succeeded."
+    else
+	echo "$test failed."
+    fi
+    $CAWS quit
+done
