@@ -83,7 +83,6 @@ bool parse_clock_option(int argc, char ** argv,
 			unsigned long long & period,
 			unsigned long long & tstart,
 			unsigned long long & tend,
-			int & rate,
 			int & step,
 			bool & online)
 {
@@ -104,9 +103,6 @@ bool parse_clock_option(int argc, char ** argv,
 	break;
       case 'e':
 	tend = atoll(argv[i+1]);
-	break;
-      case 'r':
-	rate = atoi(argv[i+1]);
 	break;
       case 'c':
 	step = atoi(argv[i+1]);
@@ -234,7 +230,6 @@ public:
 		     const unsigned long long period,
 		     const unsigned long long tstart,
 		     const unsigned long long tend,
-		     const int rate,
 		     const int steps,
 		     const bool online)
   {
@@ -245,7 +240,6 @@ public:
     par.set_period(period);
     par.set_tstart(tstart);
     par.set_tend(tend);
-    par.set_rate(rate);
     par.set_step(steps);
     par.set_online(online);
     Status status = stub_->SetClockState(&context, par, &res);
@@ -762,20 +756,20 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
     {
       ClockState st;
       unsigned long long period, tstart, tend;
-      int rate, steps;
+      int steps;
       bool online;
       period = 0;
       tstart = 0;
       tend = LLONG_MAX;
-      rate = steps = 1;
+      steps = 1;
       online = true;
       if(argc < 3 || argc > 14 ||
 	 (st = get_clock_state(argv[2])) == ClockState::UNDEF ||
-	 !parse_clock_option(argc, argv, period, tstart, tend, rate, steps, online)){
+	 !parse_clock_option(argc, argv, period, tstart, tend, steps, online)){
 	dump_usage(id);
 	return false;
       }
-      return handler.SetClockState(st, period, tstart, tend, rate, steps, online);
+      return handler.SetClockState(st, period, tstart, tend, steps, online);
     }
   case GET_TIME:
     if(argc != 2){

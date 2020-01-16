@@ -198,10 +198,7 @@ bool decTmStr(char * tmStr, tmex & tm)
 }
 
 c_clock::c_clock(void):
-  m_rate(1), m_delta(0), m_delta_adjust(1 * MSEC), m_offset(0), m_bonline(false), m_state(STOP)
-#ifdef _WIN32
-  ,m_token(NULL)
-#endif
+  m_period(166667), m_delta(0), m_delta_adjust(1 * MSEC), m_offset(0), m_bonline(false), m_state(STOP)
 {
 }
 
@@ -209,16 +206,10 @@ c_clock::~c_clock(void)
 {
 }
 
-bool c_clock::start(unsigned period, long long offset, bool online, int rate)
+bool c_clock::start(long long offset, bool online)
 {
-  m_bonline = online;
-  if(m_bonline)
-    m_rate = 1; // clock rate is forced to be one.
-  else
-    m_rate = rate;
-  
+  m_bonline = online;  
   m_offset = offset;
-  m_tcyc = m_rate * period;
   
   if(m_state == STOP){
     clock_gettime(CLOCK_REALTIME, &m_ts_start);
@@ -236,7 +227,7 @@ bool c_clock::start(unsigned period, long long offset, bool online, int rate)
     }   
   }else if(m_state == RUN){
     stop();
-    start(period, offset, online, rate);
+    start(offset, online);
   }
   
   m_state = RUN;
@@ -255,7 +246,7 @@ bool c_clock::restart()
 bool c_clock::step(int cycle)
 {
   if(m_state == PAUSE){
-    m_tcur += (long long) m_tcyc * cycle;
+    m_tcur += (long long) m_period * cycle;
   }else
     return false;
   return true;
@@ -339,26 +330,24 @@ void c_clock::wait()
     tnew = (long long)
       ((long long)(ts.tv_sec - m_ts_start.tv_sec) * (long long) SEC)
       + (long long)((ts.tv_nsec - m_ts_start.tv_nsec) / 100);
-    tnew *= m_rate;
   }
 
   tdiff = tnew - m_tcur; // time consumed in this cycle
-  tslp = m_tcyc - tdiff; // time to sleep
+  tslp = m_period - tdiff; // time to sleep
   if(tslp > 0){
-    long long tslp_scaled = tslp / m_rate;
-    ts.tv_sec = tslp_scaled / SEC;
-    ts.tv_nsec = (tslp_scaled - ts.tv_sec * SEC) * 100;
+    ts.tv_sec = tslp / SEC;
+    ts.tv_nsec = (tslp - ts.tv_sec * SEC) * 100;
     while(nanosleep(&ts, &trem)){
       ts = trem;
     }    
-    m_tcur = tnew + tslp * m_rate;
+    m_tcur = tnew + tslp;
   }else{
     m_tcur = tnew;
   }
   
   if(!m_bonline){
     if(m_state == PAUSE){
-      m_offset -= (tdiff +  max(0LL, tslp * m_rate));
+      m_offset -= (tdiff +  max(0LL, tslp));
     }
   }
 }

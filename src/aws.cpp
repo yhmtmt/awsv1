@@ -77,13 +77,14 @@ public:
       case ClockState::RUN:
 	{
 	  long long tstart = (par->online() ? 0 : par->tstart());
-	  unsigned int period = (unsigned int) paws->get_period();
+	  unsigned int period = (unsigned int) f_base::m_clk.get_period();
 	  if(par->period() > 0)
 	    period = (unsigned int) par->period();	
 	  paws->set_end_time(par->tend());
-	  f_base::m_clk.start(period, tstart, par->online(), par->rate());
+	  f_base::m_clk.set_period(period);
+	  f_base::m_clk.start(tstart, par->online());
 	  long long tcur = f_base::m_clk.get_time();	  
-	  strm << "Clock started at " << tcur << " Cycle time: " << period << " Start Time: " << tstart << " End Time: " << par->tend() << " Speed Rate: " << par->rate();
+	  strm << "Clock started at " << tcur << " Cycle time: " << period << " Start Time: " << tstart << " End Time: " << par->tend();
 	  res->set_is_ok(true);
 	}
 	break;
@@ -103,14 +104,15 @@ public:
       case ClockState::RUN:
 	{
 	  long long tstart = (par->online() ? 0 : par->tstart());
-	  unsigned int period = (unsigned int) paws->get_period();
+	  unsigned int period = (unsigned int) f_base::m_clk.get_period();
 	  if(par->period() > 0)
 	    period = (unsigned int) par->period();
 
-	  paws->set_end_time(par->tend());	    
-	  f_base::m_clk.start(period, tstart, par->online(), par->rate());
+	  paws->set_end_time(par->tend());
+	  f_base::m_clk.set_period(period);	  
+	  f_base::m_clk.start(tstart, par->online());
 	  long long tcur = f_base::m_clk.get_time();	  
-	  strm << "Clock started at " << tcur << " Cycle time: " << period << " Start Time: " << tstart << " End Time: " << par->tend() << " Speed Rate: " << par->rate();
+	  strm << "Clock started at " << tcur << " Cycle time: " << period << " Start Time: " << tstart << " End Time: " << par->tend();
 	    
 	  res->set_is_ok(true);
 	}
@@ -421,9 +423,7 @@ c_aws::c_aws(int argc, char ** argv):CmdAppBase(argc, argv),
 				     m_working_path(nullptr),
 				     m_config_file(nullptr),
 				     m_exit(false),
-				     m_period(166667),
-				     m_time(0), m_time_zone_minute(540),
-				     m_time_rate(1)
+				     m_time(0), m_time_zone_minute(540)
 {
   set_name_app("aws");
   set_version(1, 00);
@@ -883,7 +883,6 @@ bool c_aws::main()
   f_base::init_run_all();
   m_start_time = (long long) time(NULL) * SEC; 
   m_end_time = LLONG_MAX;
-  m_period = conf.period();
      
   while(!m_exit){
     if(!f_base::m_clk.is_stop()){

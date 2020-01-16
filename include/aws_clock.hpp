@@ -65,7 +65,7 @@ const char * getWeekStr(int wday);
 class c_clock
 {
  private:
-  long long m_tcyc;  // m_rate scaled cycle time
+  long long m_period;  // waiting period
   long long m_offset;// offset time (only used in offline mode)
   long long m_tcur;  // current time.
                      // In offline mode, elapsed time from "go" command 
@@ -79,22 +79,25 @@ class c_clock
   
   timespec m_ts_start;  
 
-  int m_rate;
  public:
   c_clock(void);
   ~c_clock(void);
   
-  bool start(unsigned period = 166667, 
-	     long long offset = 0, bool online = true, int rate = 1); // pause or stop to run transition
+  bool start(long long offset = 0, bool online = true); // pause or stop to run transition
   void stop(); // run or pause to stop transition
   bool pause();// run to pause transition
   bool restart(); // pause to run transition
   bool step(int cycle);
   bool step(long long tabs);
+
+  void set_period(const unsigned period = 166667)
+  {
+    m_period = period;
+  }
   
   const long long get_period()
   {
-    return m_tcyc;
+    return m_period;
   }
 
   const long long get_resolution()

@@ -402,12 +402,15 @@ protected:
   void fthread();
   
   bool m_bactive; // if it is true, filter thread continues to loop
+  
   // count number of proc() executed
-  long long m_count_pre, m_count_post, m_start_clock, m_stop_clock;
+  long long m_count_pre, m_count_post;   // clock count pre and post proc()
+  long long m_start_clock, m_stop_clock; // latest start and stop times.
   int m_cycle;
-  long long m_count_proc;
-  double m_proc_rate;
-  int m_max_cycle;
+  int m_max_cycle;  
+  long long m_count_proc;                // counting proc() executions
+  double m_proc_rate; 
+
   
   // mutex and signal for clocking
   static mutex m_mutex;

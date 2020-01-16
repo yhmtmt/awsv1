@@ -216,7 +216,9 @@ void f_base::fthread()
     spdlog::error("[{}] Initialization failed.", get_name());
     return;
   }
-  m_bactive = true;  
+  
+  m_bactive = true;
+  
   while(m_bactive){
     m_count_pre = m_count_clock;
     
