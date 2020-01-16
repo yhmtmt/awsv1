@@ -1,4 +1,5 @@
 #!/bin/sh
+../bin/aws &
 caws genfltr sample fltr1
 caws genfltr sample fltr2
 caws clock run
