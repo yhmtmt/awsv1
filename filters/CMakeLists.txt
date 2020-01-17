@@ -1,5 +1,3 @@
-#add_subdirectory(sample)
-
 MACRO(SUBDIRLIST result curdir)
   FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
   SET(dirlist "")
