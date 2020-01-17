@@ -3,4 +3,5 @@ add_library(sample SHARED f_sample.cpp)
 target_include_directories(sample PUBLIC ${PROJECT_SOURCE_DIR}/include)
 install(TARGETS sample DESTINATION lib)
 
-install(FILES test/test_sample DESTINATION ftest)
+file(GLOB TESTS test/*)
+install(FILES $TEST DESTINATION ftest)

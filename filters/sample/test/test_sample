@@ -45,3 +45,4 @@ caws lsttbls
 caws lstchs
 caws deltbl tbl1
 caws deltbl tbl2
+exit 0
