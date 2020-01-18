@@ -4,4 +4,4 @@ target_include_directories(sample PUBLIC ${PROJECT_SOURCE_DIR}/include)
 install(TARGETS sample DESTINATION lib)
 
 file(GLOB TESTS test/*)
-install(FILES $TEST DESTINATION ftest)
+install(FILES ${TESTS} DESTINATION ftest)

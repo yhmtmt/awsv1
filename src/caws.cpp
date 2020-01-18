@@ -398,7 +398,6 @@ public:
       par.set_name(pars[ipar]);
     }
 
-    Result res;
     ClientContext context;
     Status status = stub_->GetFltrPar(&context, info_req, &info_rep);
     if(!status.ok()){
@@ -417,11 +416,6 @@ public:
 	std::cout << par.val() << " ";
       }
       std::cout << std::endl;
-    }
-
-    if(!res.is_ok()){
-      std::cerr << "Error: "<< res.message() << std::endl;
-      return false;
     }
     
     return true;

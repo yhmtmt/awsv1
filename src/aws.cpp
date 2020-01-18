@@ -1,4 +1,4 @@
-// Copyright(c) 2012-2019 Yohei Matsumoto, All right reserved. 
+// Copyright(c) 2012-2020 Yohei Matsumoto, All right reserved. 
 
 // aws.cpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
