@@ -26,6 +26,12 @@ add_executable(example example.cpp)
 target_link_libraries(example gtest_main)
 add_test(NAME example_test COMMAND example WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+add_executable(test_clock test_clock.cpp ${PROJECT_SOURCE_DIR}/src/aws_clock.cpp)
+target_link_libraries(test_clock gtest_main)
+target_include_directories(test_clock PUBLIC ${PROJECT_SOURCE_DIR}/include)
+
+add_test(NAME test_clock COMMAND test_clock WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 install(DIRECTORY DESTINATION ftest)
 file(GLOB FTESTS ftest/*)
 install(FILES ${FTESTS}

@@ -225,7 +225,7 @@ bool c_clock::start(long long offset, bool online)
     }else{
       m_tcur = 0;
     }   
-  }else if(m_state == RUN){
+  }else if(m_state == RUN || m_state == PAUSE){
     stop();
     start(offset, online);
   }
@@ -237,7 +237,7 @@ bool c_clock::start(long long offset, bool online)
 bool c_clock::restart()
 {
   if(m_state == PAUSE){
-    m_state = RUN;
+    start(m_offset, m_bonline);
   }else
     return false;  
   return true;
@@ -246,7 +246,7 @@ bool c_clock::restart()
 bool c_clock::step(int cycle)
 {
   if(m_state == PAUSE){
-    m_tcur += (long long) m_period * cycle;
+    m_offset += (long long) m_period * cycle;
   }else
     return false;
   return true;
@@ -255,7 +255,7 @@ bool c_clock::step(int cycle)
 bool c_clock::step(long long tabs)
 {
   if(m_state = PAUSE){
-    m_tcur = tabs;
+    m_offset = tabs;
   }else{
     return false;
   }
@@ -363,5 +363,6 @@ bool c_clock::pause()
     return false;
   
   m_state = PAUSE;
+  m_offset = get_time();
   return true;
 }
