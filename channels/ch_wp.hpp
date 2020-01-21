@@ -1,5 +1,5 @@
-#ifndef _CH_WP_H_
-#define _CH_WP_H_
+#ifndef CH_WP_HPP
+#define CH_WP_HPP
 // Copyright(c) 2016 Yohei Matsumoto, All right reserved. 
 
 // ch_wp.hpp is free software: you can redistribute it and/or modify
@@ -7,7 +7,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// ch_wp.h is distributed in the hope that it will be useful,
+// ch_wp.hpp is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
@@ -37,7 +37,7 @@ struct s_wp
     lat(_lat), lon(_lon), x(0.), y(0.), z(0.), rarv(_rarv), v(_v), t(-1),
     update_rpos(false)
   {
-    bihtoecef(lat, lon, 0., x, y, z);
+    blhtoecef(lat, lon, 0., x, y, z);
   }
   
   s_wp(bool bnull): lat(FLT_MAX), lon(FLT_MAX), x(FLT_MAX), y(FLT_MAX), z(FLT_MAX), rarv(FLT_MAX), 

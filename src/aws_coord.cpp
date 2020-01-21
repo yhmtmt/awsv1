@@ -18,7 +18,7 @@
 using namespace std;
 
 #include "aws_coord.hpp"
-
+#include <proj_api.h>
 
 void eceftoblh(const float x, const float y, const float z, float & lat, float & lon, float & alt)
 {

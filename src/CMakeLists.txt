@@ -22,4 +22,8 @@ add_executable(t2str t2str.cpp aws_clock.cpp aws_stdlib.cpp)
 install(TARGETS t2str DESTINATION bin)
 add_executable(str2t str2t.cpp aws_clock.cpp aws_stdlib.cpp)
 install(TARGETS str2t DESTINATION bin)
+add_executable(blh2ecef blh2ecef.cpp aws_coord.cpp)
+install(TARGETS blh2ecef DESTINATION bin)
+add_executable(ecef2blh ecef2blh.cpp aws_coord.cpp)
+install(TARGETS ecef2blh DESTINATION bin)
 

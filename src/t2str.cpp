@@ -14,7 +14,7 @@ int main(int argc, char ** argv)
 {
   if(argc != 2){
     cout << "Usage: t2str <aws time>" << endl;
-    return 0;
+    return 1;
   }
 
   long long t = atoll(argv[1]);

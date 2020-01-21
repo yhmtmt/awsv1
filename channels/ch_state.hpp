@@ -78,7 +78,7 @@ public:
     lon = _lon;
     double lat_rad = (lat * (PI / 180.)), lon_rad = (lon * (PI / 180.));
     getwrldrot(lat_rad, lon_rad, R);
-    bihtoecef(lat_rad, lon_rad, alt, x, y, z);
+    blhtoecef(lat_rad, lon_rad, alt, x, y, z);
     unlock();
   }
   

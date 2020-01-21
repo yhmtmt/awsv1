@@ -550,7 +550,7 @@ public:
     lock();
     lat_stay = lat * (PI / 180.f);
     lon_stay = lon * (PI / 180.f);
-    bihtoecef(lat_stay, lon_stay, 0., x_stay, y_stay, z_stay);
+    blhtoecef(lat_stay, lon_stay, 0., x_stay, y_stay, z_stay);
     brpos = false;
     unlock();
   }

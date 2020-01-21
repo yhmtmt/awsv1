@@ -35,7 +35,7 @@ add_test(NAME test_clock COMMAND test_clock WORKING_DIRECTORY ${CMAKE_CURRENT_BI
 
 # Test coord setting
 add_executable(test_coord test_coord.cpp ${PROJECT_SOURCE_DIR}/src/aws_coord.cpp)
-target_link_libraries(test_coord gtest_main)
+target_link_libraries(test_coord gtest_main proj)
 target_include_directories(test_coord PUBLIC ${PROJECT_SOURCE_DIR}/include)
 add_test(NAME test_coord COMMAND test_coord WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 

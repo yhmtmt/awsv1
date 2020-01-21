@@ -244,7 +244,7 @@ namespace AWSMap2 {
     Node * upLink;		// Up link. NULL for top 20 nodes
     bool bdownLink;		// false until the downLink is created.
     Node * downLink[4]; // Down link. 
-    vec2 vtx_bih[3];	// bih coordinte of the node's triangle
+    vec2 vtx_blh[3];	// blh coordinte of the node's triangle
     void calc_ecef();
     vec3 vtx_ecef[3];   // ecef coordinate of the node's triangle (calculated automatically in construction phase) 
     vec3 vec_ecef[2];		// vtx_ecef[1] - vtx_ecef[0], vtx_ecef[2] - vtx_ecef[0]
@@ -273,7 +273,7 @@ namespace AWSMap2 {
     
   public:
     Node();
-    Node(const unsigned char _id, Node * _upLink, const vec2 vtx_bih0, const vec2 vtx_bih1, const vec2 vtx_bih2);
+    Node(const unsigned char _id, Node * _upLink, const vec2 vtx_blh0, const vec2 vtx_blh1, const vec2 vtx_blh2);
     
     virtual ~Node();
     
@@ -489,7 +489,7 @@ namespace AWSMap2 {
     double dist_min;
     double pt_radius;
     vec3 pt_center;
-    vec2 pt_center_bih;
+    vec2 pt_center_blh;
     
     vector<s_line*> lines;
     void add(list<vec2> & line);
@@ -511,7 +511,7 @@ namespace AWSMap2 {
       return lines[id]->pts_ecef;
     }
     
-    const vector<vec2> & getPointsBIH(unsigned int id) const
+    const vector<vec2> & getPointsBLH(unsigned int id) const
     {
       if (id >= lines.size())
 	return null_vec_vec2;
