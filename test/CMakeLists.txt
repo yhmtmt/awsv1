@@ -22,15 +22,24 @@ if(CMAKE_VERSION VERSION_LESS 2.8.11)
   include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 
+# Test example setting
 add_executable(example example.cpp)
 target_link_libraries(example gtest_main)
 add_test(NAME example_test COMMAND example WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+# Test clock setting
 add_executable(test_clock test_clock.cpp ${PROJECT_SOURCE_DIR}/src/aws_clock.cpp)
 target_link_libraries(test_clock gtest_main)
 target_include_directories(test_clock PUBLIC ${PROJECT_SOURCE_DIR}/include)
-
 add_test(NAME test_clock COMMAND test_clock WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# Test coord setting
+add_executable(test_coord test_coord.cpp ${PROJECT_SOURCE_DIR}/src/aws_coord.cpp)
+target_link_libraries(test_coord gtest_main)
+target_include_directories(test_coord PUBLIC ${PROJECT_SOURCE_DIR}/include)
+add_test(NAME test_coord COMMAND test_coord WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+
 
 install(DIRECTORY DESTINATION ftest)
 file(GLOB FTESTS ftest/*)

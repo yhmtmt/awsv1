@@ -20,7 +20,7 @@ using namespace std;
 #include "aws_coord.hpp"
 
 
-void eceftobih(const float x, const float y, const float z, float & lat, float & lon, float & alt)
+void eceftoblh(const float x, const float y, const float z, float & lat, float & lon, float & alt)
 {
 	double p = sqrt(x* x + y * y);
 	double th = atan(z * AE / (p * BE));
@@ -34,7 +34,7 @@ void eceftobih(const float x, const float y, const float z, float & lat, float &
 	alt = (float)(p / cos(lat) - AE / sqrt(1 - EE2 * s * s));
 }
 
-void bihtoecef(const double lat, const double lon, const double alt,
+void blhtoecef(const double lat, const double lon, const double alt,
 	double & x, double & y, double & z)
 {
   double slat = sin(lat);
@@ -50,7 +50,7 @@ void bihtoecef(const double lat, const double lon, const double alt,
 }
 
 
-void eceftobih(const double x, const double y, const double z, double & lat, double & lon, double & alt)
+void eceftoblh(const double x, const double y, const double z, double & lat, double & lon, double & alt)
 {
 	double p = sqrt(x* x + y * y);
 	double th = atan(z * AE / (p * BE));

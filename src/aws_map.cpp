@@ -498,13 +498,13 @@ namespace AWSMap2 {
     downLink[0] = downLink[1] = downLink[2] = downLink[3] = NULL;
   }
   
-  Node::Node(const unsigned char _id, Node * _upLink, const vec2 vtx_bih0, const vec2 vtx_bih1, const vec2 vtx_bih2) : prev(NULL), next(NULL), id(_id), upLink(_upLink),
+  Node::Node(const unsigned char _id, Node * _upLink, const vec2 vtx_blh0, const vec2 vtx_blh1, const vec2 vtx_blh2) : prev(NULL), next(NULL), id(_id), upLink(_upLink),
 														       bupdate(true), refcount(0), bdownLink(false)
   {
     downLink[0] = downLink[1] = downLink[2] = downLink[3] = NULL;
-    vtx_bih[0] = vtx_bih0;
-    vtx_bih[1] = vtx_bih1;
-    vtx_bih[2] = vtx_bih2;
+    vtx_blh[0] = vtx_blh0;
+    vtx_blh[1] = vtx_blh1;
+    vtx_blh[2] = vtx_blh2;
     
     calc_ecef();
     
@@ -545,7 +545,7 @@ namespace AWSMap2 {
   void Node::calc_ecef()
   {
     for (int i = 0; i < 3; i++) {
-      bihtoecef(vtx_bih[i].x, vtx_bih[i].y, 0.0f, vtx_ecef[i].x, vtx_ecef[i].y, vtx_ecef[i].z);
+      blhtoecef(vtx_blh[i].x, vtx_blh[i].y, 0.0f, vtx_ecef[i].x, vtx_ecef[i].y, vtx_ecef[i].z);
     }
     vec_ecef[0] = vtx_ecef[1] - vtx_ecef[0];
     vec_ecef[1] = vtx_ecef[2] - vtx_ecef[0];
@@ -579,7 +579,7 @@ namespace AWSMap2 {
     bool result = true;
     
     ofile.write((const char*)&bdownLink, sizeof(bool));
-    ofile.write((const char*)&vtx_bih, sizeof(vec2) * 3);
+    ofile.write((const char*)&vtx_blh, sizeof(vec2) * 3);
     
     unsigned int num_layer_datum = (unsigned int) layerDataList.size();
     ofile.write((const char*)&num_layer_datum, sizeof(unsigned int));
@@ -643,7 +643,7 @@ Node * Node::load(Node * pNodeUp, unsigned int idChild)
   
   ////////////////////// loading index file to the Node
   findex.read((char*)&(pNode->bdownLink), sizeof(bool));
-  findex.read((char*)(pNode->vtx_bih), sizeof(vec2) * 3);
+  findex.read((char*)(pNode->vtx_blh), sizeof(vec2) * 3);
   pNode->calc_ecef();
   
   unsigned int num_layer_datum = 0;
@@ -669,18 +669,18 @@ Node * Node::load(Node * pNodeUp, unsigned int idChild)
 bool Node::createDownLink()
 {
   vec3 vtx_ecef_mid[3];
-  vec2 vtx_bih_mid[3];
+  vec2 vtx_blh_mid[3];
   double alt;
   vtx_ecef_mid[0] = (vtx_ecef[0] + vtx_ecef[1]) * 0.5;
   vtx_ecef_mid[1] = (vtx_ecef[1] + vtx_ecef[2]) * 0.5;
   vtx_ecef_mid[2] = (vtx_ecef[2] + vtx_ecef[0]) * 0.5;
   for (int i = 0; i < 3; i++)
-    eceftobih(vtx_ecef_mid[i].x, vtx_ecef_mid[i].y, vtx_ecef_mid[i].z, vtx_bih_mid[i].x, vtx_bih_mid[i].y, alt);
+    eceftoblh(vtx_ecef_mid[i].x, vtx_ecef_mid[i].y, vtx_ecef_mid[i].z, vtx_blh_mid[i].x, vtx_blh_mid[i].y, alt);
   
-  downLink[0] = new Node(0, this, vtx_bih[0], vtx_bih_mid[2], vtx_bih_mid[0]);
-  downLink[1] = new Node(1, this, vtx_bih[1], vtx_bih_mid[0], vtx_bih_mid[1]);
-  downLink[2] = new Node(2, this, vtx_bih[2], vtx_bih_mid[1], vtx_bih_mid[2]);
-  downLink[3] = new Node(3, this, vtx_bih_mid[0], vtx_bih_mid[2], vtx_bih_mid[1]);
+  downLink[0] = new Node(0, this, vtx_blh[0], vtx_blh_mid[2], vtx_blh_mid[0]);
+  downLink[1] = new Node(1, this, vtx_blh[1], vtx_blh_mid[0], vtx_blh_mid[1]);
+  downLink[2] = new Node(2, this, vtx_blh[2], vtx_blh_mid[1], vtx_blh_mid[2]);
+  downLink[3] = new Node(3, this, vtx_blh_mid[0], vtx_blh_mid[2], vtx_blh_mid[1]);
   bdownLink = true;
   
   for(int i = 0; i < 4; i++)
@@ -1190,7 +1190,7 @@ bool LayerData::merge(const LayerData & layerData)
 	vec2 pt;
 	vec3 pt_ecef;
 	ifile.read((char*)(&pt), sizeof(vec2));
-	bihtoecef(pt.lat, pt.lon, 0, pt_ecef.x, pt_ecef.y, pt_ecef.z);
+	blhtoecef(pt.lat, pt.lon, 0, pt_ecef.x, pt_ecef.y, pt_ecef.z);
 	(*itr_pt_ecef) = pt_ecef;
 	(*itr_pt) = pt;
       }
@@ -1207,7 +1207,7 @@ bool LayerData::merge(const LayerData & layerData)
     if(pNode)
       pNode->getPath(path, 2048);
     cout << "CoastLine:" << path << endl;
-    cout << "\t pos:" << pt_center_bih.lat * 180. / PI << "," << pt_center_bih.lon * 180. / PI
+    cout << "\t pos:" << pt_center_blh.lat * 180. / PI << "," << pt_center_blh.lon * 180. / PI
 	 << " radius:" << radius()
 	 << " mindim:" << dist_min
 	 << " lines:" << lines.size() 
@@ -1411,7 +1411,7 @@ int CoastLine::try_reduce(int nred)
     pt_ecef_m = (pts_ecef[ipt0] + pts_ecef[ipt]);
     pt_ecef_m *= 0.5;
     double alt;
-    eceftobih(pt_ecef_m.x, pt_ecef_m.y, pt_ecef_m.z, pt_m.lat, pt_m.lon, alt);
+    eceftoblh(pt_ecef_m.x, pt_ecef_m.y, pt_ecef_m.z, pt_m.lat, pt_m.lon, alt);
     
     if (redpt0){
       int iptm1 = (redpt0->prev ? redpt0->prev->ipt : 1);
@@ -1671,7 +1671,7 @@ LayerData * CoastLine::clone() const
     vector<vec3>::iterator itr_dst_ecef = pline->pts_ecef.begin();
     for (; itr_src != line.end(); itr_src++, itr_dst++, itr_dst_ecef++) {
       *itr_dst = *itr_src;
-      bihtoecef(itr_dst->lat, itr_dst->lon, 0., itr_dst_ecef->x, itr_dst_ecef->y, itr_dst_ecef->z);
+      blhtoecef(itr_dst->lat, itr_dst->lon, 0., itr_dst_ecef->x, itr_dst_ecef->y, itr_dst_ecef->z);
     }
     lines.push_back(pline);
     
@@ -1707,7 +1707,7 @@ LayerData * CoastLine::clone() const
     }
     pt_center *= (1.0 / (double)num_total_points);
     double alt;
-    eceftobih(pt_center.x, pt_center.y, pt_center.z, pt_center_bih.lat, pt_center_bih.lon, alt);
+    eceftoblh(pt_center.x, pt_center.y, pt_center.z, pt_center_blh.lat, pt_center_blh.lon, alt);
     
     
     total_size = 0;
@@ -1822,7 +1822,7 @@ c_icosahedron::c_icosahedron() :nv(12), nf(20), ne(30)
     double qx = q[i].x, qy = q[i].y;
     double vx = 0.f, vy = 0.f, vz = 0.f;
     
-    bihtoecef(qx, qy, 0.f, vx, vy, vz);
+    blhtoecef(qx, qy, 0.f, vx, vy, vz);
     v[i].x = vx;
     v[i].y = vy;
     v[i].z = vz;
@@ -1927,10 +1927,10 @@ c_icosahedron::c_icosahedron(const c_icosahedron & icshdrn)
     double mx = m.x, my = m.y, mz = m.z;
     double qx, qy, qz, vx, vy, vz;
     qx = qy = qz = vx = vy = vz = 0.f;
-    eceftobih(mx, my, mz, qx, qy, alt);
+    eceftoblh(mx, my, mz, qx, qy, alt);
     q[iv].x = qx;
     q[iv].y = qy;
-    bihtoecef(qx, qy, 0., vx, vy, vz);
+    blhtoecef(qx, qy, 0., vx, vy, vz);
     v[iv].x = vx;
     v[iv].y = vy;
     v[iv].z = vz;

@@ -19,10 +19,10 @@
 
 #include "aws_const.hpp"
 
-void bihtoecef(const double lat, const double lon, const double alt,
+void blhtoecef(const double lat, const double lon, const double alt,
 	double & x, double & y, double & z);
 
-void eceftobih(const double x, const double y, const double z, double & lat, double & lon, double & alt);
+void eceftoblh(const double x, const double y, const double z, double & lat, double & lon, double & alt);
 
 void wrldtoecef(const double * Rrot, 
 		const double xorg, const double yorg, const double zorg, 

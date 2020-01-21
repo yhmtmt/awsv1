@@ -40,7 +40,7 @@ enum e_obj_type
 enum e_obj_data_type
 {
   EOD_UNDEF=0, EOD_IMG=0x1, EOD_IMRECT=0x2, EOD_MDL3D=0x4, 
-  EOD_POS_BIH=0x8, EOD_VEL_BIH = 0x10, 
+  EOD_POS_BLH=0x8, EOD_VEL_BLH = 0x10, 
   EOD_POS_ECEF=0x20, EOD_VEL_ECEF = 0x40,
   EOD_POS_REL=0x80, EOD_VEL_REL = 0x100,
   EOD_ATTD=0x200, EOD_AIS=0x400, EOD_R = 0x800, EOD_POS_BD = 0x1000,
@@ -59,8 +59,8 @@ protected:
   int m_id_track;				// tracking id
   
   long long m_t;				// Time updated.
-  double m_lat, m_lon, m_alt;	// BIH coordinate
-  float m_cog, m_sog;			// Velocity in BIH coordinate (knots, degree)
+  double m_lat, m_lon, m_alt;	// BLH coordinate
+  float m_cog, m_sog;			// Velocity in BLH coordinate (knots, degree)
   double m_x, m_y, m_z;		// ECEF  coordinate (meter)
   float m_vx, m_vy, m_vz;		// Velocity in ECEF (meter / sec)
   double m_xr, m_yr, m_zr;		// Relative orthogonal coordinate (centered at my own ship, meter)
@@ -131,33 +131,33 @@ public:
     return m_t;
   }
   
-  // Position and velocity in BIH coordinate.
-  void set_pos_bih(const double lat, const double lon, const double alt){
+  // Position and velocity in BLH coordinate.
+  void set_pos_blh(const double lat, const double lon, const double alt){
     m_lat = lat;
     m_lon = lon;
     m_alt = alt;
-    m_dtype = (e_obj_data_type)(m_dtype | EOD_POS_BIH);
+    m_dtype = (e_obj_data_type)(m_dtype | EOD_POS_BLH);
   }
   
-  void set_bih_from_ecef(){
-    m_dtype = (e_obj_data_type)(m_dtype | EOD_POS_BIH);
-    eceftobih(m_x, m_y, m_z, m_lat, m_lon, m_alt);	
+  void set_blh_from_ecef(){
+    m_dtype = (e_obj_data_type)(m_dtype | EOD_POS_BLH);
+    eceftoblh(m_x, m_y, m_z, m_lat, m_lon, m_alt);	
     m_lat *= (float)(180. / PI);
     m_lon *= (float)(180. / PI);
   }
   
-  void reset_bih(){
-    m_dtype = (e_obj_data_type)(m_dtype & ~EOD_POS_BIH & ~EOD_VEL_BIH);
+  void reset_blh(){
+    m_dtype = (e_obj_data_type)(m_dtype & ~EOD_POS_BLH & ~EOD_VEL_BLH);
   }
   
-  bool get_pos_bih(double & lat, double & lon, double & alt){
+  bool get_pos_blh(double & lat, double & lon, double & alt){
     lat = m_lat;
     lon = m_lon;
     alt = m_alt;
-    return (m_dtype & EOD_POS_BIH) != 0;
+    return (m_dtype & EOD_POS_BLH) != 0;
   }
   
-  void set_vel_bih(const float cog, const float sog){
+  void set_vel_blh(const float cog, const float sog){
     m_cog = cog;
     m_sog = sog;
     float theta = (float)(m_cog * (PI / 180.));
@@ -165,13 +165,13 @@ public:
     float s = sin(theta);
     m_nvxr = s;
     m_nvyr = c;
-    m_dtype = (e_obj_data_type)(m_dtype | EOD_VEL_BIH);
+    m_dtype = (e_obj_data_type)(m_dtype | EOD_VEL_BLH);
   }
   
-  bool get_vel_bih(float & cog, float & sog){
+  bool get_vel_blh(float & cog, float & sog){
     cog = m_cog;
     sog = m_sog;
-    return (m_dtype & EOD_VEL_BIH) != 0;
+    return (m_dtype & EOD_VEL_BLH) != 0;
   }
   
   // Position and velocity in ECEF coordinate.
@@ -182,10 +182,10 @@ public:
     m_dtype = (e_obj_data_type)(m_dtype | EOD_POS_ECEF);
   }
   
-  void set_ecef_from_bih()
+  void set_ecef_from_blh()
   {
     m_dtype = (e_obj_data_type)(m_dtype | EOD_POS_ECEF);
-    bihtoecef(m_lat * (PI/180.), m_lon * (PI/180.), m_alt, m_x, m_y, m_z);
+    blhtoecef(m_lat * (PI/180.), m_lon * (PI/180.), m_alt, m_x, m_y, m_z);
   }
   
   void set_ecef_from_rel(const double * Rorg,
@@ -216,9 +216,9 @@ public:
     m_dtype = (e_obj_data_type)(m_dtype | EOD_VEL_ECEF);
   }
   
-  void set_vel_ecef_from_bih(const double * Rorg)
+  void set_vel_ecef_from_blh(const double * Rorg)
   {
-    if(m_dtype & EOD_POS_BIH){	
+    if(m_dtype & EOD_POS_BLH){	
       float v = (float)(m_sog * KNOT);
       float c = m_nvyr, s = m_nvxr;
       m_vx = (float)(s * Rorg[0] + c * Rorg[3]);
@@ -275,7 +275,7 @@ public:
   bool get_vel_vec2d(float & nvxr, float &nvyr){
     nvxr = m_nvxr;
     nvyr = m_nvyr;
-    return (m_dtype & EOD_VEL_BIH) != 0;
+    return (m_dtype & EOD_VEL_BLH) != 0;
   }
   
   void set_vel_rel_from_ecef(const double * Rorg)
@@ -288,9 +288,9 @@ public:
     }
   }
   
-  void set_vel_rel_from_bih()
+  void set_vel_rel_from_blh()
   {
-    if(m_dtype & EOD_VEL_BIH){
+    if(m_dtype & EOD_VEL_BLH){
       float v = (float)(m_sog * KNOT);
       m_vxr = (float) (v * m_nvxr);
       m_vyr = (float) (v * m_nvyr);
@@ -463,8 +463,8 @@ public:
     m_yaw = hdg;
     set_time(t);
     m_mmsi = mmsi;
-    set_pos_bih(lat, lon, 0.);
-    set_vel_bih(cog, sog);
+    set_pos_blh(lat, lon, 0.);
+    set_vel_blh(cog, sog);
     reset_ecef();
     reset_rel();
   }
@@ -474,8 +474,8 @@ public:
     m_t = t;
     m_dtype = (e_obj_data_type)(EOD_AIS | EOD_ATTD);
     m_yaw = hdg;
-    set_pos_bih(lat, lon, 0.);
-    set_vel_bih(cog, sog);
+    set_pos_blh(lat, lon, 0.);
+    set_vel_blh(cog, sog);
     reset_ecef();
     reset_rel();
   }
@@ -687,12 +687,12 @@ public:
     if(itr != objs.end()){
       c_ais_obj & obj = *(itr->second);
       obj.update(t, lat, lon, cog, sog, hdg);
-      obj.set_ecef_from_bih();
+      obj.set_ecef_from_blh();
       updates.push_back(&obj);
     }else{
       c_ais_obj * pobj = new c_ais_obj(t, mmsi, lat, lon, cog, sog, hdg);
       objs.insert(map<unsigned int, c_ais_obj *>::value_type(mmsi, pobj));
-      pobj->set_ecef_from_bih();
+      pobj->set_ecef_from_blh();
       updates.push_back(pobj);
     }
     unlock();
@@ -713,8 +713,8 @@ public:
       c_ais_obj * pobj = itr->second;
       
       pobj->set_pos_rel_from_ecef(R, x, y, z);
-      pobj->set_vel_ecef_from_bih(R);
-      pobj->set_vel_rel_from_bih();
+      pobj->set_vel_ecef_from_blh(R);
+      pobj->set_vel_rel_from_blh();
       pobj->set_pos_bd_from_rel();
     }
     unlock();
@@ -884,12 +884,12 @@ public:
       if(itr != objs.end()){
 	c_ais_obj & obj = *(itr->second);
 	obj.update(obj_new);
-	obj.set_ecef_from_bih();
+	obj.set_ecef_from_blh();
 	updates.push_back(itr->second);
       }else{
 	c_ais_obj * pobj = new c_ais_obj(obj_new);
 	objs.insert(map<unsigned int, c_ais_obj *>::value_type(pobj->get_mmsi(), pobj));
-	pobj->set_ecef_from_bih();
+	pobj->set_ecef_from_blh();
 	updates.push_back(pobj);
       }
     }
@@ -944,12 +944,12 @@ public:
 	if(itr != objs.end()){
 	  c_ais_obj & obj = *(itr->second);
 	  obj.update(obj);
-	  obj.set_ecef_from_bih();
+	  obj.set_ecef_from_blh();
 	  updates.push_back(itr->second);
 	}else{
 	  c_ais_obj * pobj = new c_ais_obj(obj);
 	  objs.insert(map<unsigned int, c_ais_obj *>::value_type(obj.get_mmsi(), pobj));
-	  pobj->set_ecef_from_bih();
+	  pobj->set_ecef_from_blh();
 	  updates.push_back(pobj);
 	}				
       }
@@ -968,8 +968,8 @@ public:
 	obj.read(pbf);
 	double lat, lon, alt;
 	float cog, sog, roll, pitch, yaw;
-	obj.get_pos_bih(lat, lon, alt);
-	obj.get_vel_bih(cog, sog);
+	obj.get_pos_blh(lat, lon, alt);
+	obj.get_vel_blh(cog, sog);
 	obj.get_att(roll, pitch, yaw);
 	fprintf(ptf, "%lld, %u, %+013.8f, %+013.8f, %+06.1f, %+06.1f, %+06.1f\n", 
 		obj.get_time(), obj.get_mmsi(), lat, lon, cog, sog, yaw);
