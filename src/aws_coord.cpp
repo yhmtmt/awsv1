@@ -22,20 +22,20 @@ using namespace std;
 
 void eceftoblh(const float x, const float y, const float z, float & lat, float & lon, float & alt)
 {
-	double p = sqrt(x* x + y * y);
-	double th = atan(z * AE / (p * BE));
-	double s = sin(th);
-	double c = cos(th);
-	s = s * s * s;
-	c = c * c* c;
-	lat = (float)atan2(z + EE2_B * s, p - EE2_A * c);
-	lon = (float)atan2(y, x);
-	s = (float)sin(lat);
-	alt = (float)(p / cos(lat) - AE / sqrt(1 - EE2 * s * s));
+  double p = sqrt(x* x + y * y);
+  double th = atan(z * AE / (p * BE));
+  double s = sin(th);
+  double c = cos(th);
+  s = s * s * s;
+  c = c * c* c;
+  lat = (float)atan2(z + EE2_B * s, p - EE2_A * c);
+  lon = (float)atan2(y, x);
+  s = (float)sin(lat);
+  alt = (float)(p / cos(lat) - AE / sqrt(1 - EE2 * s * s));
 }
 
 void blhtoecef(const double lat, const double lon, const double alt,
-	double & x, double & y, double & z)
+	       double & x, double & y, double & z)
 {
   double slat = sin(lat);
   double clat = cos(lat);
@@ -52,16 +52,19 @@ void blhtoecef(const double lat, const double lon, const double alt,
 
 void eceftoblh(const double x, const double y, const double z, double & lat, double & lon, double & alt)
 {
-	double p = sqrt(x* x + y * y);
-	double th = atan(z * AE / (p * BE));
-	double s = sin(th);
-	double c = cos(th);
-	s = s * s * s;
-	c = c * c* c;
-	lat = atan2(z + EE2_B * s, p - EE2_A * c);
-	lon = atan2(y, x);
-	s = sin(lat);
-	alt = (p / cos(lat) - AE / sqrt(1 - EE2 * s * s));
+  double p = sqrt(x* x + y * y);
+  double th = atan(z * AE / (p * BE));
+  double s = sin(th);
+  double c = cos(th);
+  s = s * s * s;
+  c = c * c* c;
+  lat = atan2(z + EE2_B * s, p - EE2_A * c);
+  lon = atan2(y, x);
+  s = sin(lat);
+  if(abs(abs(lat) - 0.5 * PI) < 1e-9) // to avoid singular value
+    alt = (z < 0 ? z + BE : z - BE);
+  else
+    alt = (p / cos(lat) - AE / sqrt(1 - EE2 * s * s));
 }
 
 void wrldtoecef(const double * Rrot, 
