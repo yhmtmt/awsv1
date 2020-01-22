@@ -689,6 +689,7 @@ bool c_aws::get_fltr_io_chs(const FltrIOChs * lst_req, FltrIOChs * lst_rep)
 bool c_aws::set_fltr_io_chs(const FltrIOChs * lst)
 {
   f_base * f = get_filter(lst->inst_name());
+  bool result = true;
   if(!f){
     spdlog::error("Cannot find filter {}.", lst->inst_name());
     return false;
@@ -697,16 +698,26 @@ bool c_aws::set_fltr_io_chs(const FltrIOChs * lst)
   if(lst->dir() == FltrIODir::IN){
     for(int ich = 0; ich < lst->lst_size(); ich++){
       ch_base * ch = get_channel(lst->lst(ich).inst_name());
+      if(!ch){
+	result = false;
+	spdlog::error("Channel {} cannot be found.", lst->lst(ich).inst_name());
+	continue;
+      }      
       f->set_ichan(ch);
     }
   }else{
     for(int ich = 0; ich < lst->lst_size(); ich++){
       ch_base * ch = get_channel(lst->lst(ich).inst_name());
+      if(!ch){
+	result = false;
+	spdlog::error("Channel {} cannot be found.", lst->lst(ich).inst_name());	
+	continue;
+      }
       f->set_ochan(ch);
     }      
   }
   f->unlock_cmd();    
-  return true;
+  return result;
 }
 
 
