@@ -511,6 +511,12 @@ bool c_aws::stop_filter(const string & name)
 void c_aws::quit()
 {
   spdlog::info("Quit aws");
+  for(auto itr = filters.begin(); itr != filters.end(); itr++){
+    auto f = itr->second;
+    if(f->is_active()){
+      f->stop();
+    }
+  }
   m_exit = true; 
 }
 
