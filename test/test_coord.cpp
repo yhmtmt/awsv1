@@ -63,3 +63,21 @@ TEST_F(CoordTest, ECEFBLHTest)
   }
 }
 
+double l2_norm(const double a1, const double a2, const double a3)
+{
+  return a1 * a1 + a2 * a2 + a3 * a3;
+}
+  
+TEST_F(CoordTest, WorldRotationMatrixTest)
+{
+  double Rwrld[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  for(int i = 0; i < NUM_TEST_POINTS; i++){
+    getwrldrot(posp[i].lat, posp[i].lon, Rwrld);
+    EXPECT_FLOAT_EQ(l2_norm(Rwrld[0], Rwrld[1], Rwrld[2]), 1.0);
+    EXPECT_FLOAT_EQ(l2_norm(Rwrld[3], Rwrld[4], Rwrld[5]), 1.0);
+    EXPECT_FLOAT_EQ(l2_norm(Rwrld[6], Rwrld[7], Rwrld[8]), 1.0);
+    EXPECT_FLOAT_EQ(l2_norm(Rwrld[0], Rwrld[3], Rwrld[6]), 1.0);
+    EXPECT_FLOAT_EQ(l2_norm(Rwrld[1], Rwrld[4], Rwrld[7]), 1.0);
+    EXPECT_FLOAT_EQ(l2_norm(Rwrld[2], Rwrld[5], Rwrld[8]), 1.0);    
+  }
+}
