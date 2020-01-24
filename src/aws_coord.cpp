@@ -114,8 +114,9 @@ void getwrldrot(const double lat, const double lon, double * Rwrld)
   tmp1[3] = 0.f; tmp1[4] = 1.f; tmp1[5] = 0.f;
   tmp1[6] = s  ; tmp1[7] = 0.f; tmp1[8] =  c ;
 
+  // tmp2 = tmp0 * tmp1
   tmp2[0] = tmp0[0] * tmp1[0]; tmp2[1] = tmp0[1]; tmp2[2] = tmp0[0] * tmp1[2];
-  tmp2[3] = tmp0[3] * tmp1[0]; tmp2[4] = tmp0[4]; tmp2[5] = tmp0[0] * tmp1[2];
+  tmp2[3] = tmp0[3] * tmp1[0]; tmp2[4] = tmp0[4]; tmp2[5] = tmp0[3] * tmp1[2];
   tmp2[6] = tmp1[6]          ; tmp2[7] = 0.f    ; tmp2[8] = tmp1[8];
   
   // lon
@@ -125,7 +126,7 @@ void getwrldrot(const double lat, const double lon, double * Rwrld)
   tmp1[3] = -s ; tmp1[4] = c  ; tmp1[5] = 0.f;
   tmp1[6] = 0.f; tmp1[7] = 0.f; tmp1[8] = 1.f;
   
-
+  // Rwrld = tmp2 * tmp1
   Rwrld[0] = tmp2[0] * tmp1[0] + tmp2[1] * tmp1[3];
   Rwrld[1] = tmp2[0] * tmp1[1] + tmp2[1] * tmp1[4];
   Rwrld[2] = tmp2[2];
