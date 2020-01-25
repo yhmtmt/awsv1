@@ -133,6 +133,9 @@ public:
       return nullptr;
 
     void * ptr = dlsym(m_handle, "factory");
+    if(!ptr){
+      spdlog::error("{} does not have factory.", m_type_name);
+    }
     f_base * (*fptr)(const string &);
     fptr = (f_base* (*)(const string &))ptr;
     f_base * filter = fptr(name);
