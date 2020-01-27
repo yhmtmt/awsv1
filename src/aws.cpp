@@ -624,9 +624,9 @@ bool c_aws::get_fltr_par(const FltrInfo * inf_req, FltrInfo * inf_rep)
   bool suc = true;
   if(num_pars == 0){ // all parameters
     for (int ipar = 0; ipar < f->get_num_pars(); ipar++){
+      string name, val, exp;
       try{
 	auto par = inf_rep->add_pars();
-	string name, val, exp;
 	if(!f->get_par(ipar, name, val, exp)){
 	  suc = false;
 	}else{
@@ -634,8 +634,9 @@ bool c_aws::get_fltr_par(const FltrInfo * inf_req, FltrInfo * inf_rep)
 	  par->set_val(val);
 	  par->set_exp(exp);
 	}
-      }catch(...){
-	spdlog::error("Exception in get_fltr_par. {}th and later parameters cannot be listed.", ipar);
+      }catch(exception& e){
+	spdlog::error("Parameter {} caused exception: {}", name, e.what());
+	spdlog::error("{}th and later parameters cannot be listed. ", ipar);
 	break;
       }
     }
