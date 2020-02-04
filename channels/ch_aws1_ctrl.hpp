@@ -365,7 +365,7 @@ public:
       
       sz += (int)res;
       m_tfile = stat.tcur;
-      fprintf(ptf, "%lld, %d, %d, %d\n", stat.tcur, (int) stat.rud, (int) stat.eng);
+      fprintf(ptf, "%lld, %d, %d\n", stat.tcur, (int) stat.rud, (int) stat.eng);
       unlock();
     }
     return true;
