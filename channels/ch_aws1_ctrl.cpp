@@ -17,7 +17,7 @@
 
 const char * str_aws1_ctrl_src[ACS_NONE] = 
 {
-  "ui","rmt", "ap1", "ap2", "fset"
+  "ui", "ap1", "ap2", "fset"
 };
 
 
