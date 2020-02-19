@@ -212,12 +212,14 @@ const string & f_base::get_type_name()
 
 void f_base::fthread()
 {
-  if(!init_run()){
-    spdlog::error("[{}] Initialization failed.", get_name());
-    return;
+  {
+    lock_guard<mutex> lk(m_mutex_cmd);
+    m_bactive = init_run();
+    m_cnd_cmd.notify_one();
+    if(!m_bactive){
+      return;
+    }
   }
-  
-  m_bactive = true;
   
   while(m_bactive){
     m_count_pre = m_count_clock;

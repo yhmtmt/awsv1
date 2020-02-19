@@ -438,6 +438,12 @@ public:
     m_start_clock = m_stop_clock = m_count_clock;
 
     m_fthread = new thread(sfthread, this);
+    unique_lock<mutex> lk(m_mutex_cmd);
+    m_cnd_cmd.wait(lk);
+    if(!m_bactive){
+      spdlog::error("[{}] Initialization failed.", get_name());
+      return false;
+    }
     return true;
   }
    

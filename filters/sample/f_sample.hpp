@@ -40,7 +40,7 @@ private:
   unsigned char u8;
   bool b;
   char cstr[128];
-  
+  bool init_force_fail;
   enum etype{
     Foo = 0, Bar
   };
@@ -50,7 +50,7 @@ private:
 public:
   // 3) constructor should have an instance name as a c-string. In the body, parameters and tables are to be registered for inter-filter communication.
   f_sample(const char * fname): f_base(fname), tbl(nullptr), ch(nullptr), f64(0.0), u64(0), s64(0), f32(0.0f), u32(0), s32(0), s16(0), u16(0),
-				s8(0), u8(0), b(false), e(Foo)
+				s8(0), u8(0), b(false), e(Foo), init_force_fail(false)
   {
     cstr[0] = '\0';
     
@@ -72,11 +72,16 @@ public:
     register_fpar("b", &b, "Bool parameter example.");
     register_fpar("str", cstr, sizeof(cstr), "String parameter example.");
     register_fpar("e", (int*)&e, (int)(Bar + 1), str_etype, "Enum type example.");
+    register_fpar("init_force_fail", &init_force_fail, "Force init_run failed to test fail-case at run command.");
   }
   
   virtual bool init_run(){    
     // 4) override this function if you need to initialized filter class just before invoking fthread.
     //		open file or communication channels, set up and check channels and their aliases.
+
+    if(init_force_fail)
+      return false;
+    
     return true;
   }
 
