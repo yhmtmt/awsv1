@@ -62,8 +62,13 @@ public:
 	      Result * res) override
   {
     paws->lock();
-    paws->quit();
-    res->set_is_ok(true);
+    if(paws->quit()){
+      res->set_is_ok(true);
+    }else{
+      string msg("Active filters should first be stopped.");
+      res->set_is_ok(false);
+      res->set_message(msg);
+    }
     paws->unlock();
     return Status::OK;
   }
@@ -503,21 +508,23 @@ bool c_aws::stop_filter(const string & name)
   }
   
   f_base * filter = itr->second;
-  filter->stop();
   
-  return true;
+  return filter->stop();
 }
 
-void c_aws::quit()
+bool c_aws::quit()
 {
   spdlog::info("Quit aws");
   for(auto itr = filters.begin(); itr != filters.end(); itr++){
     auto f = itr->second;
     if(f->is_active()){
-      f->stop();
+      if(!f->stop()){
+	return false;
+      }
     }
   }
-  m_exit = true; 
+  m_exit = true;
+  return true;
 }
 
 bool c_aws::add_filter(const string & type, const string & name)

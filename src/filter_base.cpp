@@ -247,8 +247,6 @@ void f_base::fthread()
     
     unlock_cmd();
   }
-  
-  m_bactive = false;
   destroy();
 }
 
@@ -260,11 +258,16 @@ void f_base::sfthread(f_base * filter)
 
 bool f_base::stop()
 {
+  if(!m_clk.is_run()){
+    spdlog::info("Cannot stop {} because clock is not running.", m_name);
+    return false;
+  }
+    
   if(m_bactive){
     spdlog::info("Stopping {}.", m_name);
     m_bactive = false;
   }
-  
+     
   if(m_fthread){
     m_fthread->join();
     delete m_fthread;

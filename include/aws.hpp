@@ -174,7 +174,7 @@ class c_aws: public CmdAppBase
 public:
   bool run_filter(const string & name);  
   bool stop_filter(const string & name);
-  void quit();  
+  bool quit();  
   bool add_filter(const string & type, const string & name);  
   bool del_filter(const string & name);
   bool set_fltr_par(const FltrInfo * inf);
