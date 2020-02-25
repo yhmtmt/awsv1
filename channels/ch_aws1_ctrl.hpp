@@ -18,7 +18,7 @@
 #include "channel_base.hpp"
 
 enum e_aws1_ctrl_src{
-  ACS_UI, ACS_AP1, ACS_AP2, ACS_FSET, ACS_NONE
+  ACS_UI, ACS_AP, ACS_FSET, ACS_NONE
 };
 
 // map a value with 3 threasholds (for rudder contrl and states)
