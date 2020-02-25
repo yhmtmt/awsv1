@@ -2,7 +2,7 @@
 #define CH_AWS1_CTRL_HPP
 // Copyright(c) 2019 Yohei Matsumoto, All right reserved. 
 
-// ch_aws1_ctrl.h is free software: you can redistribute it and/or modify
+// ch_aws1_ctrl.hpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
@@ -17,8 +17,13 @@
 
 #include "channel_base.hpp"
 
+// Control Source ID. control_aws1 can switch three control sources:
+// ui_manager, autopilot, and filter parameters of control_aws1. 
 enum e_aws1_ctrl_src{
-  ACS_UI, ACS_AP, ACS_FSET, ACS_NONE
+  ACS_UI,  // ui_manager
+  ACS_AP,  // autopilot
+  ACS_FSET,// filter parameters of control_aws1
+  ACS_NONE
 };
 
 // map a value with 3 threasholds (for rudder contrl and states)
@@ -79,7 +84,7 @@ struct s_aws1_ctrl_inst{
  // current time
   long long tcur;
   
-  // control modes
+  // control source
   e_aws1_ctrl_src ctrl_src;
   
   // aws control input (from aws)
@@ -100,7 +105,7 @@ struct s_aws1_ctrl_stat{
   unsigned char rud;
   unsigned char eng;
   
-  // control modes
+  // control source
   e_aws1_ctrl_src ctrl_src;
   
   // aws control input (from aws)
