@@ -47,6 +47,7 @@ using namespace std;
 #include <flatbuffers/util.h>
 
 #include "aws_const.hpp"
+#include "aws_math.hpp"
 #include "aws_clock.hpp"
 #include "aws_stdlib.hpp"
 #include "aws_sock.hpp"

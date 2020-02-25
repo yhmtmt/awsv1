@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with aws_const.hpp.  If not, see <http://www.gnu.org/licenses/>. 
 
-#ifndef AWS_CONST_H
-#define AWS_CONST_H
+#ifndef AWS_CONST_HPP
+#define AWS_CONST_HPP
 
 #define PI 3.1415926535898			
 #define AE 6378137.				// radius at the equator  
