@@ -16,6 +16,9 @@
 #ifndef AWS_MATH_HPP
 #define AWS_MATH_HPP
 #include "aws_const.hpp"
+#include <Eigen/Core>
+#include <Eigen/LU>
+
 
 inline float normalize_angle_deg(float angle){
   if(angle > 180.0f)
@@ -51,5 +54,33 @@ inline double normalize_angle_rad(double angle)
   return angle;
 }
 
+// Gives rotation matrix corresponding to specified roll, pitch and yaw.
+inline Eigen::Matrix3d rotation_matrix(const float roll, const float pitch,
+				       const float yaw)
+{
+  double cr = cos(roll), sr = sin(roll);
+  double cp = cos(pitch), sp = sin(pitch);
+  double cy = cos(yaw), sy = sin(yaw);
+  double spcr = sp * cr;
+  double spsr = sp * sr;
+  Eigen::Matrix3d R;
+  R <<
+    cy * cp, cy * spsr - sy * cr, cy * spcr + sy * sr,
+    sy * cp, sy * spsr + cy * cr, sy * spcr - cy * sr,
+    -sp,     cp * sr,             cp * cr;
+  return R;
+}
+
+// Gives cross product matrix [ax] in "a x b" where a and b are the 3D vector.
+inline Eigen::Matrix3d left_cross_product_matrix(const float x, const float y,
+						 const float z)
+{
+  Eigen::Matrix3d ax;
+  ax <<
+    0, -z, y,
+    z,  0, x,
+    -y, x, 0;
+  return ax;
+}
 
 #endif

@@ -11,6 +11,9 @@ find_package(Protobuf REQUIRED)
 find_package(GRPC REQUIRED)
 find_package(Flatbuffers REQUIRED)
 
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+
 set (CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 
 set (SPDLOG_DIR ${PROJECT_SOURCE_DIR}/sub/spdlog)

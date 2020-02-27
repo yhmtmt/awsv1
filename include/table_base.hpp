@@ -1,5 +1,5 @@
-#ifndef T_BASE_H
-#define T_BASE_H
+#ifndef T_BASE_HPP
+#define T_BASE_HPP
 // Copyright(c) 2019 Yohei Matsumoto,  All right reserved. 
 
 // table_base.hpp is free software: you can redistribute it and/or modify
