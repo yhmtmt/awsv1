@@ -159,8 +159,8 @@ public:
     cnvx = sin(th);
     cnvy = cos(th);
     float mps = (float)(csog * KNOT);
-    vx = (float)(mps * cnvx);
-    vy = (float)(mps * cnvy);
+    cvx = (float)(mps * cnvx);
+    cvy = (float)(mps * cnvy);
     unlock();
   }
   
