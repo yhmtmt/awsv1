@@ -22,39 +22,73 @@
 class ch_state: public ch_base
 {
 protected:
-  long long tatt, tpos, talt, tvel, twx, tdp;
-  long long tattf, tposf, taltf, tvelf, twxf, tdpf;
-  float roll, pitch, yaw; // roll(deg), pitch(deg), yaw(deg)
-  double lon, lat, alt, galt; // longitude(deg), latitude(deg), altitude(m), geoid altitude(m)
-  double x, y, z; // ecef coordinate
-  double R[9]; // Rotation matrix for ENU transformation
-  float cog, sog; // Course over ground(deg), Speed over ground (kts)
-  float vx, vy;	 
-  float nvx, nvy;
-  float depth; // water depth
-  long long m_tfile;
-  float rollf, pitchf, yawf; // roll(deg), pitch(deg), yaw(deg)
-  double lonf, latf, altf, galtf; // longitude(deg), latitude(deg), altitude(m), geoid altitude(m)
-  double xf, yf, zf; // ecef coordinate
-  float cogf, sogf; // Course over ground(deg), Speed over ground (kts)
-  float depthf; // water depth
+  long long m_tfile;          // current time record of the log file playing
+
+  // Attitude data (V104)
+  long long tatt;             // attitude time stamp
+  float roll, pitch, yaw;     // roll(deg), pitch(deg), yaw(deg)
+  long long tattf;            // from log file
+  float rollf, pitchf, yawf;  // from log file
+
+  // Position data (V104)
+  long long tpos;             // position time stamp
+  double lon, lat;            // longitude(deg), latitude(deg)
+  long long tposf;            // from log file
+  double lonf, latf;          // from log file
+
+  // Heave data (V104)
+  long long talt;             // altitude(heave) time stamp
+  double alt;                 // altitude
+  long long taltf;            // from log file
+  double altf;                // from log file
   
-  // from wx220 
-  float bar, barf /*air pressure (bar)*/,
-    temp_air, temp_airf /* air temperature (C)*/,
-    hmdr, hmdrf /* relative humidity (%)*/ ,
-    dew, dewf /* dew point (C) */,
-    dir_wnd_t, dir_wnd_tf /* True wind direction (deg)*/,
-    wspd_mps, wspd_mpsf /* wind speed (m/s) */ ;
+  // Velocity data (V104)
+  long long tvel;
+  float cog, sog;             // cog and sog in deg and kts
+  long long tvelf;
+  float cogf, sogf;           // from log file
+
+  // Depth data (GPS fish finder)
+  long long tdp;              // Depth time stamp
+  float depth;                // Depth
+  long long tdpf;             // from log file
+  float depthf;               // from log file
   
+  // Weather data (WX220)
+  long long twx;   // weather data time stamp 
+  float bar;       /*air pressure (bar)*/
+  float temp_air;  /* air temperature (C)*/
+  float hmdr;      /* relative humidity (%)*/
+  float dew;       /* dew point (C) */
+  float dir_wnd_t; /* True wind direction (deg)*/
+  float wspd_mps;  /* wind speed (m/s) */ 
+  long long twxf;  // from log file
+  float barf;      // from log file
+  float temp_airf; // from log file
+  float hmdrf;     // from log file
+  float dewf;      // from log file
+  float dir_wnd_tf;// from log file
+  float wspd_mpsf; // from log file
+  
+  // calculated data 
+  double x, y, z;             // ecef coordinate
+  double xf, yf, zf;          // from log file
+  double R[9];                // Rotation matrix for ENU transformation
+
+  float vx, vy;	              // velocity vector
+  float nvx, nvy;             // course vector (normal vector)
+  long long tcvel;            // time stamp of corrected velocity 
+  float ccog, csog;           // corrected cog and sog
+  float cvx, cvy;             // corrected velocity vector
+  float cnvx, cnvy;           // corrected course vector
   
 public:
   ch_state(const char * name): ch_base(name), 
 			       m_tfile(0), tatt(0), tpos(0), tvel(0), tdp(0),
 			       tattf(0), tposf(0), tvelf(0), tdpf(0), 
 			       roll(0), pitch(0), yaw(0),
-			       lon(0), lat(0), alt(0), galt(0),
-			       x(0), y(0), z(0), cog(0), sog(0), depth(0)      
+			       lon(0), lat(0), alt(0),
+			       x(0), y(0), z(0), cog(0), sog(0), depth(0), ccog(0.0f), csog(0.0f)      
   {
     for(int i = 0; i < 9; i++) R[i] = 0.0;
     R[0] = R[4] = R[8] = 1.0;
@@ -113,6 +147,23 @@ public:
     unlock();
   }
 
+  // currently from autopilot (it would be temporal treatment)
+  void set_corrected_velocity(const long long & _tcvel,
+			      const float _ccog, const float _csog)
+  {
+    lock();
+    tcvel = _tcvel;
+    ccog = _ccog;
+    csog = _csog;
+    float th = (float)(ccog * (PI / 180.));
+    cnvx = sin(th);
+    cnvy = cos(th);
+    float mps = (float)(csog * KNOT);
+    vx = (float)(mps * cnvx);
+    vy = (float)(mps * cnvy);
+    unlock();
+  }
+  
   void set_depth(const long long & _tdp, const float _depth){
     lock();
     tdp = _tdp;
@@ -210,6 +261,15 @@ public:
     _sog = sog;
     unlock();
   }
+
+  void get_corrected_velocity(long long & _tcvel, float & _ccog, float & _csog)
+  {
+    lock();
+    _tcvel = tcvel;
+    _ccog = ccog;
+    _csog = csog;
+    unlock();
+  }
   
   void get_velocity_vector(long long & _tvel, float & _vx, float & _vy)
   {
@@ -219,6 +279,15 @@ public:
     _vy = vy;
     unlock();
   }
+
+  void get_corrected_velocity_vector(long long & _tcvel, float & _cvx, float & _cvy)
+  {
+    lock();
+    _tcvel = tcvel;
+    _cvx = cvx;
+    _cvy = cvy;
+    unlock();
+  }
   
   void get_norm_velocity_vector(long long & _tvel, float & _nvx, float & _nvy)
   {
@@ -226,6 +295,15 @@ public:
     _tvel = tvel;
     _nvx = nvx;
     _nvy = nvy;
+    unlock();
+  }
+
+  void get_normal_corrected_velocity_vector(long long & _tcvel, float & _cnvx, float & _cnvy)
+  {
+    lock();
+    _tcvel = tvel;
+    _cnvx = cnvx;
+    _cnvy = cnvy;
     unlock();
   }
   
