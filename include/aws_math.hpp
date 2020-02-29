@@ -78,7 +78,7 @@ inline Eigen::Matrix3d left_cross_product_matrix(const float x, const float y,
   Eigen::Matrix3d ax;
   ax <<
     0, -z, y,
-    z,  0, x,
+    z,  0, -x,
     -y, x, 0;
   return ax;
 }
