@@ -24,12 +24,19 @@ class ch_state: public ch_base
 protected:
   long long m_tfile;          // current time record of the log file playing
 
+  Eigen::Vector3d x_gps;      // GPS antenna (V104)  position.
+  
   // Attitude data (V104)
   long long tatt;             // attitude time stamp
   float roll, pitch, yaw;     // roll(deg), pitch(deg), yaw(deg)
   long long tattf;            // from log file
   float rollf, pitchf, yawf;  // from log file
 
+  float roll_rad, pitch_rad, yaw_rad; // radian version
+  float droll, dpitch, dyaw;          // derivative
+  Eigen::Matrix3d R_body;             // ship body rotation matrix
+  Eigen::Vector3d v_rot;              // GPS antena speed due to ship rotation
+  
   // Position data (V104)
   long long tpos;             // position time stamp
   double lon, lat;            // longitude(deg), latitude(deg)
@@ -83,12 +90,17 @@ protected:
   float cnvx, cnvy;           // corrected course vector
   
 public:
-  ch_state(const char * name): ch_base(name), 
+  ch_state(const char * name): ch_base(name),
+			       x_gps(0,0,0),
 			       m_tfile(0), tatt(0), tpos(0), tvel(0), tdp(0),
 			       tattf(0), tposf(0), tvelf(0), tdpf(0), 
 			       roll(0), pitch(0), yaw(0),
+			       roll_rad(0), pitch_rad(0), yaw_rad(0), 
+			       droll(0), dpitch(0), dyaw(0), 
 			       lon(0), lat(0), alt(0),
-			       x(0), y(0), z(0), cog(0), sog(0), depth(0), ccog(0.0f), csog(0.0f)      
+			       x(0), y(0), z(0),
+			       cog(0), sog(0), depth(0),
+			       ccog(0.0f), csog(0.0f)      
   {
     for(int i = 0; i < 9; i++) R[i] = 0.0;
     R[0] = R[4] = R[8] = 1.0;
@@ -97,22 +109,40 @@ public:
   void set_attitude(const long long _tatt, const float _r, const float _p, const float _y)
   {
     lock();
-    tatt = _tatt;
-    roll = _r; 
-    pitch = _p;
-    yaw = _y;
+    if(tatt != _tatt){
+      double _roll_rad = (float)(roll * (PI / 180.f));
+      double _pitch_rad = (float)(pitch * (PI / 180.f));
+      double _yaw_rad = (float)(yaw * (PI / 180.f));
+      double idt = (double) SEC / (double) (_tatt - tatt);
+      dyaw = (float)(idt * (_yaw_rad - yaw_rad));
+      dpitch = (float)(idt * (_pitch_rad - pitch_rad));
+      droll = (float)(idt * (_roll_rad - roll_rad));      
+      
+      roll_rad = _roll_rad;
+      pitch_rad = _pitch_rad;
+      yaw_rad = _yaw_rad;
+      R_body = rotation_matrix(roll_rad, pitch_rad, yaw_rad);
+      Eigen::Matrix3d rx = left_cross_product_matrix(droll, dpitch, dyaw);
+      v_rot = rx * R_body * x_gps;
+      tatt = _tatt;
+      roll = _r; 
+      pitch = _p;
+      yaw = _y;
+    }
     unlock();
   }
   
   void set_position(const long long _tpos, const double _lat, const double _lon)
   {
     lock();
-    tpos = _tpos;
-    lat = _lat;
-    lon = _lon;
-    double lat_rad = (lat * (PI / 180.)), lon_rad = (lon * (PI / 180.));
-    getwrldrot(lat_rad, lon_rad, R);
-    blhtoecef(lat_rad, lon_rad, alt, x, y, z);
+    if(tpos != _tpos){
+      tpos = _tpos;
+      lat = _lat;
+      lon = _lon;
+      double lat_rad = (lat * (PI / 180.)), lon_rad = (lon * (PI / 180.));
+      getwrldrot(lat_rad, lon_rad, R);
+      blhtoecef(lat_rad, lon_rad, alt, x, y, z);
+    }
     unlock();
   }
   
@@ -135,35 +165,23 @@ public:
   void set_velocity(const long long & _tvel, const float _cog, const float _sog)
   {
     lock();
-    tvel = _tvel;
-    cog = _cog;
-    sog = _sog;
-    float th = (float)(cog * (PI / 180.));
-    nvx = (float)sin(th);
-    nvy = (float)cos(th);
-    float mps = (float)(sog * KNOT);
-    vx = (float)(mps * nvx);
-    vy = (float)(mps * nvy);
+    if(tvel != _tvel){
+      tvel = _tvel;
+      cog = _cog;
+      sog = _sog;
+      float th = (float)(cog * (PI / 180.));
+      nvx = (float)sin(th);
+      nvy = (float)cos(th);
+      float mps = (float)(sog * KNOT);
+      vx = (float)(mps * nvx);
+      vy = (float)(mps * nvy);
+      // Note: in body fixed coordinate x is bow direction, but in world coordinate, x is east direction
+      cvx = vx - v_rot(1);
+      cvy = vy - v_rot(0);
+    }
     unlock();
   }
-
-  // currently from autopilot (it would be temporal treatment)
-  void set_corrected_velocity(const long long & _tcvel,
-			      const float _ccog, const float _csog)
-  {
-    lock();
-    tcvel = _tcvel;
-    ccog = _ccog;
-    csog = _csog;
-    float th = (float)(ccog * (PI / 180.));
-    cnvx = sin(th);
-    cnvy = cos(th);
-    float mps = (float)(csog * KNOT);
-    cvx = (float)(mps * cnvx);
-    cvy = (float)(mps * cnvy);
-    unlock();
-  }
-  
+ 
   void set_depth(const long long & _tdp, const float _depth){
     lock();
     tdp = _tdp;
@@ -266,8 +284,8 @@ public:
   {
     lock();
     _tcvel = tcvel;
-    _ccog = ccog;
-    _csog = csog;
+    _ccog = atan2(cvx, cvy) * (180.f / PI);
+    _csog = sqrt(cvx * cvx + cvy * cvy) * (1. / KNOT);
     unlock();
   }
   

@@ -13,50 +13,41 @@
 // You should have received a copy of the GNU General Public License
 // along with ch_state.cpp.  If not, see <http://www.gnu.org/licenses/>.
 
+#include "aws_math.hpp"
 #include "ch_state.hpp"
 
 ///////////////////////////////////////////////////////////////////////// ch_state
 size_t ch_state::write_buf(const char * buf)
 {
-  lock();
-  const long long *lptr = (const long long*)buf;
-  tpos = lptr[0];
-  talt = lptr[1];
-  tatt = lptr[2];
-  tvel = lptr[3];
-  tdp = lptr[4];
-  twx = lptr[5];
-	
+  const long long *lptr = (const long long*)buf;	
   const float * ptr = (const float*)(lptr + 6);
-  roll = ptr[0];
-  pitch = ptr[1];
-  yaw = ptr[2];
-  cog = ptr[3];
-  sog = ptr[4];
-  {
-    float th = (float)(cog * (PI / 180.));
-    nvx = (float)sin(th);
-    nvy = (float)cos(th);
-    float mps = (float)(sog * KNOT);
-    vx = (float)(mps * nvx);
-    vy = (float)(mps * nvy);
-  }
+  const double * dptr = (const double*)(ptr + 12);
+  
+  set_attitude(lptr[2], ptr[0], ptr[1], ptr[2]);
+  set_velocity(lptr[3], ptr[3], ptr[4]);
+  
+  lock();
+  tpos = lptr[0];
+  lat = dptr[0];
+  lon = dptr[1];
+  x = dptr[3];
+  y = dptr[4];
+  z = dptr[5];
+  memcpy((void*)R, (void*)(dptr+6), sizeof(double)* 9);
+  
+  talt = lptr[1];
+  alt = dptr[2];
+    
+  tdp = lptr[4];
   depth = ptr[5];
+  
+  twx = lptr[5];
   bar = ptr[6];
   temp_air = ptr[7];
   hmdr = ptr[8];
   dew = ptr[9];
   dir_wnd_t = ptr[10];
   wspd_mps = ptr[11];
-  
-  const double * dptr = (const double*)(ptr + 12);
-  lat = dptr[0];
-  lon = dptr[1];
-  alt = dptr[2];
-  x = dptr[3];
-  y = dptr[4];
-  z = dptr[5];
-  memcpy((void*)R, (void*)(dptr+6), sizeof(double)* 9);
   
   unlock();
   return get_dsize();
