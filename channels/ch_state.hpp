@@ -105,6 +105,13 @@ public:
     for(int i = 0; i < 9; i++) R[i] = 0.0;
     R[0] = R[4] = R[8] = 1.0;
   }
+
+  void set_gps_ant_pos(const Eigen::Vector3d & _x_gps)
+  {
+    lock();
+    x_gps = _x_gps;
+    unlock();
+  }
   
   void set_attitude(const long long _tatt, const float _r, const float _p, const float _y)
   {
