@@ -121,9 +121,9 @@ public:
       double _pitch_rad = (float)(pitch * (PI / 180.f));
       double _yaw_rad = (float)(yaw * (PI / 180.f));
       double idt = (double) SEC / (double) (_tatt - tatt);
-      dyaw = (float)(idt * (_yaw_rad - yaw_rad));
-      dpitch = (float)(idt * (_pitch_rad - pitch_rad));
-      droll = (float)(idt * (_roll_rad - roll_rad));      
+      dyaw = (float)(idt * normalize_angle_rad(_yaw_rad - yaw_rad));
+      dpitch = (float)(idt * normalize_angle_rad(_pitch_rad - pitch_rad));
+      droll = (float)(idt * normalize_angle_rad(_roll_rad - roll_rad));      
       
       roll_rad = _roll_rad;
       pitch_rad = _pitch_rad;
