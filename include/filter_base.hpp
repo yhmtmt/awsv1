@@ -437,13 +437,15 @@ public:
     m_cycle = 0;
     m_count_pre = m_count_post = m_count_clock;
     m_start_clock = m_stop_clock = m_count_clock;
-
-    m_fthread = new thread(sfthread, this);
+    
     unique_lock<mutex> lk(m_mutex_cmd);
+    m_fthread = new thread(sfthread, this);
     m_cnd_cmd.wait(lk);
     if(!m_bactive){
       spdlog::error("[{}] Initialization failed.", get_name());
       return false;
+    }else{
+      spdlog::info("[{}] Initialization done.", get_name());
     }
     return true;
   }
@@ -560,7 +562,7 @@ public:
   {
     return m_offset_time;
   }
-	
+
   ////////////////////////////////////////////// error log data and methods
 protected:
 

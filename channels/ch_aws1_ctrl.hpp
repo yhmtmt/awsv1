@@ -1,6 +1,6 @@
 #ifndef CH_AWS1_CTRL_HPP
 #define CH_AWS1_CTRL_HPP
-// Copyright(c) 2019 Yohei Matsumoto, All right reserved. 
+// Copyright(c) 2019-2020 Yohei Matsumoto, All right reserved. 
 
 // ch_aws1_ctrl.hpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -378,10 +378,9 @@ public:
 };
 
 
-enum e_ap_mode
-  {
+enum e_ap_mode{
     EAP_CURSOR, EAP_WP, EAP_WPAV, EAP_STAY, EAP_FLW_TGT, EAP_STB_MAN, EAP_NONE
-  };
+};
 
 extern const char * str_aws1_ap_mode[EAP_NONE];
 

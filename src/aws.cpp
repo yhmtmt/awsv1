@@ -205,7 +205,7 @@ public:
   Status SetFltrPar(ServerContext * context, const FltrInfo * inf,
 		    Result * res) override
   {
-    paws->lock();
+    paws->lock();    
     if(paws->set_fltr_par(inf)){
       res->set_is_ok(true);
     }else{
@@ -493,9 +493,10 @@ bool c_aws::run_filter(const string & name)
   f_base * filter = itr->second;
   
   if(!filter->run()){
+    spdlog::error("Failed to run filter {}.", name);
     return false;
   }
-  
+  spdlog::info("Filter {} started.", name);
   return true;
 }
 
@@ -913,7 +914,7 @@ bool c_aws::main()
   f_base::init_run_all();
   m_start_time = (long long) time(NULL) * SEC; 
   m_end_time = LLONG_MAX;
-     
+      
   while(!m_exit){
     if(!f_base::m_clk.is_stop()){
       // wait the time specified in cyc command.
