@@ -79,21 +79,29 @@ public:
     cmd_save, cmd_load, cmd_none
   };
 protected:
-  e_cmd cmd;
+  e_cmd cmd;                       // save/load command to waypoint manager
+  int id;                          // route index. used to save/load route file.
   
-  int id;
+  static s_wp wp_null;             // null waypoint for return value
   
-  static s_wp wp_null;
-  
-  list<s_wp*> wps;
-  list<s_wp*>::iterator itr;
-  int focus, inext;
-  list<s_wp*>::iterator itr_focus;
-  list<s_wp*>::iterator itr_next;
-  float dist_next;
-  float cdiff_next;
-  float xdiff_next;
-  
+  list<s_wp*> wps;                 // list of waypoints 
+  list<s_wp*>::iterator itr;       // iterator manipulator used
+
+  // Manipulators focus
+  int focus;                        // index of the focused wp
+  list<s_wp*>::iterator itr_focus;  // iterator of the focused wp
+
+  // Next navigation target     
+  int inext;                        // index of the next wp
+  list<s_wp*>::iterator itr_next;   // iterator of the next wp
+
+  // for autopilot 
+  float dist_next;                  // distance to the next wp
+  float cdiff_next;                 // course difference to the next wp
+  float xdiff_next;                 // cross track difference 
+
+  // finding next navigation target.
+  // The earliest waypoint with no arrival flag is selected.
   void find_next(){
     for(itr = wps.begin(), inext = 0; itr != wps.end() && (*itr)->get_arrival_time() > 0; inext++, itr++);
     itr_next = itr;
@@ -188,6 +196,20 @@ public:
     if(itr_focus == wps.end())
       focus = (int) wps.size();
     
+    find_next();
+  }
+
+  // reverse waypoint list
+  void rev(){
+    wps.reverse();
+    set_focus(get_focus());
+    find_next();
+  }
+
+  // refresh waypoint list (arrival flag is cleaned up)
+  void ref(){ 
+    for(itr = wps.begin(); itr != wps.end(); itr++)
+      (*itr)->set_arrival_time(-1);
     find_next();
   }
   

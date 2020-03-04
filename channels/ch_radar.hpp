@@ -372,7 +372,8 @@ class ch_radar_ctrl: public ch_base
     {      
     }
 
-  void push(const radar_command_id id, const int val, const RadarControlState state)
+  void push(const radar_command_id id,
+	    const int val = 0, const RadarControlState state = RCS_OFF)
   {
     
     lock();
