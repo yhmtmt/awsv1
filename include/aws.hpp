@@ -50,7 +50,7 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
-
+using grpc::ServerWriter;
 using CommandService::Config;
 using CommandService::Command;
 using CommandService::RunParam;
@@ -67,6 +67,8 @@ using CommandService::LstFltrsParam;
 using CommandService::FltrLst;
 using CommandService::FltrIODir;
 using CommandService::FltrIOChs;
+using CommandService::FltrMsgReq;
+using CommandService::FltrMsg;
 
 using CommandService::ChInfo;
 using CommandService::LstChsParam;

@@ -100,6 +100,19 @@ public:
 
   const string & get_type_name();
 
+  virtual const char * get_msg_type_name()
+  {
+    return NULL;
+  }
+  
+  virtual const char * get_msg(){
+    return NULL;
+  }
+
+  virtual const size_t get_msg_size(){
+    return 0;
+  }
+  
   //////////////////////////////////////// tables and the methods
 protected:
   struct s_table_info

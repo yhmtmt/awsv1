@@ -18,9 +18,11 @@
 #include "filter_base.hpp"
 #include "ch_sample.hpp"
 #include "sample_generated.h"
+#include "sample_msg_generated.h"
 
 /////////////////////////////////////////////////////////// sample implementation of filter class
 using namespace Filter::Sample;
+using namespace Filter::SampleMsg;
 
 class f_sample: public f_base // 1) inherit from f_base
 {
@@ -46,11 +48,13 @@ private:
   };
   static const char * str_etype[Bar+1];
   etype e;
-  
+
+  flatbuffers::FlatBufferBuilder msg_builder;
+  char * msg;
 public:
   // 3) constructor should have an instance name as a c-string. In the body, parameters and tables are to be registered for inter-filter communication.
   f_sample(const char * fname): f_base(fname), tbl(nullptr), ch(nullptr), f64(0.0), u64(0), s64(0), f32(0.0f), u32(0), s32(0), s16(0), u16(0),
-				s8(0), u8(0), b(false), e(Foo), init_force_fail(false)
+				s8(0), u8(0), b(false), e(Foo), init_force_fail(false), msg_builder(1024), msg(NULL)
   {
     cstr[0] = '\0';
     
@@ -91,7 +95,22 @@ public:
 
   // 5) implement your filter body. this function is called in the loop of fthread.  
   virtual bool proc();
-    
+
+  // 6) message dispatcher
+  virtual const char * get_msg_type_name()
+  {
+    return "sample_msg";
+  }
+
+  virtual const char * get_msg()
+  {
+    return (char*) msg_builder.GetBufferPointer();
+  }
+
+  virtual const size_t get_msg_size()
+  {
+    return (size_t) msg_builder.GetSize();
+  }
 };
 
 

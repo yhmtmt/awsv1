@@ -415,13 +415,40 @@ public:
   }
 
   Status LstTbls(ServerContext * context, const LstTblsParam * par,
-		 TblLst * lst)
+		 TblLst * lst) override
   {
     paws->lock();
     paws->get_tbl_lst(lst);
     paws->unlock();
     return Status::OK;
   }
+
+  Status WatchFltrMsg(ServerContext * context, const FltrMsgReq * req,
+		     ServerWriter<FltrMsg> * writer) override
+  {
+    timespec ts;
+    ts.tv_sec = (time_t) req->period();
+    ts.tv_nsec = (long)(((req->period() - (double)ts.tv_sec)) * 1000000000);
+    while(1){
+      paws->lock();
+      f_base * f = paws->get_filter(req->inst_name());
+      if(!f){
+	spdlog::error("Cannot find filter {} to be listen.", req->inst_name());
+	paws->unlock();
+	break;
+      }
+      FltrMsg msg;
+      const char * type_name = f->get_msg_type_name();
+      if(type_name)
+	msg.set_type_name(string(type_name));
+      msg.set_message(string((const char*)f->get_msg(), f->get_msg_size()));
+      writer->Write(msg);
+      paws->unlock();
+      nanosleep(&ts, NULL);
+    }
+    return Status::OK;
+  }
+  
 };
 
 c_aws::c_aws(int argc, char ** argv):CmdAppBase(argc, argv),
