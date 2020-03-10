@@ -1,0 +1,15 @@
+namespace Filter.SampleMsg;
+
+table SampleMsg{
+      message:string;
+      f64:double;
+      f32:float;
+      u32:uint;
+      s32:int;
+      u16:ushort;
+      s16:short;
+      u8:ubyte;
+      s8:byte;
+}
+
+root_type SampleMsg;
