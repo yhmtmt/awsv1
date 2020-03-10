@@ -4,7 +4,6 @@ set(SAMPLE_FLAT_SRC_DIR ./)
 
 
 flatc_generate_cpp(SAMPLE_FLAT_HDRS SAMPLE_FLAT_BFBS ${CMAKE_CURRENT_SOURCE_DIR}  sample_msg.fbs)
-message("flatbuffer description file: ${SAMPLE_FLAT_HDRS}")
 install(FILES ${SAMPLE_FLAT_BFBS}
   PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE
   DESTINATION lib)
