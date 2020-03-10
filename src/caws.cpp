@@ -11,6 +11,7 @@
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
+using grpc::ClientReader;
 
 using CommandService::Config;
 using CommandService::Command;
@@ -29,6 +30,8 @@ using CommandService::LstFltrsParam;
 using CommandService::FltrLst;
 using CommandService::FltrIODir;
 using CommandService::FltrIOChs;
+using CommandService::FltrMsgReq;
+using CommandService::FltrMsg;
 
 using CommandService::ChInfo;
 using CommandService::LstChsParam;
@@ -46,19 +49,19 @@ using CommandService::Result;
 
 enum cmd_id{
   RUN=0, STOP, QUIT, CLOCK, GET_TIME,
-  GEN_FLTR, DEL_FLTR, LST_FLTRS, SET_FLTR_PAR, GET_FLTR_PAR,
+  GEN_FLTR, DEL_FLTR, LST_FLTRS, SET_FLTR_PAR, GET_FLTR_PAR, WATCH_FLTR_MSG,
   SET_FLTR_INCHS, SET_FLTR_OUTCHS, GET_FLTR_INCHS, GET_FLTR_OUTCHS,
   GEN_CH, DEL_CH, LST_CHS,
-  GEN_TBL, GET_TBL, SET_TBL, SET_TBL_REF, DEL_TBL, LST_TBLS,
+  GEN_TBL, GET_TBL, SET_TBL, SET_TBL_REF, DEL_TBL, LST_TBLS, 
   JSON, UNKNOWN
 };
 
 const char * str_cmd[UNKNOWN] = {
   "run", "stop", "quit", "clock", "gettime",
-  "genfltr", "delfltr", "lstfltrs", "setfltrpar", "getfltrpar",
+  "genfltr", "delfltr", "lstfltrs", "setfltrpar", "getfltrpar", "watchfltrmsg",
   "setfltrinchs", "setfltroutchs", "getfltrinchs", "getfltroutchs",
   "gench", "delch", "lstchs",
-  "gentbl", "gettbl", "settbl", "settblref", "deltbl", "lsttbls",
+  "gentbl", "gettbl", "settbl", "settblref", "deltbl", "lsttbls", 
   ".json"
 };
 
@@ -133,6 +136,7 @@ const char * str_cmd_usage[UNKNOWN] =
   "", // LST_FLTRS
   "<filter inst name> [<par name> <val> ...]", // SET_FLTR_PAR
   "<filter inst name> [<par name> ...]", // GET_FLTR_PAR
+  "<filter type name> <filter inst name> <period>", // WATCH_FLTR_MSG
   "<filter inst name>", // SET_FLTR_INCHS
   "<filter inst name>", // SET_FLTR_OUTCHS
   "<filter inst name>", // GET_FLTR_INCHS
@@ -696,7 +700,45 @@ public:
     }
     
     return true;
-  } 
+  }
+  
+  bool WatchFltrMsg(const std::string & inst_name,
+		    const std::string & type_name, const double period)
+  {
+    FltrMsgReq req;
+    
+    req.set_inst_name(inst_name);
+    req.set_period(period);
+    std::string schema_file_name;
+    schema_file_name = lib_path_ + "/" + type_name + "_msg.bfbs";
+    flatbuffers::Parser parser;
+
+    if(!load_tbl_json_parser(schema_file_name, parser))
+      return false;
+    
+    std::string json_file;
+    
+    ClientContext context;
+    FltrMsg msg;
+    std::unique_ptr<ClientReader<FltrMsg>>
+      reader(stub_->WatchFltrMsg(&context, req));
+    while(reader->Read(&msg)){
+      bool ok = GenerateText(parser, (const uint8_t*)msg.message().c_str(), &json_file);
+      if(!ok){
+	std::cerr << "Error: Failed to convert message from " << inst_name << "(" << type_name << ")" << std::endl;
+	return false;
+      }
+      std::cout << json_file << std ::endl;
+    }
+
+    Status status = reader->Finish();
+    if(status.ok()){
+      return true;
+    }else{
+      return false;
+    }
+  }
+  
 };
 
 void dump_usage(const cmd_id & id = UNKNOWN)
@@ -866,6 +908,12 @@ bool ParseAndProcessCommandArguments(int argc, char ** argv)
       std::string fltr_name(argv[2]);
       return handler.GetFltrChs(fltr_name, FltrIODir::OUT);
     }
+  case WATCH_FLTR_MSG:
+    if(argc != 5){
+      dump_usage(id);
+      return false;
+    }
+    return handler.WatchFltrMsg(argv[3], argv[2], atof(argv[4])); 
   case GEN_CH:
     if(argc != 4){
       dump_usage(id);

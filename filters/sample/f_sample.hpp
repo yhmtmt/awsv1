@@ -97,11 +97,6 @@ public:
   virtual bool proc();
 
   // 6) message dispatcher
-  virtual const char * get_msg_type_name()
-  {
-    return "sample_msg";
-  }
-
   virtual const char * get_msg()
   {
     return (char*) msg_builder.GetBufferPointer();

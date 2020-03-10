@@ -437,13 +437,15 @@ public:
 	paws->unlock();
 	break;
       }
-      FltrMsg msg;
-      const char * type_name = f->get_msg_type_name();
-      if(type_name)
-	msg.set_type_name(string(type_name));
-      msg.set_message(string((const char*)f->get_msg(), f->get_msg_size()));
-      writer->Write(msg);
+      FltrMsg msg;    
+      msg.set_message(f->get_msg(), f->get_msg_size());
       paws->unlock();
+
+      if(!writer->Write(msg)){
+	spdlog::error("Failed to send message from {}. RPC closed.", f->get_name());
+	break;
+      }
+	    
       nanosleep(&ts, NULL);
     }
     return Status::OK;

@@ -20,8 +20,11 @@ bool f_sample::proc()
   }
 
   msg_builder.Clear();
-  auto sample_message = msg_builder.CreateString("Sample filter's message.");
-  CreateSampleMsg(msg_builder, sample_message, f64, f32, u32, s32, u16, s16, u8, s8);
-  
+  string msg_str;
+  msg_str = "Sample filter's message at ";
+  msg_str += get_time_str();
+  auto sample_message = msg_builder.CreateString(msg_str);
+  auto msg_loc = CreateSampleMsg(msg_builder, sample_message, f64, f32, u32, s32, u16, s16, u8, s8);
+  FinishSampleMsgBuffer(msg_builder, msg_loc);
   return true;  
 }

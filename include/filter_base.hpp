@@ -99,11 +99,6 @@ public:
   };
 
   const string & get_type_name();
-
-  virtual const char * get_msg_type_name()
-  {
-    return NULL;
-  }
   
   virtual const char * get_msg(){
     return NULL;
