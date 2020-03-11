@@ -1,0 +1,34 @@
+
+enum RadarControlState: byte
+{
+	OFF=-1,
+	MANUAL=0,
+	AUTO_1=1,
+	AUTO_2=2
+}
+
+enum RadarState: byte
+{
+	OFF=0,
+	STANDBY=1,
+	WARMING_UP=2,
+	TIMED_IDLE=3,
+	STOPPING=4,
+	SPINNING_DOWN=5,
+	STARTING=6,
+	SPINNING_UP=7,
+	TRANSMIT=8
+}
+
+struct Radar{
+       state:RadarState;
+       range:int;
+       gain:int;
+       gainmode:RadarControlState;
+       rain:int;
+       rainmode:int;
+       sea:int;
+       seamode:RadarControlState;
+       ifr:int;
+}
+
