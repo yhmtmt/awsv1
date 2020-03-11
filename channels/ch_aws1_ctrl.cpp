@@ -15,13 +15,13 @@
 
 #include "ch_aws1_ctrl.hpp"
 
-const char * str_aws1_ctrl_src[ACS_NONE] = 
+const char * str_aws1_ctrl_src[ControlSource_NONE] = 
 {
   "ui", "ap","fset"
 };
 
 
-const char * str_aws1_ap_mode[EAP_NONE] =
+const char * str_aws1_ap_mode[AutopilotMode_NONE] =
 {
   "cursor", "wp", "wpav", "stay"
 };

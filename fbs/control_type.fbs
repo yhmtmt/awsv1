@@ -1,0 +1,19 @@
+
+enum ControlSource:byte
+{
+	UI=0,
+	AP=1,
+	FSET=2,
+	NONE=3
+}
+
+enum AutopilotMode: byte
+{
+	CURSOR=0,
+	WP=1,
+	WPAV=2,
+	STAY=3,
+	FLW_TGT=4,
+	STB_MAN=5,
+	NONE=6
+}

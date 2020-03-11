@@ -17,6 +17,7 @@
 
 
 #include "channel_base.hpp"
+#include "radar_type_generated.h"
 
 // This constants are temporal ones.  Make the file independent from
 // radar type.
@@ -29,6 +30,7 @@ struct GeoPosition {
   double lon;
 };
 
+/*
 enum RadarControlState {
   RCS_OFF = -1,
   RCS_MANUAL = 0,
@@ -42,6 +44,7 @@ enum RadarControlState {
   RCS_AUTO_8,
   RCS_AUTO_9
 };
+*/
 
 enum radar_command_id{
   RC_TXOFF, RC_TXON, RC_RANGE,
@@ -373,7 +376,7 @@ class ch_radar_ctrl: public ch_base
     }
 
   void push(const radar_command_id id,
-	    const int val = 0, const RadarControlState state = RCS_OFF)
+	    const int val = 0, const RadarControlState state = RadarControlState_OFF)
   {
     
     lock();

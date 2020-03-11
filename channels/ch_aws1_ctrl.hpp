@@ -16,15 +16,18 @@
 // along with ch_aws1_ctrl.hpp.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "channel_base.hpp"
+#include "control_type_generated.h"
 
 // Control Source ID. control_aws1 can switch three control sources:
-// ui_manager, autopilot, and filter parameters of control_aws1. 
+// ui_manager, autopilot, and filter parameters of control_aws1.
+/*
 enum e_aws1_ctrl_src{
-  ACS_UI,  // ui_manager
-  ACS_AP,  // autopilot
-  ACS_FSET,// filter parameters of control_aws1
-  ACS_NONE
+  ControlSource_UI,  // ui_manager
+  ControlSource_AP,  // autopilot
+  ControlSource_FSET,// filter parameters of control_aws1
+  ControlSource_NONE
 };
+*/
 
 // map a value with 3 threasholds (for rudder contrl and states)
 inline  int map_oval(int val,
@@ -78,20 +81,20 @@ inline  int map_oval(int val,
     return omin;
 }
 
-extern const char * str_aws1_ctrl_src[ACS_NONE];
+extern const char * str_aws1_ctrl_src[ControlSource_NONE];
 
 struct s_aws1_ctrl_inst{
  // current time
   long long tcur;
   
   // control source
-  e_aws1_ctrl_src ctrl_src;
+  ControlSource ctrl_src;
   
   // aws control input (from aws)
   unsigned char rud_aws;
   unsigned char eng_aws;
   
-  s_aws1_ctrl_inst(): tcur(0), ctrl_src(ACS_UI), 
+  s_aws1_ctrl_inst(): tcur(0), ctrl_src(ControlSource_UI), 
 		      rud_aws(127), eng_aws(127)
   {
   }
@@ -106,7 +109,7 @@ struct s_aws1_ctrl_stat{
   unsigned char eng;
   
   // control source
-  e_aws1_ctrl_src ctrl_src;
+  ControlSource ctrl_src;
   
   // aws control input (from aws)
   unsigned char rud_aws;
@@ -124,7 +127,7 @@ struct s_aws1_ctrl_stat{
   unsigned char rud_min;
   
   s_aws1_ctrl_stat():
-  ctrl_src(ACS_UI),
+  ctrl_src(ControlSource_UI),
   eng(0x7f), rud(0x7f),  
   eng_max(0x81),eng_nuf(0x80),  eng_nut(0x7f),  
   eng_nub(0x7e), eng_min(0x7d),  
@@ -196,10 +199,10 @@ public:
     if(pf){
       lock();
       fwrite((void*)&inst.tcur, sizeof(long long), 1, pf);
-      fwrite((void*)&inst.ctrl_src, sizeof(e_aws1_ctrl_src), 1, pf);
+      fwrite((void*)&inst.ctrl_src, sizeof(ControlSource), 1, pf);
       fwrite((void*)&inst.rud_aws, sizeof(unsigned char), 1, pf);
       fwrite((void*)&inst.eng_aws, sizeof(unsigned char), 1, pf);
-      sz = sizeof(long long) + sizeof(e_aws1_ctrl_src), sizeof(unsigned char) * 3;
+      sz = sizeof(long long) + sizeof(ControlSource), sizeof(unsigned char) * 3;
       m_tfile = inst.tcur;
       unlock();
     }
@@ -220,7 +223,7 @@ public:
       res = fread((void*)&inst.tcur, sizeof(long long), 1, pf);
       if(!res)
 	goto eof;
-      res = fread((void*)&inst.ctrl_src, sizeof(e_aws1_ctrl_src), 1, pf);
+      res = fread((void*)&inst.ctrl_src, sizeof(ControlSource), 1, pf);
       if(!res)
 	goto eof;
       res = fread((void*)&inst.rud_aws, sizeof(unsigned char), 1, pf);
@@ -229,7 +232,7 @@ public:
       res = fread((void*)&inst.eng_aws, sizeof(unsigned char), 1, pf);
       if(!res)
 	goto eof;
-      sz = sizeof(long long) + sizeof(e_aws1_ctrl_src), sizeof(unsigned char) * 3;
+      sz = sizeof(long long) + sizeof(ControlSource), sizeof(unsigned char) * 3;
       m_tfile = inst.tcur;
       unlock();			
     }
@@ -248,7 +251,7 @@ public:
       res = fread((void*)&inst.tcur, sizeof(long long), 1, pbf);
       if(!res)
 	break;
-      res = fread((void*)&inst.ctrl_src, sizeof(e_aws1_ctrl_src), 1, pbf);
+      res = fread((void*)&inst.ctrl_src, sizeof(ControlSource), 1, pbf);
       if(!res)
 	break;
       res = fread((void*)&inst.rud_aws, sizeof(unsigned char), 1, pbf);
@@ -257,7 +260,7 @@ public:
       res = fread((void*)&inst.eng_aws, sizeof(unsigned char), 1, pbf);
       if(!res)
 	break;
-      sz = sizeof(long long) + sizeof(e_aws1_ctrl_src), sizeof(unsigned char) * 3;
+      sz = sizeof(long long) + sizeof(ControlSource), sizeof(unsigned char) * 3;
       m_tfile = inst.tcur;
       
       fprintf(ptf, "%lld, %d, %d, %d\n", inst.tcur, 
@@ -378,16 +381,18 @@ public:
 };
 
 
+/*
 enum e_ap_mode{
     EAP_CURSOR, EAP_WP, EAP_WPAV, EAP_STAY, EAP_FLW_TGT, EAP_STB_MAN, EAP_NONE
 };
+*/
 
-extern const char * str_aws1_ap_mode[EAP_NONE];
+extern const char * str_aws1_ap_mode[AutopilotMode_NONE];
 
 class ch_aws1_ap_inst : public ch_base
 {
 protected:
-  e_ap_mode mode;
+  AutopilotMode mode;
   float smax; // maximum speed
   float eng_max, eng_min; // main engine max/min value
   
@@ -413,19 +418,19 @@ protected:
   bool brpos;
 public:
   ch_aws1_ap_inst(const char * name) :ch_base(name),
-				      mode(EAP_WP), lat_stay(0.f), lon_stay(0.f), brpos(false)
+				      mode(AutopilotMode_WP), lat_stay(0.f), lon_stay(0.f), brpos(false)
   {
   }
   virtual ~ch_aws1_ap_inst()
   {
   }
   
-  const e_ap_mode get_mode()
+  const AutopilotMode get_mode()
   {
     return mode;
   }
   
-  void set_mode(const e_ap_mode _mode)
+  void set_mode(const AutopilotMode _mode)
   {
     lock();
     mode = _mode;
