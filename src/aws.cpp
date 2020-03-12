@@ -432,13 +432,15 @@ public:
     while(1){
       paws->lock();
       f_base * f = paws->get_filter(req->inst_name());
-      if(!f){
+      if(!f || !f->is_active()){
 	spdlog::error("Cannot find filter {} to be listen.", req->inst_name());
 	paws->unlock();
 	break;
       }
-      FltrMsg msg;    
+      FltrMsg msg;
+      f->lock_cmd();
       msg.set_message(f->get_msg(), f->get_msg_size());
+      f->unlock_cmd();
       paws->unlock();
 
       if(!writer->Write(msg)){
