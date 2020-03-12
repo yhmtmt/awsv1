@@ -26,9 +26,10 @@ struct Radar{
        gain:int;
        gainmode:RadarControlState;
        rain:int;
-       rainmode:int;
+       rainmode:RadarControlState;
        sea:int;
        seamode:RadarControlState;
        ifr:int;
+       spd:int;
 }
 

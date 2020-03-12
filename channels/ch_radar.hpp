@@ -86,7 +86,19 @@ class ch_radar_state: public ch_base
     m_timed_idle_mode, m_timed_run, m_next_state_change;
   
  public:
- ch_radar_state(const char * name):ch_base(name)
+  ch_radar_state(const char * name):ch_base(name),
+				    m_state(0), m_range(0), m_gain(0),
+				    m_gain_state(-1), m_scan_speed(0),
+				    m_bearing_alignment(0),
+				    m_interference_rejection(0),
+				    m_rain_clutter(0), m_rain_mode(-1),
+				    m_sea_clutter(0), m_sea_mode(-1),
+				    m_no_transmit_start(0),
+				    m_no_transmit_start_state(-1),
+				    m_no_transmit_end(0),
+				    m_no_transmit_end_state(-1),
+				    m_timed_idle(0), m_timed_idle_mode(0),
+				    m_timed_run(0), m_next_state_change(0)
   {
   }
   virtual ~ch_radar_state()
