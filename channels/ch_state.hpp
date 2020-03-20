@@ -7,7 +7,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// ch_state.h is distributed in the hope that it will be useful,
+// ch_state.hpp is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
@@ -113,7 +113,8 @@ public:
     unlock();
   }
   
-  void set_attitude(const long long _tatt, const float _r, const float _p, const float _y)
+  void set_attitude(const long long _tatt,
+		    const float _r, const float _p, const float _y)
   {
     lock();
     if(tatt != _tatt){
@@ -426,7 +427,22 @@ private:
   
   char *buf;
 public:
-  ch_eng_state(const char * name):ch_base(name), buf(NULL), tf(0)
+  ch_eng_state(const char * name):ch_base(name), buf(NULL), tf(0),
+				  poil(0), poilf(0),
+				  temp(273+60), tempf(273+60),
+				  valt(14.1), valtf(14.1),
+				  frate(1.0), fratef(1.0),
+				  teng(0), teng(0),
+				  stat1(CheckEngine), stat1f(CheckEngine),
+				  stat2(WarningLevel2), stat2f(WarningLevel2),
+				  ld(0), ldf(0), tq(0), tqf(0), 
+				  gear(Neutral), gearf(Neutral),
+				  pgoil(0), pgoilf(0),
+				  flused(0), flusedf(0),
+				  flavg(0), flavgf(0),
+				  fleco(0), flecof(0),
+				  flinst(0), flinstf(0)
+				  
   {
    buf = new char[get_dsize()];
   }
