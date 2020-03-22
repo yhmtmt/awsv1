@@ -432,7 +432,7 @@ public:
 				  temp(273+60), tempf(273+60),
 				  valt(14.1), valtf(14.1),
 				  frate(1.0), fratef(1.0),
-				  teng(0), teng(0),
+				  teng(0), tengf(0),
 				  stat1(CheckEngine), stat1f(CheckEngine),
 				  stat2(WarningLevel2), stat2f(WarningLevel2),
 				  ld(0), ldf(0), tq(0), tqf(0), 
