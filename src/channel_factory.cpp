@@ -68,4 +68,5 @@ void ch_base::register_factory()
   register_factory<ch_radar_image>("radar_image");
   register_factory<ch_radar_ctrl>("radar_ctrl");
   register_factory<ch_radar_state>("radar_state");
+  register_factory<ch_time_sync>("time_sync");
 }

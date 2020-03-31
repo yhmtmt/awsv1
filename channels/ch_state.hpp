@@ -575,4 +575,33 @@ public:
   virtual bool log2txt(FILE * pbf, FILE * ptf);
 };
 
+
+class ch_time_sync: public ch_base
+{
+private:
+  long long time_measured;
+  long long time_delta;
+
+public:
+  ch_time_sync(const char * name): ch_base(name)
+  {
+  }
+
+  void set_time_delta(const long long measured, const long long delta)
+  {
+    lock();
+    time_measured = measured;
+    time_delta = delta;
+    unlock();
+  }
+
+  void get_time_delta(long long & measured, long long & delta)
+  {
+    lock();
+    measured = time_measured;
+    delta = time_delta;
+    unlock();
+  }
+};
+  
 #endif
