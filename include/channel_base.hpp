@@ -35,6 +35,7 @@ using namespace std;
 #include "aws_stdlib.hpp"
 #include "aws_sock.hpp"
 #include "aws_thread.hpp"
+#include "aws_nmea.hpp"
 
 class f_base;
 class ch_base;

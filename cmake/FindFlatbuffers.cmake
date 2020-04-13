@@ -61,7 +61,7 @@ function(FLATC_GENERATE_CPP HDRS BFBS DEST)
       OUTPUT "${DEST}/${FIL_WE}_generated.h"
              "${DEST}/${FIL_WE}.bfbs"
       COMMAND flatbuffers::flatc
-      ARGS -o ${DEST} --cpp -b --schema --reflect-names ${ABS_FIL} 
+      ARGS -o ${DEST} --cpp -b --schema --reflect-names --gen-mutable ${ABS_FIL} 
       DEPENDS ${ABS_FIL} flatbuffers::flatc
       COMMENT "Running C++ flatbuffers compiler on ${FIL}"
       VERBATIM )

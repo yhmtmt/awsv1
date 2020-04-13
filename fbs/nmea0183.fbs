@@ -1,0 +1,590 @@
+namespace NMEA0183;
+
+
+union Payload
+{
+      GGA, GSA, GSV, RMC, VTG, ZDA, GLL, HDT, HEV, ROT, MDA, WMV, XDR,
+      TTM, DBT, MTW, ABK, VDM, PSAT
+}
+
+table Data
+{
+      t:long;
+      payload:Payload;
+}
+
+enum GPSFixStatus:byte
+{
+     LOST=0,
+     GPSF=1,
+     DGPSF=2,
+     PPS=3,
+     RTK=4,
+     FRTK=5,
+     ESTM=6,
+     MAN=7,
+     SIM=8
+}
+
+enum SelectionMeasurementMode:byte
+{
+     Manual=0,
+     Auto=1
+}
+
+enum MeasurementMode:byte
+{
+     NoMeasurement=0,
+     TwoDimensional=1,
+     ThreeDimensional=2     
+}
+
+enum WindAngleMode:byte
+{
+     Relative=0,
+     Theoretical=1
+}
+
+enum SpeedUnit:byte
+{
+     kmph=0,
+     mps=1,
+     knots=2,
+     mph=3
+}
+
+enum BearingMode:byte
+{
+     True=0,
+     Relative=1
+}
+
+enum DistanceUnit:byte
+{
+     KiloMeter=0,
+     NauticalMile=1,
+     StatuteMile=2
+}
+
+enum TTMTargetStatus:byte
+{
+     Lost=0,
+     UnderAcquisition=1,
+     UnderTracking=2
+}
+
+enum TTMType:byte
+{
+     Auto=0,
+     Manual=1,
+     Reported=2
+}
+
+struct GSVSatelliteInformation
+{
+	satellite:ubyte; // 1-32
+	elevation:ubyte; // 05-90 deg
+	azimus:ushort; // 000-359 deg
+	sn:ubyte; // 00-99 dBHz
+}
+
+struct GGA
+{
+      hour:ubyte;
+      minute:ubyte;
+      msec:ushort;
+      fixStatus:GPSFixStatus;
+      numSatellites:ushort;
+      DGPSStation:ushort;
+      dop:float;	
+      altitude:float; // -999.9 to 17999.9
+      latitude:double; // deg
+      longitude:double; // deg      
+}
+
+struct GSA
+{
+      selectionMeasurementMode:SelectionMeasurementMode;
+      measurementMode:MeasurementMode;
+      satellites:[ubyte:12];
+      pdop:float;
+      hdop:float;
+      vdop:float;
+}
+
+struct GSV
+{
+      numSentences:ubyte;
+      sentence:ubyte;
+      numSatellitesUsable:ubyte;
+      satelliteInformation0:GSVSatelliteInformation;
+      satelliteInformation1:GSVSatelliteInformation;
+      satelliteInformation2:GSVSatelliteInformation;
+      satelliteInformation3:GSVSatelliteInformation;      
+}
+
+struct RMC
+{
+      measured:bool;
+      year:ubyte;
+      month:ubyte;
+      day:ubyte;
+      hour:ubyte;
+      minute:ubyte;
+      msec:ushort;
+      fixStatus:GPSFixStatus;
+      sog:float; //kts
+      cog:float; //deg
+      var:float; //deg (east positive, True dir - var = Mag dir)
+      latitude:double; // deg
+      longitude:double; // deg      
+}
+
+struct VTG
+{
+      fixStatus:GPSFixStatus;
+      cogTrue:float; //deg
+      cogMag:float; //deg
+      sogN:float; //kts
+      sogK:float; //km/h
+}
+
+struct ZDA
+{
+      hour:ubyte;
+      minute:ubyte;
+      month:ubyte;
+      day:ubyte;
+      lzh:ubyte;
+      lzm:ubyte;      
+      msec:ushort;
+      year:ushort;
+}
+
+struct GLL
+{
+      fixStatus:GPSFixStatus;
+      measured:bool;
+      hour:ubyte;
+      minute:ubyte;
+      msec:ushort;
+      latitude:double;
+      longitude:double;
+}
+
+struct HDT
+{
+      trueHeading:float;
+}
+
+struct HEV
+{
+      heave:float;
+}
+
+struct ROT
+{
+      measured:bool;
+      rateOfTurn:float;
+}
+
+struct MDA
+{
+      barometricPresureIoM:float; // inches of mercury
+      barometricPresureBar:float; // bar
+      airTemperature:float; // degrees C
+      waterTemperature:float; // degrees C
+      relativeHumidity:float; // percent
+      absoluteHumidity:float; // percent
+      dewPoint:float; // degrees C
+      windDirectionTrue:float; //degrees True
+      windDirectionMag:float; //degrees Magnetic
+      windSpeedKts:float; // knots
+      windSpeedMps:float; // meters per sec
+}
+
+struct WMV
+{
+      windAngleMode:WindAngleMode;
+      windSpeedUnit:SpeedUnit;
+      windAngle:float; //degrees relative to the vehicle
+      windSpeed:float; //units can be varied
+}
+
+struct XDR
+{
+      pitch:float; // degrees
+      roll:float; //degrees
+}
+
+struct HPR
+{
+	hour:ubyte;
+	minute:ubyte;
+	sec:ubyte;
+	heading:float;
+	pitch:float;
+	roll:float;
+	gyro:bool;
+}
+
+
+union PSATPayload{
+      HPR
+}
+
+table PSAT
+{
+	payload:PSATPayload;
+}
+
+struct TTM
+{
+      hour:ubyte;
+      minute:ubyte;
+      msecond:ushort;
+      targetNumber:ubyte;
+      targetStatus:TTMTargetStatus;
+      bearingMode:BearingMode;
+      courseMode:BearingMode;
+      distanceUnit:DistanceUnit;
+      type:TTMType;
+      targetName:[ubyte:20];
+      targetDistance:float;
+      bearingFromOwnShip:float;
+      targetSpeed:float;
+      targetCourse:float;
+      dcpa:float;
+      tcpa:float;
+}
+
+struct DBT
+{
+      depthFe:float; // feet
+      depthM:float;  // meter
+      depthFa:float; // fathomas
+}
+
+struct MTW
+{
+      waterTemperature:float; // degrees C
+}
+
+enum AISChannel:byte
+{
+     NA=0,
+     A=1,
+     B=2
+}
+
+struct ABK{
+      mmsi:uint;
+      messageID:ushort; // M.1371 message id (6,8,12)
+      messageSequenceNumber:ushort;
+      typeOfAcknowledgement:ushort;
+}
+
+union VDMPayload
+{
+      PositionReportClassA,
+      BaseStationReport,
+      StaticAndVoyageRelatedData,
+      BinaryAddressedMessage,
+      BinaryBroadcastMessage,
+      StandardClassBCSPositionReport,
+      ExtendedClassBCSPositionReport,
+      StaticDataReport
+}
+
+table VDM{
+      isVDO:bool;
+      channel:AISChannel;      
+      payload:VDMPayload;
+}
+
+enum NavigationStatus:byte
+{
+     UnderWayUsingEngine=0,
+     AtAnchor=1,
+     NotUnderCommand=2,
+     RestrictedManoeuvarability=3,
+     ConstrainedByHerDraught=4,
+     Moored=5,
+     Aground=6,
+     EngagedInFishing=7,
+     UnderWaySailing=8,
+     ReservedForFutureAmendmentOfNavigationalStatusForHSC=9,
+     ReservedForFutureAmendmentOfNavigationalStatusForWIG=10,
+     ReservedForFutureUse0=11,
+     ReservedForFutureUse1=12,
+     ReservedForFutureUse2=13,
+     AISSARTIsActive=14,
+     NotDefined=15
+}
+
+enum ManeuverIndicator:byte
+{
+	NotAvailable=0,
+	NoSpecialManeuver=1,
+	SpecialManeuver=2
+}
+
+enum EPFDFixType:byte
+{
+	Undefined=0,
+	GPS=1,
+	GLONASS=2,
+	CombinedGPSGLONASS=3,
+	LoranC=4,
+	Chayka=5,
+	IntegratedNavigationSystem=6,
+	Surveyed=7,
+	Galileo=8
+}
+
+enum ShipType:byte
+{
+     NotAvailable=0,
+     Reserved0=1,
+     Reserved1=2,
+     Reserved2=3,
+     Reserved3=4,
+     Reserved4=5,
+     Reserved5=6,
+     Reserved6=7,
+     Reserved7=8,
+     Reserved8=9,
+     Reserved9=10,
+     Reserved10=11,
+     Reserved11=12,
+     Reserved12=13,
+     Reserved13=14,
+     Reserved14=15,
+     Reserved15=16,
+     Reserved16=17,
+     Reserved17=18,
+     Reserved18=19,
+     WIG=20,
+     WIGA=21,
+     WIGB=22,
+     WIGC=23,
+     WIGD=24,
+     WIGReserved0=25,
+     WIGReserved1=26,
+     WIGReserved2=27,
+     WIGReserved3=28,
+     WIGReserved4=29,
+     Fishing=30,
+     Towing=31,
+     Towing200x25=32,
+     DredgingOrUnderwaterOps=33,
+     DivingOps=34,
+     MilitaryOps=35,
+     Sailing=36,
+     PleasureCraft=37,
+     Reserved19=38,
+     Reserved20=39,
+     HSC=40,
+     HSCA=41,
+     HSCB=42,
+     HSCC=43,
+     HSCD=44,
+     HSCReserved0=45,
+     HSCReserved1=46,
+     HSCReserved2=47,
+     HSCReserved3=48,
+     HSCNoAdditionalInformation=49,
+     PilotVessel=50,
+     SearchAndRescueVessel=51,
+     Tug=52,
+     PortTender=53,
+     AntiPollutionEquipment=54,
+     LawEnforcement=55,
+     SpareLocalVessel0=56,
+     SpareLocalVessel1=57,
+     MedicalTransport=58,
+     NoncombatantShipAccordingToResolutionNo18=59,
+     Passenger=60,
+     PassengerA=61,
+     PassengerB=62,
+     PassengerC=63,
+     PassengerD=64,
+     PassengerReserved0=65,
+     PassengerReserved1=66,
+     PassengerReserved2=67,
+     PassengerReserved3=68,
+     PassengerNoAdditionalInformation=69,
+     Cargo=70,
+     CargoA=71,
+     CargoB=72,
+     CargoC=73,
+     CargoD=74,
+     CargoReserved0=75,
+     CargoReserved1=76,
+     CargoReserved2=77,
+     CargoReserved3=78,
+     CargoNoAdditionalInformation=79,
+     Tanker=80,
+     TankerA=81,
+     TankerB=82,
+     TankerC=83,
+     TankerD=84,
+     TankerReserved0=85,
+     TankerReserved1=86,
+     TankerReserved2=87,
+     TankerReserved3=88,
+     TankerNoAdditionalInformation=89,
+     OtherType=90,
+     OtherTypeA=91,
+     OtherTypeB=92,
+     OtherTypeC=93,
+     OtherTypeD=94,
+     OtherTypeReserved0=95,
+     OtherTypeReserved1=96,
+     OtherTypeReserved2=97,
+     OtherTypeReserved3=98,
+     OtherTypeNoAdditionalInformation=99		        
+}
+
+struct PositionReportClassA
+{
+      repeat:ubyte;
+      status:NavigationStatus;
+      dgps:bool;
+      second:ubyte; // time stamp	
+      maneuver:ManeuverIndicator;
+      raim:bool;     
+      turn:short;
+      speed:ushort; // 0.1x kts
+      course:ushort; // 0.1x  deg
+      heading:ushort; // deg
+      mmsi:uint;      
+      longitude:int; //0.0001x minutes
+      latitude:int; //0.0001x minutes
+}
+
+struct BaseStationReport{
+      repeat:ubyte;
+      month:ubyte;
+      day:ubyte;
+      hour:ubyte;
+      minute:ubyte;
+      second:ubyte;
+      epfd:EPFDFixType;
+      raim:bool;      
+      dgps:bool;
+      year:ushort;
+      mmsi:uint;
+      longitude:int;
+      latitude:int;
+}
+
+struct StaticAndVoyageRelatedData
+{
+      repeat:ubyte;
+      aisVersion:ubyte;
+      epfd:EPFDFixType;
+      month:ubyte;
+      day:ubyte;
+      hour:ubyte;
+      minute:ubyte;
+      toPort:ubyte;
+      toStarboard:ubyte;
+      dte:bool;
+      shipType:ShipType;
+      callsign:[ubyte:7];
+      shipName:[ubyte:20];
+      destination:[ubyte:20];
+      toBow:ushort;
+      toStern:ushort;
+      mmsi:uint;
+      imo:uint;
+      draught:ushort;// 0.1x meters/10 (10cm)
+}
+
+struct BinaryAddressedMessage
+{
+      repeat:ubyte;
+      seqno:ubyte;
+      retransmit:bool;
+      fid:ubyte;
+      data:[ubyte:115];
+      dac:ushort;
+      mmsi:uint;
+      destMmsi:uint;
+}
+
+struct BinaryBroadcastMessage
+{
+      repeat:ubyte;
+      fid:ubyte;
+      data:[ubyte:119];
+      dac:ushort;
+      mmsi:uint;
+}
+
+struct StandardClassBCSPositionReport
+{
+      repeat:ubyte;
+      dgps:bool;
+      second:ubyte;
+      regional:ubyte;
+      cs:bool; // true: carrier sense, false: sotdma
+      display:bool; // true: has display
+      dsc:bool; // true: has DSC capability
+      band:bool; // true: can use any part of the marine channel
+      msg22:bool; // true: can accept channel assignment via type 22 msg
+      assigned:bool; // true: assigned mode, false: autonomous mode
+      raim:bool;
+      speed:ushort; // 0.1x kts
+      course:ushort; // 0.1x deg
+      heading:ushort; // deg      
+      mmsi:uint;
+      longitude:int; // Minutes/10000
+      latitude:int; // Minutes/10000
+}
+
+struct ExtendedClassBCSPositionReport
+{
+      repeat:ubyte;
+      dgps:bool;
+      second:ubyte;
+      regional:ubyte;
+      assigned:bool; // true: assigned mode, false: autonomous mode
+      raim:bool;
+      shipName:[ubyte:20];
+      shipType:ShipType;
+      epfd:EPFDFixType;
+      dte:bool;
+      toPort:ubyte;
+      toStarboard:ubyte;
+      speed:ushort; // 0.1x kts
+      course:ushort; // 0.1x deg
+      heading:ushort; // deg
+      toBow:ushort;
+      toStern:ushort;      
+      mmsi:uint;
+      longitude:int; // Minutes/10000
+      latitude:int; // Minutes/10000
+}
+
+struct StaticDataReport
+{
+      repeat:ubyte;
+      partno:ubyte;
+      shipName:[ubyte:20];
+      shipType:ShipType;
+      toPort:ubyte;
+      toStarborad:ubyte;      
+      model:ubyte;
+      callsign:[ubyte:7];
+      toBow:ushort;
+      toStern:ushort;
+      mmsi:uint;
+      vendorID:[ubyte:3];
+      serial:uint;
+      motehrshipMmsi:uint;      
+}
+
+
+root_type Data;

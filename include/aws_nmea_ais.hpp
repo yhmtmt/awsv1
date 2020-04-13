@@ -166,11 +166,11 @@ class c_vdm: public c_nmea_dat
 {
 public:
   bool m_vdo;
-  char m_repeate; // repeate indicator
+  unsigned char m_repeat; // repeat indicator
   unsigned int m_mmsi; // mmsi number
   bool m_is_chan_A;
   
-  c_vdm(): m_vdo(false), m_repeate(0), m_mmsi(0), m_is_chan_A(true)
+  c_vdm(): m_vdo(false), m_repeat(0), m_mmsi(0), m_is_chan_A(true)
   {
   }
   
@@ -182,7 +182,7 @@ public:
   {
     m_is_chan_A = ppl->is_chan_A;
     char * dat = ppl->payload;
-    m_repeate = (dat[1] & 0x30) >> 4;
+    m_repeat = (dat[1] & 0x30) >> 4;
     
     m_mmsi = ((dat[1] & 0x0F) << 26) |
       ((dat[2] & 0x3F) << 20) | 
@@ -191,6 +191,18 @@ public:
       ((dat[5] & 0x3F) << 2) |
       ((dat[6] & 0x30) >> 4);
   };
+
+  virtual void dec_payload(s_pl * ppl, const long long t) = 0;
+  
+  virtual const NMEA0183::VDMPayload get_vdm_payload_type()
+  {
+    return NMEA0183::VDMPayload_NONE;
+  }
+
+  virtual NMEA0183::Payload get_payload_type()
+  {
+    return NMEA0183::Payload_VDM;
+  }
   
   virtual e_nd_type get_type() const
   {return ENDT_VDM;};
@@ -204,6 +216,8 @@ public:
   float m_turn; // Rate of Turn degrees/min
   float m_speed; // knot
   char m_accuracy; // DGPS = 1, GPS = 0
+  int m_lon_min;// minute
+  int m_lat_min;// minute
   float m_lon; // degree
   float m_lat; // degree
   float m_course; // xxx.x degree
@@ -214,7 +228,41 @@ public:
   unsigned int m_radio; // radio status
   virtual void dec_payload(s_pl * ppl);
   virtual ostream & show(ostream & out) const;
-  static c_vdm_msg1 * dec_msg1(const char * str);
+  virtual void dec_payload(s_pl * ppl, const long long t)
+  {
+    dec_payload(ppl);
+    builder.Clear();
+    NMEA0183::PositionReportClassA 
+      positionReportClassA(m_repeat, (NMEA0183::NavigationStatus) m_status,
+			   m_accuracy==1,
+			   m_second, (NMEA0183::ManeuverIndicator) m_maneuver,
+			   m_raim != 0,
+			   (short)m_turn,
+			   (unsigned short)m_speed * 10,
+			   (unsigned short)m_course * 10,
+			   m_heading,
+			   m_mmsi,
+			   m_lon_min, m_lat_min);    
+    auto payload = builder.CreateStruct(positionReportClassA);
+    auto vdm = CreateVDM(builder,
+			 m_vdo,
+			 (m_is_chan_A ?
+			  NMEA0183::AISChannel_A : NMEA0183::AISChannel_B),
+			 get_vdm_payload_type(),
+			 payload.Union());
+    auto data = CreateData(builder,
+			   t,
+			   get_payload_type(),
+			   vdm.Union());
+    
+    builder.Finish(data);
+  }
+  
+  virtual const NMEA0183::VDMPayload get_vdm_payload_type()    
+  {
+    return NMEA0183::VDMPayload_PositionReportClassA;
+  }
+  
   virtual e_nd_type get_type() const
   {return ENDT_VDM1;};
 };
@@ -225,6 +273,7 @@ public:
   unsigned short m_year;
   char m_month, m_day, m_hour, m_minute;
   char m_accuracy; // DGPS = 1, GPS = 0
+  int m_lon_min, m_lat_min; // position in minute
   float m_lon; // degree
   float m_lat; // degree
   unsigned char m_second; // UTC second
@@ -234,7 +283,38 @@ public:
   
   virtual void dec_payload(s_pl * ppl);
   virtual ostream & show(ostream & out) const;
-  static c_vdm_msg4 * dec_msg4(const char * str);
+
+  virtual void dec_payload(s_pl * ppl, const long long t)
+  {
+    dec_payload(ppl);
+    builder.Clear();
+    NMEA0183::BaseStationReport
+      baseStationReport(m_repeat,
+			m_month, m_day, m_hour, m_minute, m_second,
+			(NMEA0183::EPFDFixType)m_epfd, m_raim, m_accuracy == 1,
+			m_year,
+			m_mmsi,
+			m_lon_min, m_lat_min);    
+    auto payload = builder.CreateStruct(baseStationReport);
+    auto vdm = CreateVDM(builder,
+			 m_vdo,
+			 (m_is_chan_A ?
+			  NMEA0183::AISChannel_A : NMEA0183::AISChannel_B),
+			 get_vdm_payload_type(),
+			 payload.Union());
+    auto data = CreateData(builder,
+			   t,
+			   get_payload_type(),
+			   vdm.Union());
+    
+    builder.Finish(data);
+  }
+  
+  virtual const NMEA0183::VDMPayload get_vdm_payload_type()
+  {
+    return NMEA0183::VDMPayload_BaseStationReport;
+  }
+  
   virtual e_nd_type get_type() const
   {return ENDT_VDM4;};
 };
@@ -242,7 +322,7 @@ public:
 class c_vdm_msg5: public c_vdm
 {// class A static information
 public:
-  char m_ais_version;
+  unsigned char m_ais_version;
   unsigned int m_imo;
   unsigned char m_callsign[8];
   unsigned char m_shipname[21];
@@ -251,14 +331,58 @@ public:
   unsigned char m_to_port, m_to_starboard;
   char m_epfd;
   unsigned short m_year;
-  char m_month, m_day, m_hour, m_minute;
-  float m_draught;
+  unsigned char m_month, m_day, m_hour, m_minute;
+  unsigned short m_draught;
   bool m_dte;
   unsigned char m_destination[21];
   
   virtual void dec_payload(s_pl * ppl);
   virtual ostream & show(ostream & out) const;
-  static c_vdm_msg5 * dec_msg5(const char * str);
+
+  virtual void dec_payload(s_pl * ppl, const long long t)
+  {
+    dec_payload(ppl);
+    builder.Clear();
+    NMEA0183::StaticAndVoyageRelatedData    
+      staticAndVoyageRelatedData(m_repeat,
+				 m_ais_version,
+				 (NMEA0183::EPFDFixType)m_epfd,
+				 m_month, m_day, m_hour, m_minute,
+				 m_to_port, m_to_starboard,
+				 m_dte,
+				 (NMEA0183::ShipType)m_shiptype,
+				 m_to_bow, m_to_stern,
+				 m_mmsi,
+				 m_imo,
+				 m_draught);
+    for (int i = 0; i < 7; i++)
+      staticAndVoyageRelatedData.mutable_callsign()->Mutate(i, m_callsign[i]);
+    for (int i = 0; i < 20; i++)
+      staticAndVoyageRelatedData.mutable_shipName()->Mutate(i, m_shipname[i]);
+    for (int i = 0; i < 20; i++)
+      staticAndVoyageRelatedData.mutable_destination()->Mutate(i,
+							       m_destination[i]);
+    
+    auto payload = builder.CreateStruct(staticAndVoyageRelatedData);
+    auto vdm = CreateVDM(builder,
+			 m_vdo,
+			 (m_is_chan_A ?
+			  NMEA0183::AISChannel_A : NMEA0183::AISChannel_B),
+			 get_vdm_payload_type(),
+			 payload.Union());
+    auto data = CreateData(builder,
+			   t,
+			   get_payload_type(),
+			   vdm.Union());
+    
+    builder.Finish(data);
+  }
+  
+  virtual const NMEA0183::VDMPayload get_vdm_payload_type()
+  {
+    return NMEA0183::VDMPayload_StaticAndVoyageRelatedData;
+  }
+  
   virtual e_nd_type get_type() const
   {return ENDT_VDM5;};
 };
@@ -266,6 +390,8 @@ public:
 class c_vdm_msg6: public c_vdm
 {
 public:
+  bool m_retransmit;
+  unsigned char m_seqno;
   unsigned int m_mmsi_dst;
   unsigned short m_dac;
   unsigned short m_fid;
@@ -273,7 +399,39 @@ public:
   unsigned short m_msg_size;
   virtual void dec_payload(s_pl * ppl);
   virtual ostream & show(ostream & out) const;
-  static c_vdm_msg6 * dec_msg6(const char * str);
+ 
+  virtual void dec_payload(s_pl * ppl, const long long t)
+  {
+    dec_payload(ppl);
+    builder.Clear();
+    NMEA0183::BinaryAddressedMessage
+      binaryAddressedMessage(m_repeat,
+			     m_seqno, m_retransmit,
+			     m_fid, m_dac,
+			     m_mmsi,
+			     m_mmsi_dst);
+    for (int i = 0; i < 115; i++)
+      binaryAddressedMessage.mutable_data()->Mutate(i, m_msg.msg[i]);
+    
+    auto payload = builder.CreateStruct(binaryAddressedMessage);
+    auto vdm = CreateVDM(builder,
+			 m_vdo,
+			 (m_is_chan_A ?
+			  NMEA0183::AISChannel_A : NMEA0183::AISChannel_B),
+			 get_vdm_payload_type(),
+			 payload.Union());
+    auto data = CreateData(builder,
+			   t,
+			   get_payload_type(),
+			   vdm.Union());
+    
+    builder.Finish(data);
+  }
+   
+  virtual const NMEA0183::VDMPayload get_vdm_payload_type()
+  {
+    return NMEA0183::VDMPayload_BinaryAddressedMessage;
+  }  
   virtual e_nd_type get_type() const
   {return ENDT_VDM6;}
 };
@@ -288,7 +446,36 @@ public:
   unsigned short m_msg_size;
   virtual void dec_payload(s_pl * ppl);
   virtual ostream & show(ostream & out) const;
-  static c_vdm_msg8 * dec_msg8(const char * str);
+  virtual void dec_payload(s_pl * ppl, const long long t)
+  {
+    dec_payload(ppl);
+    builder.Clear();
+    NMEA0183::BinaryBroadcastMessage
+      binaryBroadcastMessage(m_repeat,
+			     m_fid, m_dac,
+			     m_mmsi);
+    for (int i = 0; i < 119; i++)
+      binaryBroadcastMessage.mutable_data()->Mutate(i, m_msg.msg[i]);
+    
+    auto payload = builder.CreateStruct(binaryBroadcastMessage);
+    auto vdm = CreateVDM(builder,
+			 m_vdo,
+			 (m_is_chan_A ?
+			  NMEA0183::AISChannel_A : NMEA0183::AISChannel_B),
+			 get_vdm_payload_type(),
+			 payload.Union());
+    auto data = CreateData(builder,
+			   t,
+			   get_payload_type(),
+			   vdm.Union());
+    
+    builder.Finish(data);
+  }
+  
+  virtual const NMEA0183::VDMPayload get_vdm_payload_type()
+  {
+    return NMEA0183::VDMPayload_BinaryBroadcastMessage;
+  }  
   virtual e_nd_type get_type() const
   {return ENDT_VDM8;};
 };
@@ -298,6 +485,7 @@ class c_vdm_msg18: public c_vdm
 public:
   float m_speed; // knot
   char m_accuracy; // DGPS = 1, GPS = 0
+  unsigned short m_lon_min, m_lat_min; // positin in minutes
   float m_lon; // degree
   float m_lat; // degree
   float m_course; // xxx.x degree
@@ -314,6 +502,40 @@ public:
   
   virtual ostream & show(ostream & out) const;
   virtual void dec_payload(s_pl * ppl);
+  virtual void dec_payload(s_pl * ppl, const long long t)
+  {
+    dec_payload(ppl);
+    builder.Clear();
+    NMEA0183::StandardClassBCSPositionReport
+      standardClassBCSPositionReport(m_repeat, m_accuracy == 1,
+				     m_second, 0/*not defined yet*/,
+				     m_cs, m_disp, m_dsc, m_band, m_msg22,
+				     m_assigned, m_raim,
+				     (unsigned short) (m_speed * 10),
+				     (unsigned short) (m_course * 10),
+				     m_heading,
+				     m_mmsi, m_lon_min, m_lat_min);
+    
+    auto payload = builder.CreateStruct(standardClassBCSPositionReport);
+    auto vdm = CreateVDM(builder,
+			 m_vdo,
+			 (m_is_chan_A ?
+			  NMEA0183::AISChannel_A : NMEA0183::AISChannel_B),
+			 get_vdm_payload_type(),
+			 payload.Union());
+    auto data = CreateData(builder,
+			   t,
+			   get_payload_type(),
+			   vdm.Union());
+    
+    builder.Finish(data);
+  }
+  
+  virtual const NMEA0183::VDMPayload get_vdm_payload_type()
+  {
+    return NMEA0183::VDMPayload_StandardClassBCSPositionReport;
+  }
+  
   virtual e_nd_type get_type() const 
   {return ENDT_VDM18;};
 };
@@ -323,6 +545,7 @@ class c_vdm_msg19: public c_vdm
 public:
   float m_speed; // knot
   char m_accuracy; // DGPS = 1, GPS = 0
+  int m_lon_min, m_lat_min; // position in minutes;
   float m_lon; // degree
   float m_lat; // degree
   float m_course; // xxx.x degree
@@ -341,6 +564,46 @@ public:
   
   virtual ostream & show(ostream & out) const;
   virtual void dec_payload(s_pl * ppl);
+  virtual void dec_payload(s_pl * ppl, const long long t)
+  {
+    dec_payload(ppl);
+    builder.Clear();
+    NMEA0183::ExtendedClassBCSPositionReport
+      extendedClassBCSPositionReport(m_repeat, m_accuracy == 1,
+				     m_second, 0/*not defined yet*/,
+				     m_assigned, m_raim,
+				     (NMEA0183::ShipType)m_shiptype,
+				     (NMEA0183::EPFDFixType)m_epfd,
+				     m_dte,
+				     m_to_port, m_to_starboard,
+				     (unsigned short) (m_speed * 10),
+				     (unsigned short) (m_course * 10),
+				     m_heading,
+				     m_to_bow, m_to_stern, 
+				     m_mmsi, m_lon_min, m_lat_min);
+    for (int i = 0; i < 20; i++)
+      extendedClassBCSPositionReport.mutable_shipName()->Mutate(i,
+								m_shipname[i]);
+    auto payload = builder.CreateStruct(extendedClassBCSPositionReport);
+    auto vdm = CreateVDM(builder,
+			 m_vdo,
+			 (m_is_chan_A ?
+			  NMEA0183::AISChannel_A : NMEA0183::AISChannel_B),
+			 get_vdm_payload_type(),
+			 payload.Union());
+    auto data = CreateData(builder,
+			   t,
+			   get_payload_type(),
+			   vdm.Union());
+    
+    builder.Finish(data);
+  }
+  
+  virtual const NMEA0183::VDMPayload get_vdm_payload_type()
+  {
+    return NMEA0183::VDMPayload_ExtendedClassBCSPositionReport;
+  }
+  
   virtual e_nd_type get_type() const
   {return ENDT_VDM19;};
 };
@@ -352,17 +615,59 @@ public:
   unsigned char m_shipname[21];
   
   unsigned char m_shiptype;
-  unsigned char m_vendorid[8];
+  unsigned char m_vendorid[3];
   unsigned char m_callsign[8];
   
   short m_to_bow, m_to_stern;
   unsigned char m_to_port, m_to_starboard;
+  unsigned char m_model;
+  unsigned int m_serial;
   unsigned int m_ms_mmsi;
   
   char m_epfd;
   
   virtual ostream & show(ostream & out) const;
   virtual void dec_payload(s_pl * ppl);
+  virtual void dec_payload(s_pl * ppl, const long long t)
+  {
+    dec_payload(ppl);
+    builder.Clear();
+    NMEA0183::StaticDataReport
+      staticDataReport(m_repeat, m_part_no,
+		       (NMEA0183::ShipType)m_shiptype,
+		       m_to_port, m_to_starboard,
+		       m_model,
+		       m_to_bow, m_to_stern, 
+		       m_mmsi,
+		       m_serial,
+		       m_ms_mmsi);
+    for (int i = 0; i < 20; i++)
+      staticDataReport.mutable_shipName()->Mutate(i, m_shipname[i]);
+    for(int i = 0; i < 7; i++)
+      staticDataReport.mutable_callsign()->Mutate(i, m_callsign[i]);
+    for(int i = 0; i < 3; i++)
+      staticDataReport.mutable_vendorID()->Mutate(i, m_vendorid[i]);
+    
+    auto payload = builder.CreateStruct(staticDataReport);
+    auto vdm = CreateVDM(builder,
+			 m_vdo,
+			 (m_is_chan_A ?
+			  NMEA0183::AISChannel_A : NMEA0183::AISChannel_B),
+			 get_vdm_payload_type(),
+			 payload.Union());
+    auto data = CreateData(builder,
+			   t,
+			   get_payload_type(),
+			   vdm.Union());
+    
+    builder.Finish(data);
+  }
+  
+  virtual const NMEA0183::VDMPayload get_vdm_payload_type()
+  {
+    return NMEA0183::VDMPayload_StaticDataReport;
+  }
+  
   virtual e_nd_type get_type() const
   {return ENDT_VDM24;};
 };
@@ -381,7 +686,26 @@ public:
   c_abk(): m_mmsi(0), m_rch(NA), m_msg_id(0), m_seq(0), m_stat(0){};
   ~c_abk(){};
   
-  static c_nmea_dat * dec_abk(const char * str);
+  virtual bool dec(const char * str);
+  virtual bool decode(const char * str, const long long t = -1){
+    if(!dec(str))
+      return false;
+    builder.Clear();
+    NMEA0183::ABK abk(m_mmsi, m_msg_id, m_seq, m_stat);
+    auto payload = builder.CreateStruct(abk); 
+    auto data = CreateData(builder,
+			   t,
+			   get_payload_type(),
+			   payload.Union());
+    
+    builder.Finish(data);        
+  }
+
+  virtual NMEA0183::Payload get_payload_type()
+  {
+    return NMEA0183::Payload_ABK;
+  }
+  
   virtual ostream & show(ostream & out) const;
   virtual e_nd_type get_type() const
   {return ENDT_ABK;};
@@ -400,6 +724,50 @@ protected:
   c_vdm_msg18 vdm_msg18;
   c_vdm_msg19 vdm_msg19;
   c_vdm_msg24 vdm_msg24;
+
+  struct s_vdm_obj{
+    unsigned char id;
+    c_vdm * dat;
+    s_vdm_obj():dat(nullptr)
+    {
+    }
+
+    s_vdm_obj(const unsigned char id_, c_vdm * dat_):dat(dat_)
+    {
+      id = id_;
+    }
+
+    ~s_vdm_obj()
+    {
+      if(dat)
+	delete dat;
+      dat = nullptr;
+    }
+    
+    bool match(const unsigned char id_){
+      return id == id_;
+    }    
+  };
+  
+  vector<s_vdm_obj> vdm_objs;
+  c_vdm * create_vdm_dat(const unsigned char message_id)
+  {
+    switch(message_id){
+    case 1:
+    case 2:
+    case 3:return new c_vdm_msg1;
+    case 4:return new c_vdm_msg4;
+    case 5:return new c_vdm_msg5;
+    case 6:return new c_vdm_msg6;
+    case 8:return new c_vdm_msg8;
+    case 18:return new c_vdm_msg18;
+    case 19:return new c_vdm_msg19;
+    case 24:return new c_vdm_msg24;
+    default:
+      break;
+    }
+    return nullptr;
+  }
   
   s_pl * m_pool;
   list<s_pl*> m_tmp; // temporaly store multi fragments message
@@ -409,7 +777,7 @@ protected:
   char m_type; // message type
   
   
-  c_vdm * dec_payload(s_pl * ppl);
+  c_vdm * dec_payload(s_pl * ppl, const long long t);
   
   s_pl * alloc(){
     if(m_pool == NULL)
@@ -439,12 +807,22 @@ public:
       m_pool = ppl;
     }
   }
+
+  bool add_vdm_dat(const unsigned char id)
+  {
+    c_vdm * dat = create_vdm_dat(id);
+    if(!dat)
+      return false;
+
+    vdm_objs.push_back(s_vdm_obj(id, dat));
+    return true;      
+  }
   
   void set_vdo(){
     m_vdo = true;
   }
   
-  c_vdm * dec(const char * str);
+  c_vdm * decode(const char * str, long long t = -1);
 };
 
 #endif

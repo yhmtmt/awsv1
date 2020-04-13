@@ -1,20 +1,22 @@
-// Copyright(c) 2019 Yohei Matsumoto, All right reserved. 
+// Copyright(c) 2019-2020 Yohei Matsumoto, All right reserved. 
 
-// aws_nmea.h is free software: you can redistribute it and/or modify
+// aws_nmea.hpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// aws_nmea.h is distributed in the hope that it will be useful,
+// aws_nmea.hpp is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with aws_nmea.h.  If not, see <http://www.gnu.org/licenses/>. 
+// along with aws_nmea.hpp.  If not, see <http://www.gnu.org/licenses/>. 
 
-#ifndef AWS_NMEA_H
-#define AWS_NMEA_H
+#ifndef AWS_NMEA_HPP
+#define AWS_NMEA_HPP
+
+#include "nmea0183_generated.h"
 
 // NMEA data type
 enum e_nd_type{
@@ -59,7 +61,11 @@ class c_nmea_dec;
 /////////////////////////// c_nmea_dat and its inheritant
 class c_nmea_dat
 {
+protected:
+  flatbuffers::FlatBufferBuilder builder;
 public:
+  c_nmea_dat():builder(256){}
+  
   char m_toker[2];
   bool m_cs;
   virtual ostream & show(ostream & out) const
@@ -68,6 +74,19 @@ public:
   };
 
   virtual bool dec(const char * str){ return true; };
+  virtual bool decode(const char * str, const long long t = -1){
+    return true;
+  }
+  
+  const uint8_t * get_buffer_pointer() const
+  { return builder.GetBufferPointer(); }
+  
+  flatbuffers::uoffset_t get_buffer_size() const
+  { return builder.GetSize();};
+  
+  virtual NMEA0183::Payload get_payload_type(){
+    return NMEA0183::Payload_NONE;
+  }
   
   virtual e_nd_type get_type() const = 0;
 };
@@ -169,6 +188,66 @@ public:
 class c_nmea_dec
 {
 protected:
+  struct s_nmea0183_obj{
+    char id[3]; // 3 characters
+    c_nmea_dat * dat;
+    s_nmea0183_obj():dat(nullptr)
+    {
+    }
+    s_nmea0183_obj(const char * id_, c_nmea_dat * dat_):dat(dat_)
+    {
+      id[0] = id_[0];      id[1] = id_[1];      id[2] = id_[2];
+    }
+    
+    ~s_nmea0183_obj(){
+      if(dat){
+	delete dat;
+	dat = nullptr;
+      }
+    }
+    
+    bool match(const char * id_){
+      return id[0] == id_[0] && id[1] == id_[1] && id[2] == id_[2];
+    }    
+  };
+
+  
+  vector<s_nmea0183_obj> nmea0183_objs;
+
+  c_nmea_dat * create_nmea0183_dat(const char * sentence_id)
+  {
+    for(int i = 0; i <= NMEA0183::Payload_MAX; i++){
+      if(string(NMEA0183::EnumNamesPayload()[i]) == string(sentence_id)){
+	switch (i){
+	case NMEA0183::Payload_NONE:break;
+    	case NMEA0183::Payload_GGA:return new c_gga;
+    	case NMEA0183::Payload_GSA:return new c_gsa;
+    	case NMEA0183::Payload_GSV:return new c_gsv;
+    	case NMEA0183::Payload_RMC:return new c_rmc;
+    	case NMEA0183::Payload_VTG:return new c_vtg;
+    	case NMEA0183::Payload_ZDA:return new c_zda;
+    	case NMEA0183::Payload_GLL:return new c_gll;
+    	case NMEA0183::Payload_HDT:return new c_hdt;
+    	case NMEA0183::Payload_HEV:return new c_hev;
+    	case NMEA0183::Payload_ROT:return new c_rot;
+    	case NMEA0183::Payload_MDA:return new c_mda;
+    	case NMEA0183::Payload_WMV:return new c_wmv;
+    	case NMEA0183::Payload_XDR:return new c_xdr;
+    	case NMEA0183::Payload_TTM:return new c_ttm;
+    	case NMEA0183::Payload_DBT:return new c_dbt;
+    	case NMEA0183::Payload_MTW:return new c_mtw;
+    	case NMEA0183::Payload_ABK:return new c_abk;
+	default:
+	  break;
+	}
+      }
+    }
+
+    return nullptr;
+  }
+      
+  c_nmea_dat ** nmea0183_obj;
+  
   c_gga gga;
   c_gsa gsa;
   c_gsv gsv;
@@ -186,15 +265,43 @@ protected:
   c_dbt dbt;
   c_mtw mtw;
   c_abk abk;
-
+  
   c_psat_dec psatdec;
   c_vdm_dec vdmdec;
   c_vdm_dec vdodec;
- public:
+public:
   c_nmea_dec()
-    {
-    }
-  const c_nmea_dat * decode(const char * str);
+  {
+    vdodec.set_vdo();
+  }
+  
+  const c_nmea_dat * decode(const char * str, const long long t = -1);
+  
+  bool add_nmea0183_decoder(const char * sentence_id){
+    c_nmea_dat * dat = create_nmea0183_dat(sentence_id);
+    if(!dat)
+      return false;
+    
+    nmea0183_objs.push_back(s_nmea0183_obj(sentence_id, dat));
+    return true;
+  }
+  
+  bool add_nmea0183_vdm_decoder(int message_id)
+  {
+    return vdmdec.add_vdm_dat(message_id);
+  }
+  
+  bool add_nmea0183_vdo_decoder(int message_id)
+  {
+    return vdodec.add_vdm_dat(message_id);
+  }
+  
+  bool add_psat_decoder(const char * sentence_id)
+  {
+    return psatdec.add_psat_dat(sentence_id);
+  }
+  
 };
+
 
 #endif
