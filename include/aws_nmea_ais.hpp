@@ -814,6 +814,11 @@ public:
     if(!dat)
       return false;
 
+    for(int i = 0; i < vdm_objs.size(); i++){
+      if(vdm_objs[i].match(id))
+	return false;
+    }
+    
     vdm_objs.push_back(s_vdm_obj(id, dat));
     return true;      
   }

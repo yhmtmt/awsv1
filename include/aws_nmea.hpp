@@ -282,6 +282,10 @@ public:
     if(!dat)
       return false;
     
+    for (int i = 0; i < nmea0183_objs.size(); i++)
+      if(nmea0183_objs[i].match(sentence_id))
+	return false; // the sentence has already been registered
+  
     nmea0183_objs.push_back(s_nmea0183_obj(sentence_id, dat));
     return true;
   }

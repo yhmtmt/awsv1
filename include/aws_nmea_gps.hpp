@@ -628,6 +628,11 @@ public:
     c_nmea_dat * dat = create_psat_dat(sentence_id);
     if(!dat)
       return false;
+
+    for (int i = 0; i < psat_objs.size(); i++)
+      if(psat_objs[i].match(sentence_id))
+	return false;
+    
     psat_objs.push_back(s_psat_obj(sentence_id, dat));
     return true;
   }
