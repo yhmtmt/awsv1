@@ -581,7 +581,6 @@ class c_psat_hpr: public c_psat
 class c_psat_dec
 {
 protected:
-  c_psat_hpr hpr;
 
   struct s_psat_obj{
     char id[3];

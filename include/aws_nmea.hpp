@@ -210,7 +210,6 @@ protected:
       return id[0] == id_[0] && id[1] == id_[1] && id[2] == id_[2];
     }    
   };
-
   
   vector<s_nmea0183_obj> nmea0183_objs;
 
@@ -245,27 +244,7 @@ protected:
 
     return nullptr;
   }
-      
-  c_nmea_dat ** nmea0183_obj;
-  
-  c_gga gga;
-  c_gsa gsa;
-  c_gsv gsv;
-  c_rmc rmc;
-  c_vtg vtg;
-  c_zda zda;  
-  c_gll gll;
-  c_hdt hdt;
-  c_hev hev;
-  c_rot rot;
-  c_mda mda;
-  c_wmv wmv;
-  c_xdr xdr;
-  c_ttm ttm;
-  c_dbt dbt;
-  c_mtw mtw;
-  c_abk abk;
-  
+        
   c_psat_dec psatdec;
   c_vdm_dec vdmdec;
   c_vdm_dec vdodec;

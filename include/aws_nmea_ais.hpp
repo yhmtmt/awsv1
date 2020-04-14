@@ -716,14 +716,6 @@ class c_vdm_dec
 {
 protected:
   bool m_vdo;
-  c_vdm_msg1 vdm_msg1;
-  c_vdm_msg4 vdm_msg4;
-  c_vdm_msg5 vdm_msg5;
-  c_vdm_msg6 vdm_msg6;
-  c_vdm_msg8 vdm_msg8;
-  c_vdm_msg18 vdm_msg18;
-  c_vdm_msg19 vdm_msg19;
-  c_vdm_msg24 vdm_msg24;
 
   struct s_vdm_obj{
     unsigned char id;
