@@ -452,7 +452,7 @@ public:
   }
   
   void set(const long long t, const unsigned int mmsi, 
-	   float lat, float lon, float cog, float sog, float hdg)
+	   double lat, double lon, float cog, float sog, float hdg)
   {
     m_type = EOT_SHIP;
     m_src = EOS_AIS;
@@ -469,7 +469,7 @@ public:
     reset_rel();
   }
   
-  void update(const long long t, float lat, float lon, 
+  void update(const long long t, double lat, double lon, 
 	      float cog, float sog, float hdg){
     m_t = t;
     m_dtype = (e_obj_data_type)(EOD_AIS | EOD_ATTD);
@@ -676,7 +676,7 @@ public:
   }
   
   void push(const long long t, const unsigned int mmsi,
-	    float lat, float lon, float cog, float sog, float hdg)
+	    double lat, double lon, float cog, float sog, float hdg)
   {
     if(mmsi == 0 || mmsi > 999999999){
       //cout << "illegal mmsi detected: mmsi " << mmsi <<  endl;

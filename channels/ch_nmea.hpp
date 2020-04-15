@@ -1,4 +1,4 @@
-// Copyright(c) 2016 Yohei Matsumoto, Tokyo University of Marine
+// Copyright(c) 2016-2020 Yohei Matsumoto, Tokyo University of Marine
 // Science and Technology, All right reserved. 
 
 // ch_nmea.h is free software: you can redistribute it and/or modify
@@ -62,6 +62,8 @@ public:
       
       m_head = (m_head + 1) % data_size;
       m_num--;
+    }else{
+      len = 0;
     }
     unlock();
   }
