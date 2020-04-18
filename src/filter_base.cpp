@@ -15,6 +15,7 @@
 
 #include "aws.hpp"
 
+
 // Initialization function. 
 // This function is called at the begining of the aws process start. If you
 // need to initialize global and static data structure please insert your 
@@ -33,6 +34,9 @@ void f_base::uninit()
 {
 }
 
+const string f_base::get_log_path(){
+  return m_paws->get_log_path();
+}
 
 //////////////////////////////////////////////////// filter parameter
 bool f_base::s_fpar::set(const char * valstr)

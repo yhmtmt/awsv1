@@ -253,6 +253,10 @@ public:
   bool is_exit(){
     return m_exit;
   }
+
+  const string get_log_path(){
+    return conf.log_path();
+  }
   
   virtual void print_title();
   virtual bool main();

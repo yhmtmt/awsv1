@@ -1,6 +1,6 @@
 #ifndef FILTER_BASE_HPP
 #define FILTER_BASE_HPP
-// Copyright(c) 2012,2019 Yohei Matsumoto,  All right reserved. 
+// Copyright(c) 2012-2020 Yohei Matsumoto,  All right reserved. 
 
 // filter_base.hpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -75,11 +75,15 @@ protected:
 public: 
   // initialize mutex and signal objects. this is called by the c_aws constructor
   static c_aws * m_paws;
+
   static void init(c_aws * paws);
   
   // uninitialize mutex and signal objects. called by the c_aws destoractor
   static void uninit();
 
+
+  static const string get_log_path();
+  
   //////////////////////////////////////////////////// core members
 protected:
   c_filter_lib * m_lib;

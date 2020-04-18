@@ -190,8 +190,8 @@ struct ROT
 
 struct MDA
 {
-      barometricPresureIoM:float; // inches of mercury
-      barometricPresureBar:float; // bar
+      barometricPressureIoM:float; // inches of mercury
+      barometricPressureBar:float; // bar
       airTemperature:float; // degrees C
       waterTemperature:float; // degrees C
       relativeHumidity:float; // percent
