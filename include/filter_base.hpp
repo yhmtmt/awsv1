@@ -83,6 +83,7 @@ public:
 
 
   static const string get_log_path();
+  static const string get_data_path();
   
   //////////////////////////////////////////////////// core members
 protected:

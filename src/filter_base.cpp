@@ -38,6 +38,11 @@ const string f_base::get_log_path(){
   return m_paws->get_log_path();
 }
 
+const string f_base::get_data_path(){
+  return m_paws->get_data_path();
+}
+    
+
 //////////////////////////////////////////////////// filter parameter
 bool f_base::s_fpar::set(const char * valstr)
 {

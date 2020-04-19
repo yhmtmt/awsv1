@@ -154,4 +154,5 @@ message Config {
 	string port = 2;
 	string lib_path = 3;
 	string log_path = 4;
+	string data_path = 5;
 }

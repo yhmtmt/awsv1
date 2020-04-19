@@ -257,6 +257,10 @@ public:
   const string get_log_path(){
     return conf.log_path();
   }
+
+  const string get_data_path(){
+    return conf.data_path();
+  }
   
   virtual void print_title();
   virtual bool main();
