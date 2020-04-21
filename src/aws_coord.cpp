@@ -1,4 +1,4 @@
-// Copyright(c) 2012 Yohei Matsumoto, Tokyo University of Marine
+// Copyright(c) 2012-2020 Yohei Matsumoto, Tokyo University of Marine
 // Science and Technology, All right reserved. 
 
 // aws_coord.cpp is free software: you can redistribute it and/or modify
@@ -20,7 +20,8 @@ using namespace std;
 #include "aws_coord.hpp"
 #include <proj_api.h>
 
-void eceftoblh(const float x, const float y, const float z, float & lat, float & lon, float & alt)
+void eceftoblh(const float x, const float y, const float z,
+	       float & lat, float & lon, float & alt)
 {
   double p = sqrt(x* x + y * y);
   double th = atan(z * AE / (p * BE));

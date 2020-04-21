@@ -199,7 +199,7 @@ public:
     return NMEA0183::VDMPayload_NONE;
   }
 
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_VDM;
   }
@@ -237,9 +237,9 @@ public:
 			   m_accuracy==1,
 			   m_second, (NMEA0183::ManeuverIndicator) m_maneuver,
 			   m_raim != 0,
-			   (short)m_turn,
-			   (unsigned short)m_speed * 10,
-			   (unsigned short)m_course * 10,
+			   m_turn,
+			   (unsigned short)(m_speed * 10),
+			   (unsigned short)(m_course * 10),
 			   m_heading,
 			   m_mmsi,
 			   m_lon_min, m_lat_min);    
@@ -701,7 +701,7 @@ public:
     builder.Finish(data);        
   }
 
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_ABK;
   }
@@ -724,6 +724,12 @@ protected:
     {
     }
 
+    s_vdm_obj(s_vdm_obj && obj){
+      id = obj.id;
+      obj.id = 0;
+      dat = obj.dat;
+      obj.dat = nullptr;      
+    }
     s_vdm_obj(const unsigned char id_, c_vdm * dat_):dat(dat_)
     {
       id = id_;

@@ -221,7 +221,7 @@ struct HPR
 {
 	hour:ubyte;
 	minute:ubyte;
-	sec:ubyte;
+	msec:ushort;
 	heading:float;
 	pitch:float;
 	roll:float;
@@ -454,7 +454,7 @@ struct PositionReportClassA
       second:ubyte; // time stamp	
       maneuver:ManeuverIndicator;
       raim:bool;     
-      turn:short;
+      turn:float;
       speed:ushort; // 0.1x kts
       course:ushort; // 0.1x  deg
       heading:ushort; // deg

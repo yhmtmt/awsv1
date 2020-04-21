@@ -66,7 +66,7 @@ public:
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_GGA;
   }
@@ -124,7 +124,7 @@ public:
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_GSA;
   }
@@ -173,7 +173,7 @@ public:
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_GSV;
   }
@@ -230,7 +230,7 @@ public:
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_RMC;
   }
@@ -277,7 +277,7 @@ public:
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_VTG;
   }
@@ -324,7 +324,7 @@ public:
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_ZDA;
   }
@@ -371,7 +371,7 @@ class c_gll: public c_nmea_dat
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_GLL;
   }
@@ -415,7 +415,7 @@ class c_hdt: public c_nmea_dat
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_HDT;
   }
@@ -456,7 +456,7 @@ public:
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_HEV;
   }
@@ -498,7 +498,7 @@ class c_rot: public c_nmea_dat
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_ROT;
   }
@@ -520,7 +520,7 @@ class c_rot: public c_nmea_dat
 class c_psat: public c_nmea_dat
 {
 public:
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_PSAT;
   }
@@ -535,7 +535,8 @@ public:
 class c_psat_hpr: public c_psat
 {
  public:
-  unsigned char hour, mint, sec;
+  unsigned char hour, mint;
+  float sec;
   float hdg, pitch, roll; // attitude in degree;
   bool gyro; // true: values are from gyro, false: from gps
 
@@ -548,7 +549,9 @@ class c_psat_hpr: public c_psat
       return false;
     builder.Clear();
 
-    auto payload = builder.CreateStruct(NMEA0183::HPR(hour, mint, sec, hdg,
+    auto payload = builder.CreateStruct(NMEA0183::HPR(hour, mint,
+						      (unsigned short)(sec * 1000),
+						      hdg,
 						      pitch, roll, gyro));
     auto psat = CreatePSAT(builder, NMEA0183::PSATPayload_HPR, payload.Union());
     auto data = CreateData(builder,
@@ -590,6 +593,11 @@ protected:
       id[0] = id_[0];      id[1] = id_[1];      id[2] = id_[2];      
     }
 
+    s_psat_obj(s_psat_obj && obj){
+      id[0] = obj.id[0];      id[1] = obj.id[1];      id[2] = obj.id[2];      
+      dat = obj.dat;
+      obj.dat = nullptr;
+    }
     ~s_psat_obj(){
       if(dat){
 	delete dat;
@@ -667,7 +675,7 @@ public:
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_MDA;
   }
@@ -725,7 +733,7 @@ public:
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_WMV;
   }
@@ -765,7 +773,7 @@ public:
     builder.Finish(data);    
   }
   
-  virtual NMEA0183::Payload get_payload_type()
+  virtual NMEA0183::Payload get_payload_type() const
   {
     return NMEA0183::Payload_XDR;
   }

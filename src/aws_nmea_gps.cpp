@@ -258,7 +258,7 @@ bool c_rmc::dec(const char * str)
   char buf[32];
   char tok[32];
 
-  while(ipar < 12){
+  while(ipar < 13){
     len = parstrcpy(buf, &str[i], ',');
     i += len + 1;
     if(len == 0){ 
@@ -660,10 +660,10 @@ c_nmea_dat * c_psat_dec::decode(const char * str, const long long t)
     case 0: // $PSAT
       break;
     case 1: // HPR or GBS or INTLT
-      for(int i = 0; i < psat_objs.size(); i++){
-	if(psat_objs[i].match(buf)){
-	  if(psat_objs[i].dat->decode(&str[i],t)){
-	    c_nmea_dat * dat = psat_objs[i].dat;
+      for(int ipsat = 0; ipsat < psat_objs.size(); ipsat++){
+	if(psat_objs[ipsat].match(buf)){
+	  if(psat_objs[ipsat].dat->decode(&str[i],t)){
+	    c_nmea_dat * dat = psat_objs[ipsat].dat;
 	    if(dat){
 	      dat->m_toker[0] = str[1];
 	      dat->m_toker[1] = str[2];
@@ -702,7 +702,7 @@ bool c_psat_hpr::dec(const char * str)
       parstrcpy(tok, buf+2, 2);
       mint = (short) atoi(tok);
       parstrcpy(tok, buf+4, '\0');
-      sec = (short) atoi(tok);
+      sec = (float) atof(tok);
       break;
     case 1: // heading
       hdg = (float)atof(buf);

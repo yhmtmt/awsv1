@@ -84,7 +84,8 @@ public:
   flatbuffers::uoffset_t get_buffer_size() const
   { return builder.GetSize();};
   
-  virtual NMEA0183::Payload get_payload_type(){
+  virtual NMEA0183::Payload get_payload_type() const
+  {
     return NMEA0183::Payload_NONE;
   }
   
@@ -198,7 +199,12 @@ protected:
     {
       id[0] = id_[0];      id[1] = id_[1];      id[2] = id_[2];
     }
-    
+    s_nmea0183_obj(s_nmea0183_obj && obj)      
+    {
+      dat = obj.dat;
+      obj.dat = nullptr;
+      id[0] = obj.id[0];      id[1] = obj.id[1];      id[2] = obj.id[2];
+    }
     ~s_nmea0183_obj(){
       if(dat){
 	delete dat;

@@ -289,7 +289,6 @@ void c_vdm_msg1::dec_payload(s_pl * ppl)
   tmpc = ((dat[7] & 0x3F) << 2) | 
     ((dat[8] & 0x30) >> 4);
   m_turn = (float) (tmpc * (1.0 / 4.733));
-  m_turn *= m_turn;
   m_turn *= (tmpc < 0 ? - m_turn : m_turn);
 
   tmpu = ((dat[8] & 0x0F) << 6) |
@@ -325,7 +324,7 @@ void c_vdm_msg1::dec_payload(s_pl * ppl)
   m_heading = ((dat[21] & 0x0F) << 5) |
     ((dat[22] & 0x3E) >> 1);
 
-  m_second =  ((dat[22] & 0x01) << 1) |
+  m_second =  ((dat[22] & 0x01) << 5) |
     ((dat[23] & 0x3E) >> 1);
 
   m_maneuver = ((dat[23] & 0x01) << 1) |
