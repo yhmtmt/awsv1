@@ -182,7 +182,7 @@ bool c_gsa::dec(const char * str)
 bool c_gsv::dec(const char * str)
 {
   int i = 0;
-  int ipar = 0, npar = 4;
+  int ipar = 0, npar = 20;
   int isat = 0;
   int len;
   char buf[32];
@@ -354,7 +354,7 @@ bool c_vtg::dec(const char * str)
   int len;
   char buf[32];
 
-  while(ipar < 9){
+  while(ipar < 10){
     len = parstrcpy(buf, &str[i], ',');
     i += len + 1;
     if(len == 0){ 
@@ -473,7 +473,7 @@ bool c_gll::dec(const char * str)
   char buf[32];
   char tok[32];
   
-  while(ipar < 7){
+  while(ipar < 8){
     len = parstrcpy(buf, &str[i], ',');
     i += len + 1;
     if(len == 0){ 
@@ -688,7 +688,7 @@ bool c_psat_hpr::dec(const char * str)
   int len;
   char buf[32];
   char tok[32];
-  while(ipar < 4){
+  while(ipar < 5){
     len = parstrcpy(buf, &str[i], ',');
     i += len + 1;
     if(len == 0){ 
@@ -893,7 +893,7 @@ bool c_xdr::dec(const char * str)
   char buf[32];
   char tok[32];
   
-  while(ipar < 21){
+  while(ipar < 9){
     len = parstrcpy(buf, &str[i], ',');
     i += len + 1;
     if(len == 0){ 

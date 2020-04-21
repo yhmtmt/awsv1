@@ -551,7 +551,7 @@ void c_vdm_msg5::dec_payload(s_pl * ppl)
   m_epfd = (dat[45] & 0x3C) >> 2;
 
   m_month = ((dat[45] & 0x03) << 2) |
-    ((dat[46] & 0x30) >> 2);
+    ((dat[46] & 0x30) >> 4);
 
   m_day = ((dat[46] & 0x0F) << 1) |
     ((dat[47] & 0x20) >> 5);
@@ -561,11 +561,11 @@ void c_vdm_msg5::dec_payload(s_pl * ppl)
 
   tmpu = (dat[49] << 2) |
     ((dat[50] & 0x30) >> 4);
-  m_draught = (tmpu * (10));
+  m_draught = (tmpu);
 
   for(int i = 0, byte = 50; i < 20; i++, byte++){
     m_destination[i] = decchar(((dat[byte] & 0x0F) << 2) |
-			       ((dat[byte] & 0x30) >> 4));
+			       ((dat[byte+1] & 0x30) >> 4));
   }
   m_destination[20] = 0;
 

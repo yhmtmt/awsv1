@@ -54,6 +54,7 @@ public:
 						      m_dgps_station,
 						      m_hdop,
 						      m_alt,
+						      m_geos,
 						      (m_lat_dir == EGP_N ? m_lat_deg : -m_lat_deg),
 						      (m_lon_dir == EGP_E ? m_lon_deg : -m_lon_deg)));
 						    

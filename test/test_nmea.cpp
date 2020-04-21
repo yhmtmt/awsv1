@@ -111,6 +111,76 @@ TEST_F(NMEATest, GPRMCTest)
   ASSERT_FLOAT_EQ(rmc->longitude(), 139.0 + (45.3994 / 60.0));
 }
 
+TEST_F(NMEATest, GPGGATest)
+{
+  const c_nmea_dat * dat = dec.decode(sentences[1]);
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_GGA);
+  const uint8_t * buffer = dat->get_buffer_pointer();
+  size_t size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  const NMEA0183::Data * data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  const NMEA0183::GGA * gga = data->payload_as_GGA();
+  ASSERT_TRUE(gga != nullptr);
+  ASSERT_TRUE(gga->numSatellites() == 8);  
+  ASSERT_TRUE(gga->DGPSStation() == 0);  
+  ASSERT_TRUE(gga->hour() == 8);
+  ASSERT_TRUE(gga->minute() == 51);  
+  ASSERT_TRUE(gga->msec() == 20307);
+  ASSERT_TRUE(gga->fixStatus() == NMEA0183::GPSFixStatus_GPSF);
+  ASSERT_FLOAT_EQ(gga->altitude(), 6.9);  
+  ASSERT_FLOAT_EQ(gga->dop(), 1.0);
+  ASSERT_FLOAT_EQ(gga->geoid(),35.9); 
+  ASSERT_FLOAT_EQ(gga->latitude(), 35.0 + (41.1493 / 60.0));
+  ASSERT_FLOAT_EQ(gga->longitude(), 139.0 + (45.3994 / 60.0));
+}
+
+TEST_F(NMEATest, GPVTGTest)
+{
+  const c_nmea_dat * dat = dec.decode(sentences[4]);
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_VTG);
+  const uint8_t * buffer = dat->get_buffer_pointer();
+  size_t size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  const NMEA0183::Data * data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  const NMEA0183::VTG * vtg = data->payload_as_VTG();
+  ASSERT_TRUE(vtg != nullptr);
+  ASSERT_TRUE(vtg->fixStatus() == NMEA0183::GPSFixStatus_GPSF);
+  ASSERT_FLOAT_EQ(vtg->cogTrue(), 240.3);  
+  ASSERT_FLOAT_EQ(vtg->cogMag(), 0);
+  ASSERT_FLOAT_EQ(vtg->sogN(),0); 
+  ASSERT_FLOAT_EQ(vtg->sogK(), 0);
+}
+
+TEST_F(NMEATest, GPZDATest)
+{
+  const c_nmea_dat * dat = dec.decode(sentences[6]);
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_ZDA);
+  const uint8_t * buffer = dat->get_buffer_pointer();
+  size_t size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  const NMEA0183::Data * data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  const NMEA0183::ZDA * zda = data->payload_as_ZDA();
+  ASSERT_TRUE(zda != nullptr);
+  ASSERT_TRUE(zda->year() == 2002);
+  ASSERT_TRUE(zda->month() == 7);
+  ASSERT_TRUE(zda->day() == 4);  
+  ASSERT_TRUE(zda->hour() == 20);
+  ASSERT_TRUE(zda->minute() == 15);  
+  ASSERT_TRUE(zda->msec() == 30000);
+  ASSERT_TRUE(zda->lzh() == 0);
+  ASSERT_TRUE(zda->lzm() == 0);
+}
+
+
 TEST_F(NMEATest, PSATHPRTest)
 {
   const c_nmea_dat * dat = dec.decode(sentences[7]);
@@ -165,6 +235,45 @@ TEST_F(NMEATest, VDMTest1)
   ASSERT_EQ(pl->second(), 53);
   ASSERT_EQ(pl->maneuver(), NMEA0183::ManeuverIndicator_NotAvailable);
   ASSERT_EQ(pl->raim(), false);
+}
+
+TEST_F(NMEATest, VDMTest5)
+{
+  const c_nmea_dat * dat = dec.decode(sentences[10]);
+  ASSERT_TRUE(dat == nullptr);
+  dat = dec.decode(sentences[11]);
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_VDM);
+  const uint8_t * buffer = dat->get_buffer_pointer();
+  size_t size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  const NMEA0183::Data * data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  const NMEA0183::VDM * vdm = data->payload_as_VDM();
+  ASSERT_TRUE(vdm->isVDO() == false);  
+  ASSERT_TRUE(vdm != nullptr);
+  const NMEA0183::StaticAndVoyageRelatedData * pl =
+    vdm->payload_as_StaticAndVoyageRelatedData();
+  ASSERT_TRUE(pl != nullptr);
+  ASSERT_EQ(pl->repeat(), 0);
+  ASSERT_EQ(pl->mmsi(), 603916439);
+  ASSERT_EQ(pl->aisVersion(), 0);
+  ASSERT_EQ(pl->imo(), 439303422);
+  ASSERT_EQ(string((const char*)pl->callsign()->Data(), 7), string("``ZA83R"));
+  ASSERT_EQ(string((const char*)pl->shipName()->Data(), 20), string("```ARCO`AVON\0\0\0\0\0\0\0\0", 20));
+  ASSERT_EQ(pl->shipType(), NMEA0183::ShipType_PassengerNoAdditionalInformation);
+  ASSERT_EQ(pl->toBow(), 113);
+  ASSERT_EQ(pl->toStern(), 31);
+  ASSERT_EQ(pl->toPort(), 17);
+  ASSERT_EQ(pl->toStarboard(), 11);
+  ASSERT_EQ(pl->month(), 3);
+  ASSERT_EQ(pl->day(), 23);
+  ASSERT_EQ(pl->hour(), 19);  
+  ASSERT_EQ(pl->minute(), 45);
+  ASSERT_EQ(pl->draught(), 132); // 13.2m
+  ASSERT_EQ(string((const char*) pl->destination()->Data(), 20), string("``HOUSTON@@@@@@@@@@@"));
+  ASSERT_EQ(pl->dte(), true);
 }
 
 
