@@ -110,6 +110,10 @@ public:
   virtual bool dec(const char * str);
   
   virtual bool decode(const char * str, const long long t = -1){
+    smm = NMEA0183::SelectionMeasurementMode_Auto;
+    mm = NMEA0183::MeasurementMode_NoMeasurement;
+    memset(sused, 0, 12);
+    
     if(!dec(str))
       return false;
     builder.Clear();
@@ -156,6 +160,13 @@ public:
   virtual bool dec(const char * str);
 
   virtual bool decode(const char * str, const long long t = -1){
+    ns = 0;
+    nsats_usable = 0;
+    memset(sat, 0, sizeof(unsigned short) * 4);
+    memset(el, 0, sizeof(unsigned short) * 4);
+    memset(az, 0, sizeof(unsigned short) * 4);
+    memset(sn, 0, sizeof(unsigned short) * 4);    
+   
     if(!dec(str))
       return false;
     builder.Clear();
@@ -357,6 +368,8 @@ class c_gll: public c_nmea_dat
   virtual bool dec(const char * str);
 
   virtual bool decode(const char * str, const long long t = -1){
+    fs = NMEA0183::GPSFixStatus_LOST;
+    
     if(!dec(str))
       return false;
     builder.Clear();

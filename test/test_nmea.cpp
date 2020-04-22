@@ -137,6 +137,96 @@ TEST_F(NMEATest, GPGGATest)
   ASSERT_FLOAT_EQ(gga->longitude(), 139.0 + (45.3994 / 60.0));
 }
 
+TEST_F(NMEATest, GPGSATest)
+{
+  const c_nmea_dat * dat = dec.decode(sentences[2]);
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_GSA);
+  const uint8_t * buffer = dat->get_buffer_pointer();
+  size_t size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  const NMEA0183::Data * data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  const NMEA0183::GSA * gsa = data->payload_as_GSA();
+  ASSERT_TRUE(gsa != nullptr);
+  ASSERT_EQ(gsa->selectionMeasurementMode(), NMEA0183::SelectionMeasurementMode_Auto);
+  ASSERT_EQ(gsa->measurementMode(), NMEA0183::MeasurementMode_ThreeDimensional);
+  ASSERT_EQ(gsa->satellites()->Data()[0], 29);
+  ASSERT_EQ(gsa->satellites()->Data()[1], 26);
+  ASSERT_EQ(gsa->satellites()->Data()[2], 05);
+  ASSERT_EQ(gsa->satellites()->Data()[3], 10);
+  ASSERT_EQ(gsa->satellites()->Data()[4], 2);
+  ASSERT_EQ(gsa->satellites()->Data()[5], 27);
+  ASSERT_EQ(gsa->satellites()->Data()[6], 8);
+  ASSERT_EQ(gsa->satellites()->Data()[7], 15);
+  ASSERT_EQ(gsa->satellites()->Data()[8], 0);
+  ASSERT_EQ(gsa->satellites()->Data()[9], 0);
+  ASSERT_EQ(gsa->satellites()->Data()[10], 0);
+  ASSERT_EQ(gsa->satellites()->Data()[11], 0);      
+  
+  ASSERT_FLOAT_EQ(gsa->pdop(), 1.8);  
+  ASSERT_FLOAT_EQ(gsa->hdop(), 1.0);
+  ASSERT_FLOAT_EQ(gsa->vdop(), 1.5); 
+}
+
+TEST_F(NMEATest, GPGSVTest)
+{
+  const c_nmea_dat * dat = dec.decode(sentences[3]);
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_GSV);
+  const uint8_t * buffer = dat->get_buffer_pointer();
+  size_t size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  const NMEA0183::Data * data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  const NMEA0183::GSV * gsv = data->payload_as_GSV();
+  ASSERT_TRUE(gsv != nullptr);
+  ASSERT_EQ(gsv->numSentences(), 3);
+  ASSERT_EQ(gsv->sentence(), 1);
+  ASSERT_EQ(gsv->numSatellitesUsable(), 12);
+  ASSERT_EQ(gsv->satelliteInformation0().satellite(), 26);
+  ASSERT_EQ(gsv->satelliteInformation0().elevation(), 72);
+  ASSERT_EQ(gsv->satelliteInformation0().azimus(), 352);
+  ASSERT_EQ(gsv->satelliteInformation0().sn(), 28);  
+  ASSERT_EQ(gsv->satelliteInformation1().satellite(), 5);
+  ASSERT_EQ(gsv->satelliteInformation1().elevation(), 65);
+  ASSERT_EQ(gsv->satelliteInformation1().azimus(), 66);
+  ASSERT_EQ(gsv->satelliteInformation1().sn(), 37);  
+  ASSERT_EQ(gsv->satelliteInformation2().satellite(), 15);
+  ASSERT_EQ(gsv->satelliteInformation2().elevation(), 50);
+  ASSERT_EQ(gsv->satelliteInformation2().azimus(), 268);
+  ASSERT_EQ(gsv->satelliteInformation2().sn(), 35);  
+  ASSERT_EQ(gsv->satelliteInformation3().satellite(), 27);
+  ASSERT_EQ(gsv->satelliteInformation3().elevation(), 33);
+  ASSERT_EQ(gsv->satelliteInformation3().azimus(), 189);
+  ASSERT_EQ(gsv->satelliteInformation3().sn(), 37);  
+}
+
+TEST_F(NMEATest, GPGLLTest)
+{
+  const c_nmea_dat * dat = dec.decode(sentences[5]);
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_GLL);
+  const uint8_t * buffer = dat->get_buffer_pointer();
+  size_t size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  const NMEA0183::Data * data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  const NMEA0183::GLL * gll = data->payload_as_GLL();
+  ASSERT_TRUE(gll != nullptr);
+  ASSERT_EQ(gll->hour(), 22);
+  ASSERT_EQ(gll->minute(), 54);  
+  ASSERT_EQ(gll->msec(), 44000);
+  ASSERT_EQ(gll->measured(), true);
+  ASSERT_EQ(gll->fixStatus(), NMEA0183::GPSFixStatus_LOST);
+  ASSERT_FLOAT_EQ(gll->latitude(), 49.0 + (16.45 / 60.0));
+  ASSERT_FLOAT_EQ(gll->longitude(), -(123.0 + (11.12 / 60.0)));
+}
+
+
 TEST_F(NMEATest, GPVTGTest)
 {
   const c_nmea_dat * dat = dec.decode(sentences[4]);

@@ -158,7 +158,7 @@ bool c_gsa::dec(const char * str)
     case 12: // sat10
     case 13: // sat11
     case 14: // sat12
-      if(buf[0] == '\0'){
+      if(buf[0] != '\0'){
 	sused[ipar - 3] = (unsigned char) atoi(buf);
       }
       break;
