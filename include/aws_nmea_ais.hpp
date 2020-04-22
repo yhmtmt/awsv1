@@ -485,7 +485,7 @@ class c_vdm_msg18: public c_vdm
 public:
   float m_speed; // knot
   char m_accuracy; // DGPS = 1, GPS = 0
-  unsigned short m_lon_min, m_lat_min; // positin in minutes
+  int m_lon_min, m_lat_min; // position in minutes
   float m_lon; // degree
   float m_lat; // degree
   float m_course; // xxx.x degree

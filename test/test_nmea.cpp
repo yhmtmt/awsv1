@@ -277,3 +277,135 @@ TEST_F(NMEATest, VDMTest5)
 }
 
 
+TEST_F(NMEATest, VDMTest18)
+{
+  const c_nmea_dat * dat = dec.decode(sentences[19]);
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_VDM);
+  const uint8_t * buffer = dat->get_buffer_pointer();
+  size_t size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  const NMEA0183::Data * data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  const NMEA0183::VDM * vdm = data->payload_as_VDM();
+  ASSERT_TRUE(vdm->isVDO() == false);  
+  ASSERT_TRUE(vdm != nullptr);
+
+  const NMEA0183::StandardClassBCSPositionReport * pl =
+    vdm->payload_as_StandardClassBCSPositionReport();
+    
+  ASSERT_TRUE(pl != nullptr);
+  ASSERT_EQ(pl->repeat(), 0);
+  ASSERT_EQ(pl->mmsi(), 423302100);
+  ASSERT_EQ(pl->speed(), 14);
+  ASSERT_EQ(pl->course(), 1770);
+  ASSERT_EQ(pl->dgps(), true);
+  ASSERT_FLOAT_EQ((double)pl->longitude() / 600000.0, 53+0.6598/60.0);
+  ASSERT_FLOAT_EQ((double)pl->latitude() / 600000.0, 40 + 0.3170/60.0);
+  ASSERT_EQ(pl->heading(), 177);
+  ASSERT_EQ(pl->second(), 34);
+  ASSERT_EQ(pl->cs(), true);
+  ASSERT_EQ(pl->display(), true);
+  ASSERT_EQ(pl->dsc(), true);
+  ASSERT_EQ(pl->band(), true);
+  ASSERT_EQ(pl->msg22(), true);
+  ASSERT_EQ(pl->assigned(), false);
+  ASSERT_EQ(pl->raim(), false);
+}
+
+TEST_F(NMEATest, VDMTest19)
+{
+  const c_nmea_dat * dat = dec.decode(sentences[20]);
+  ASSERT_TRUE(dat == nullptr);
+  dat = dec.decode(sentences[21]);  
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_VDM);
+  const uint8_t * buffer = dat->get_buffer_pointer();
+  size_t size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  const NMEA0183::Data * data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  const NMEA0183::VDM * vdm = data->payload_as_VDM();
+  ASSERT_TRUE(vdm->isVDO() == false);  
+  ASSERT_TRUE(vdm != nullptr);
+
+  const NMEA0183::ExtendedClassBCSPositionReport * pl =
+    vdm->payload_as_ExtendedClassBCSPositionReport();
+  
+  ASSERT_TRUE(pl != nullptr);
+  ASSERT_EQ(pl->repeat(), 0);
+  ASSERT_EQ(pl->mmsi(), 601000013);
+  ASSERT_EQ(pl->speed(), 29);
+  ASSERT_EQ(pl->dgps(), false);
+  ASSERT_FLOAT_EQ((double)pl->longitude()/600000., 32 + 11.9718/60.0);
+  ASSERT_FLOAT_EQ((double)pl->latitude()/600000., -(29 + 50.2488/60.0));  
+  ASSERT_EQ(pl->course(), 890);;
+  ASSERT_EQ(pl->heading(), 90);
+  ASSERT_EQ(pl->second(), 12);  
+  ASSERT_EQ(string((const char*)pl->shipName()->Data(), 20), string("TEST`NAME`CLSB`MSG19", 20));
+  ASSERT_EQ(pl->shipType(), NMEA0183::ShipType_PleasureCraft);
+  ASSERT_EQ(pl->toBow(), 7);
+  ASSERT_EQ(pl->toStern(), 6);
+  ASSERT_EQ(pl->toPort(), 2);
+  ASSERT_EQ(pl->toStarboard(), 3);
+  ASSERT_EQ(pl->epfd(), NMEA0183::EPFDFixType_GPS);
+  ASSERT_EQ(pl->raim(), false);
+  ASSERT_EQ(pl->assigned(), false);
+  ASSERT_EQ(pl->dte(), true);
+}
+
+TEST_F(NMEATest, VDOTest24)
+{
+  // Part A
+  const c_nmea_dat * dat = dec.decode(sentences[24]);
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_VDM);
+  const uint8_t * buffer = dat->get_buffer_pointer();
+  size_t size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  const NMEA0183::Data * data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  const NMEA0183::VDM * vdm = data->payload_as_VDM();
+  ASSERT_TRUE(vdm->isVDO() == true);  
+  ASSERT_TRUE(vdm != nullptr);
+
+  const NMEA0183::StaticDataReport * pl =
+    vdm->payload_as_StaticDataReport();
+  
+  ASSERT_TRUE(pl != nullptr);
+  ASSERT_EQ(pl->repeat(), 0);
+  ASSERT_EQ(pl->mmsi(), 112233445);
+  ASSERT_EQ(pl->partno(), 0);
+  ASSERT_EQ(string((const char*)pl->shipName()->Data(), 20), string("THIS`IS`A`CLASS`B`UN", 20));
+  
+
+  // Part B
+  dat = dec.decode(sentences[25]);
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_VDM);
+  buffer = dat->get_buffer_pointer();
+  size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  vdm = data->payload_as_VDM();
+  ASSERT_TRUE(vdm->isVDO() == true);  
+  ASSERT_TRUE(vdm != nullptr);
+
+  pl = vdm->payload_as_StaticDataReport();
+
+  ASSERT_EQ(pl->repeat(), 0);
+  ASSERT_EQ(pl->mmsi(), 112233445);
+  ASSERT_EQ(pl->partno(), 1);
+  ASSERT_EQ(pl->shipType(), NMEA0183::ShipType_Sailing);
+  ASSERT_EQ(string((const char*)pl->callsign()->Data(), 7), string("CALLSIG"));   ASSERT_EQ(pl->toBow(), 5);
+  ASSERT_EQ(pl->toStern(), 4);
+  ASSERT_EQ(pl->toPort(), 3);
+  ASSERT_EQ(pl->toStarboard(), 12);  
+}
+
+

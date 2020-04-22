@@ -249,7 +249,6 @@ c_vdm * c_vdm_dec::decode(const char * str, const long long t)
     pnd->m_toker[0] = str[1];
     pnd->m_toker[1] = str[2];
     pnd->m_cs = true;    
-    pnd->m_vdo = m_vdo;
   }
   return pnd;
 }
@@ -266,8 +265,10 @@ c_vdm * c_vdm_dec::dec_payload(s_pl * ppl, const long long t)
     }
   }
   
-  if(pnd != NULL)
+  if(pnd != NULL){
+    pnd->m_vdo = m_vdo;
     pnd->dec_payload(ppl, t);
+  }
    
   return pnd;
 }
@@ -999,7 +1000,7 @@ void c_vdm_msg19::dec_payload(s_pl * ppl)
     ((dat[50] & 0x20) >> 5);
 
   // 301-304
-  m_epfd = (dat[50] & 0x1E);
+  m_epfd = (dat[50] & 0x1E) >> 1;
 
   // 305
   m_raim = (dat[50] & 0x01 ? true : false);

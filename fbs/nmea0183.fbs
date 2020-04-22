@@ -576,7 +576,7 @@ struct StaticDataReport
       shipName:[ubyte:20];
       shipType:ShipType;
       toPort:ubyte;
-      toStarborad:ubyte;      
+      toStarboard:ubyte;      
       model:ubyte;
       callsign:[ubyte:7];
       toBow:ushort;
