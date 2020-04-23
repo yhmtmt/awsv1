@@ -41,31 +41,7 @@ public:
   }
 
   virtual bool dec(const char * str);
-  virtual bool decode(const char * str, const long long t = -1){
-    if(!dec(str))
-      return false;
-    builder.Clear();
-    auto payload = builder.CreateStruct(NMEA0183::GGA(
-						      m_h,
-						      m_m,
-						      (uint16_t)(m_s * 1000),
-						      m_fix_status,
-						      m_num_sats,
-						      m_dgps_station,
-						      m_hdop,
-						      m_alt,
-						      m_geos,
-						      (m_lat_dir == EGP_N ? m_lat_deg : -m_lat_deg),
-						      (m_lon_dir == EGP_E ? m_lon_deg : -m_lon_deg)));
-						    
-						    
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -109,25 +85,7 @@ public:
 
   virtual bool dec(const char * str);
   
-  virtual bool decode(const char * str, const long long t = -1){
-    smm = NMEA0183::SelectionMeasurementMode_Auto;
-    mm = NMEA0183::MeasurementMode_NoMeasurement;
-    memset(sused, 0, 12);
-    
-    if(!dec(str))
-      return false;
-    builder.Clear();
-    NMEA0183::GSA gsa(smm, mm, pdop, hdop, vdop);
-    for (int i = 0; i < 12; i++)
-      gsa.mutable_satellites()->Mutate(i, sused[i]);    
-    auto payload = builder.CreateStruct(gsa); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -159,31 +117,7 @@ public:
   
   virtual bool dec(const char * str);
 
-  virtual bool decode(const char * str, const long long t = -1){
-    ns = 0;
-    nsats_usable = 0;
-    memset(sat, 0, sizeof(unsigned short) * 4);
-    memset(el, 0, sizeof(unsigned short) * 4);
-    memset(az, 0, sizeof(unsigned short) * 4);
-    memset(sn, 0, sizeof(unsigned short) * 4);    
-   
-    if(!dec(str))
-      return false;
-    builder.Clear();
-    NMEA0183::GSV gsv(ns, si, nsats_usable,
-		      NMEA0183::GSVSatelliteInformation(sat[0], el[0], az[0], sn[0]),
-		      NMEA0183::GSVSatelliteInformation(sat[1], el[1], az[1], sn[1]),
-		      NMEA0183::GSVSatelliteInformation(sat[2], el[2], az[2], sn[2]),
-		      NMEA0183::GSVSatelliteInformation(sat[3], el[3], az[3], sn[3])
-		      );
-    auto payload = builder.CreateStruct(gsv); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -223,24 +157,7 @@ public:
   }
 
   virtual bool dec(const char * str);
-
-  virtual bool decode(const char * str, const long long t = -1){
-    if(!dec(str))
-      return false;
-    builder.Clear();
-    NMEA0183::RMC rmc(m_v, m_yr, m_mn, m_dy, m_h, m_m, m_s * 1000,
-		      fs, m_vel, m_crs,
-		      (m_crs_var_dir == EGP_E ? m_crs_var: -m_crs_var),
-		      (m_lat_dir == EGP_N ? m_lat_deg : -m_lat_deg),
-		      (m_lon_dir == EGP_E ? m_lon_deg : -m_lon_deg));
-    auto payload = builder.CreateStruct(rmc); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -275,19 +192,7 @@ public:
 
   virtual bool dec(const char * str);
 
-  virtual bool decode(const char * str, const long long t = -1){
-    if(!dec(str))
-      return false;
-    builder.Clear();
-    NMEA0183::VTG vtg(fs, crs_t, crs_m, v_n, v_k);
-    auto payload = builder.CreateStruct(vtg); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -321,20 +226,7 @@ public:
 
   virtual bool dec(const char * str);
   
-  virtual bool decode(const char * str, const long long t = -1){
-    if(!dec(str))
-      return false;
-    builder.Clear();
-    NMEA0183::ZDA zda(m_h, m_m, m_mn, m_dy, m_lzh, m_lzm,
-		      m_s * 1000, m_yr);
-    auto payload = builder.CreateStruct(zda); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -357,7 +249,7 @@ class c_gll: public c_nmea_dat
  public:
   double lon, lat; // in degree
   e_gp_dir lon_dir, lat_dir;
-  short hour, mint, msec; // UTC time. hour,minuite,msec
+  unsigned short hour, mint, msec; // UTC time. hour,minuite,msec
   bool available; // A(valid) or V(invalid)
   NMEA0183::GPSFixStatus fs;
  c_gll():lon(0),lat(0),lon_dir(EGP_E),lat_dir(EGP_N),
@@ -366,24 +258,7 @@ class c_gll: public c_nmea_dat
   }
 
   virtual bool dec(const char * str);
-
-  virtual bool decode(const char * str, const long long t = -1){
-    fs = NMEA0183::GPSFixStatus_LOST;
-    
-    if(!dec(str))
-      return false;
-    builder.Clear();
-    NMEA0183::GLL gll(fs, available, hour, mint, msec,
-		      (lat_dir == EGP_N ? lat : -lat),
-		      (lon_dir == EGP_E ? lon : -lon));
-    auto payload = builder.CreateStruct(gll); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -415,19 +290,7 @@ class c_hdt: public c_nmea_dat
 
   virtual bool dec(const char * str);
 
-  virtual bool decode(const char * str, const long long t = -1){
-    if(!dec(str))
-      return false;
-    builder.Clear();
-    NMEA0183::HDT hdt(hdg);
-    auto payload = builder.CreateStruct(hdg); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -456,19 +319,7 @@ public:
   
   virtual bool dec(const char * str);
 
-   virtual bool decode(const char * str, const long long t = -1){
-    if(!dec(str))
-      return false;
-    builder.Clear();
-
-    auto payload = builder.CreateStruct(NMEA0183::HEV(hev)); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -498,19 +349,7 @@ class c_rot: public c_nmea_dat
 
   virtual bool dec(const char * str);
 
-  virtual bool decode(const char * str, const long long t = -1){
-    if(!dec(str))
-      return false;
-    builder.Clear();
-
-    auto payload = builder.CreateStruct(NMEA0183::ROT(available, rot)); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -558,23 +397,7 @@ class c_psat_hpr: public c_psat
   {
   }
   virtual bool dec(const char * str);
-  virtual bool decode(const char * str, const long long t = -1){
-    if(!dec(str))
-      return false;
-    builder.Clear();
-
-    auto payload = builder.CreateStruct(NMEA0183::HPR(hour, mint,
-						      (unsigned short)(sec * 1000),
-						      hdg,
-						      pitch, roll, gyro));
-    auto psat = CreatePSAT(builder, NMEA0183::PSATPayload_HPR, payload.Union());
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   psat.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::PSATPayload get_psat_payload_type()
   {
@@ -674,20 +497,7 @@ public:
   
   virtual bool dec(const char * str);
 
-   virtual bool decode(const char * str, const long long t = -1){
-    if(!dec(str))
-      return false;
-    builder.Clear();
-    NMEA0183::MDA mda(iom, bar, temp_air, temp_wtr, hmdr, hmda, dpt,
-		      dir_wnd_t, dir_wnd_m, wspd_kts,wspd_mps);
-    auto payload = builder.CreateStruct(mda); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -730,22 +540,7 @@ public:
   }
   
   virtual bool dec(const char * str);
-   virtual bool decode(const char * str, const long long t = -1){
-    if(!dec(str))
-      return false;
-    builder.Clear();
-    NMEA0183::WMV wmv((relative ?
-		       NMEA0183::WindAngleMode_Relative :
-		       NMEA0183::WindAngleMode_Theoretical),
-		      spd_unit, wangl, wspd);
-    auto payload = builder.CreateStruct(wmv); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -773,19 +568,7 @@ public:
   }
   
   virtual bool dec(const char * str);
-   virtual bool decode(const char * str, const long long t = -1){
-    if(!dec(str))
-      return false;
-    builder.Clear();
-    NMEA0183::XDR xdr(pitch, roll);
-    auto payload = builder.CreateStruct(xdr); 
-    auto data = CreateData(builder,
-			   t,
-			   get_payload_type(),
-			   payload.Union());
-    
-    builder.Finish(data);    
-  }
+  virtual bool decode(const char * str, const long long t = -1);
   
   virtual NMEA0183::Payload get_payload_type() const
   {

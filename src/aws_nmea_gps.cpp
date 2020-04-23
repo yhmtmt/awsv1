@@ -27,6 +27,43 @@ using namespace std;
 #include "aws_nmea.hpp"
 
 /////////////////////////////////////////// gga decoder
+bool c_gga::decode(const char * str, const long long t)
+{
+  m_h = m_m = 0;
+  m_s = 0.0f;
+  m_fix_status = NMEA0183::GPSFixStatus_LOST;
+  m_num_sats = 0;
+  m_lon_deg = m_lat_deg = 0.0;
+  m_lon_dir = EGP_N;
+  m_lat_dir = EGP_E;
+  m_hdop = m_alt = m_geos = m_dgps_age = 0.0;
+  m_dgps_station = 0;
+    
+  if(!dec(str))
+    return false;
+  builder.Clear();
+  auto payload =
+    builder.CreateStruct(NMEA0183::GGA(
+				       m_h,
+				       m_m,
+				       (uint16_t)(m_s * 1000),
+				       m_fix_status,
+				       m_num_sats,
+				       m_dgps_station,
+				       m_hdop,
+				       m_alt,
+				       m_geos,
+				       (m_lat_dir == EGP_N ? m_lat_deg : -m_lat_deg),
+				       (m_lon_dir == EGP_E ? m_lon_deg : -m_lon_deg)));
+						    
+						    
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
 
 bool c_gga::dec(const char * str)
 {
@@ -112,6 +149,28 @@ bool c_gga::dec(const char * str)
 }
 
 /////////////////////////////////////////// gsa decoder
+bool c_gsa::decode(const char * str, const long long t)
+{
+  smm = NMEA0183::SelectionMeasurementMode_Auto;
+  mm = NMEA0183::MeasurementMode_NoMeasurement;
+  memset(sused, 0, 12);
+  pdop = hdop = vdop = 0.0f;
+    
+  if(!dec(str))
+    return false;
+  builder.Clear();
+  NMEA0183::GSA gsa(smm, mm, pdop, hdop, vdop);
+  for (int i = 0; i < 12; i++)
+    gsa.mutable_satellites()->Mutate(i, sused[i]);    
+  auto payload = builder.CreateStruct(gsa); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
+
 bool c_gsa::dec(const char * str)
 {
   int i = 0;
@@ -179,6 +238,34 @@ bool c_gsa::dec(const char * str)
 }
 
 /////////////////////////////////////////// gsv decoder
+bool c_gsv::decode(const char * str, const long long t)
+{
+  ns = 0;
+  nsats_usable = 0;
+  memset(sat, 0, sizeof(unsigned short) * 4);
+  memset(el, 0, sizeof(unsigned short) * 4);
+  memset(az, 0, sizeof(unsigned short) * 4);
+  memset(sn, 0, sizeof(unsigned short) * 4);    
+   
+  if(!dec(str))
+    return false;
+  builder.Clear();
+  NMEA0183::GSV gsv(ns, si, nsats_usable,
+		    NMEA0183::GSVSatelliteInformation(sat[0], el[0], az[0], sn[0]),
+		    NMEA0183::GSVSatelliteInformation(sat[1], el[1], az[1], sn[1]),
+		    NMEA0183::GSVSatelliteInformation(sat[2], el[2], az[2], sn[2]),
+		    NMEA0183::GSVSatelliteInformation(sat[3], el[3], az[3], sn[3])
+		    );
+  auto payload = builder.CreateStruct(gsv); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
+  
+
 bool c_gsv::dec(const char * str)
 {
   int i = 0;
@@ -250,6 +337,35 @@ bool c_gsv::dec(const char * str)
 }
 
 /////////////////////////////////////////// rmc decoder
+bool c_rmc::decode(const char * str, const long long t)
+{
+  m_h = m_m = m_yr = m_mn = m_dy = 0;
+  m_s = 0.0f;
+  m_lon_deg = m_lat_deg = 0.0;
+  m_lon_dir = EGP_E;
+  m_lat_dir = EGP_N;
+  m_vel  = m_crs = m_crs_var = 0.0;
+  m_crs_var_dir = EGP_E;
+  fs = NMEA0183::GPSFixStatus_LOST;
+  
+  if(!dec(str))
+    return false;
+  builder.Clear();
+  NMEA0183::RMC rmc(m_v, m_yr, m_mn, m_dy, m_h, m_m, m_s * 1000,
+		    fs, m_vel, m_crs,
+		    (m_crs_var_dir == EGP_E ? m_crs_var: -m_crs_var),
+		    (m_lat_dir == EGP_N ? m_lat_deg : -m_lat_deg),
+		    (m_lon_dir == EGP_E ? m_lon_deg : -m_lon_deg));
+  auto payload = builder.CreateStruct(rmc); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+    
+}
+
 bool c_rmc::dec(const char * str)
 {
   int i = 0;
@@ -347,6 +463,25 @@ bool c_rmc::dec(const char * str)
   return true;
 }
 
+/////////////////////////////////////////// vtg decoder
+bool c_vtg::decode(const char * str, const long long t)
+{
+  crs_t = crs_m = v_n = v_k = 0.0f;
+    
+  if(!dec(str))
+    return false;
+  builder.Clear();
+  NMEA0183::VTG vtg(fs, crs_t, crs_m, v_n, v_k);
+  auto payload = builder.CreateStruct(vtg); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
+
+
 bool c_vtg::dec(const char * str)
 {
   int i = 0;
@@ -414,6 +549,27 @@ bool c_vtg::dec(const char * str)
 }
 
 ////////////////////////////////////////////////zda decoder
+bool c_zda::decode(const char * str, const long long t)
+{
+  m_h = m_m = m_dy = m_mn = m_lzh = m_lzm = 0;
+  m_s = 0.f;
+  m_yr = 0;
+    
+  if(!dec(str))
+    return false;
+  builder.Clear();
+  NMEA0183::ZDA zda(m_h, m_m, m_mn, m_dy, m_lzh, m_lzm,
+		    m_s * 1000, m_yr);
+  auto payload = builder.CreateStruct(zda); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
+
+
 bool c_zda::dec(const char * str)
 {
   int i = 0;
@@ -465,6 +621,29 @@ bool c_zda::dec(const char * str)
 
 
 ////////////////////////////////////////////////gll decoder
+bool c_gll::decode(const char * str, const long long t)
+{
+  fs = NMEA0183::GPSFixStatus_LOST;
+  lon = lat = 0.0;
+  hour = mint = msec = 0;
+  available = false;
+    
+  if(!dec(str))
+    return false;
+  builder.Clear();
+  NMEA0183::GLL gll(fs, available, hour, mint, msec,
+		    (lat_dir == EGP_N ? lat : -lat),
+		    (lon_dir == EGP_E ? lon : -lon));
+  auto payload = builder.CreateStruct(gll); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
+
+
 bool c_gll::dec(const char * str)
 {
   int i = 0;
@@ -541,6 +720,23 @@ bool c_gll::dec(const char * str)
 
 
 ////////////////////////////////////////////////hdt decoder
+bool c_hdt::decode(const char * str, const long long t)
+{
+  hdg = 0.0f;
+    
+  if(!dec(str))
+    return false;
+  builder.Clear();
+  NMEA0183::HDT hdt(hdg);
+  auto payload = builder.CreateStruct(hdg); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
+
 bool c_hdt::dec(const char * str)
 {
   int i = 0;
@@ -573,6 +769,24 @@ bool c_hdt::dec(const char * str)
 }
 
 ////////////////////////////////////////////////hev decoder
+bool c_hev::decode(const char * str, const long long t)
+{
+  hev = 0.0f;
+    
+  if(!dec(str))
+    return false;
+  builder.Clear();
+
+  auto payload = builder.CreateStruct(NMEA0183::HEV(hev)); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
+
+
 bool c_hev::dec(const char * str)
 {
   int i = 0;
@@ -605,6 +819,23 @@ bool c_hev::dec(const char * str)
 }
 
 ////////////////////////////////////////////////rot decoder
+bool c_rot::decode(const char * str, const long long t)
+{
+  rot = 0.0f;
+    
+  if(!dec(str))
+    return false;
+  builder.Clear();
+
+  auto payload = builder.CreateStruct(NMEA0183::ROT(available, rot)); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
+
 bool c_rot::dec(const char * str)
 {
   int i = 0;
@@ -681,6 +912,31 @@ c_nmea_dat * c_psat_dec::decode(const char * str, const long long t)
   return nullptr;
 }
 
+////////////////////////////////////////////////////// hpr decoder
+bool c_psat_hpr::decode(const char * str, const long long t)
+{
+  hour = mint = 0;
+  sec = 0.0f;
+  hdg = pitch = roll = 0.0f;
+  gyro = false;
+    
+  if(!dec(str))
+    return false;
+  builder.Clear();
+
+  auto payload = builder.CreateStruct(NMEA0183::HPR(hour, mint,
+						    (unsigned short)(sec * 1000),
+						    hdg,
+						    pitch, roll, gyro));
+  auto psat = CreatePSAT(builder, NMEA0183::PSATPayload_HPR, payload.Union());
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 psat.Union());
+    
+  builder.Finish(data);    
+}
+
 bool c_psat_hpr::dec(const char * str)
 {
   int i = 0;
@@ -727,6 +983,25 @@ bool c_psat_hpr::dec(const char * str)
 }
 
 ///////////////////////////////////////// Airmar weather station specific NMEA
+bool c_mda::decode(const char * str, const long long t)
+{
+  iom = bar = temp_air = temp_wtr = hmdr = hmda
+    = dpt = dir_wnd_t = dir_wnd_m = wspd_kts = wspd_mps = 0.0f;
+    
+  if(!dec(str))
+    return false;
+  builder.Clear();
+  NMEA0183::MDA mda(iom, bar, temp_air, temp_wtr, hmdr, hmda, dpt,
+		    dir_wnd_t, dir_wnd_m, wspd_kts,wspd_mps);
+  auto payload = builder.CreateStruct(mda); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
+
 bool c_mda::dec(const char * str)
 {
   int i = 0;
@@ -821,6 +1096,29 @@ bool c_mda::dec(const char * str)
   return true;
 }
 
+///////////////////////////////////////////////////////////// wmv decoder
+bool c_wmv::decode(const char * str, const long long t)
+{
+  wangl = wspd = 0.0f;
+  spd_unit = NMEA0183::SpeedUnit_kmph;
+  relative = valid = false;
+     
+  if(!dec(str))
+    return false;
+  builder.Clear();
+  NMEA0183::WMV wmv((relative ?
+		     NMEA0183::WindAngleMode_Relative :
+		     NMEA0183::WindAngleMode_Theoretical),
+		    spd_unit, wangl, wspd);
+  auto payload = builder.CreateStruct(wmv); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
+
 bool c_wmv::dec(const char * str)
 {
   int i = 0;
@@ -884,6 +1182,25 @@ bool c_wmv::dec(const char * str)
   
   return true;
 }
+
+////////////////////////////////////////////////////////// xdr decoder
+bool c_xdr::decode(const char * str, const long long t)
+{
+  pitch = roll = 0.0f;
+    
+  if(!dec(str))
+    return false;
+  builder.Clear();
+  NMEA0183::XDR xdr(pitch, roll);
+  auto payload = builder.CreateStruct(xdr); 
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);    
+}
+
 
 bool c_xdr::dec(const char * str)
 {
