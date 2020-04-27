@@ -1,4 +1,4 @@
-// Copyright(c) 2019 Yohei Matsumoto, All right reserved. 
+// Copyright(c) 2019-2020 Yohei Matsumoto, All right reserved. 
 
 // factory is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -71,5 +71,6 @@ void ch_base::register_factory()
   register_factory<ch_time_sync>("time_sync");
 
   register_factory<ch_nmea_data>("nmea_data");
+  register_factory<ch_n2k_data>("n2k_data");
   register_factory<ch_ctrl_data>("ctrl_data");
 }

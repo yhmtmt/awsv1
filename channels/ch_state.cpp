@@ -268,20 +268,20 @@ bool ch_state::log2txt(FILE * pbf, FILE * ptf)
 
 //////////////////////////////////////////////////////////////////////////////////////// ch_eng_state
 
-const char * strStatEng1[EmergencyStop+1] = {
+const char * strStatEng1[NMEA2000::EngineStatus1_MAX+1] = {
     "Check Engine", "Over Temperature", "Low Oil Pressure", "Low Oil Level", "Low Fuel Pressure",
     "Low System Voltage", "Low Coolant Level", "Water Flow", "Water In Fuel", "Charge Indicator",
     "Preheat Indicator", "High Boost Pressure", "Rev Limit Exceeded", "EGR System",
     "Throttle Position Sensor", "Emergency Stop"
 };;
 
-const char * strStatEng2[EngineShuttingDown+1] = {
+const char * strStatEng2[NMEA2000::EngineStatus2_MAX+1] = {
   "Warning Level1", "Warning Level2", "Power Reduction", "Maintenance Needed",
   "Engine Comm Error", "Subor Secondary Throttle", "Neutral Start Protect",
   "Engine Shutting Down"
 };
 
-const char * strStatGear[Reverse+1] = {
+const char * strStatGear[NMEA2000::GearStatus_MAX+1] = {
   "Forward", "Neutral", "Reverse"
 };
 
@@ -321,13 +321,13 @@ size_t ch_eng_state::write_buf(const char * buf)
   const unsigned int * uiptr = (const unsigned int*)(iptr + 5);
   teng = uiptr[0];
 
-  const StatEng1 * se1ptr = (const StatEng1 *)(uiptr + 1);
+  const NMEA2000::EngineStatus1 * se1ptr = (const NMEA2000::EngineStatus1 *)(uiptr + 1);
   stat1 = *se1ptr;
 
-  const StatEng2 * se2ptr = (const StatEng2 *)(se1ptr + 1);
+  const NMEA2000::EngineStatus2 * se2ptr = (const NMEA2000::EngineStatus2 *)(se1ptr + 1);
   stat2 = *se2ptr;
 
-  const StatGear * sgptr = (const StatGear *)(se2ptr +1);
+  const NMEA2000::GearStatus * sgptr = (const NMEA2000::GearStatus *)(se2ptr +1);
   gear = *sgptr;
 
   unlock();
@@ -370,13 +370,13 @@ size_t ch_eng_state::write_buf_back(const char * buf)
   const unsigned int * uiptr = (const unsigned int*)(iptr + 5);
   tengf = uiptr[0];
 
-  const StatEng1 * se1ptr = (const StatEng1 *)(uiptr + 1);
+  const NMEA2000::EngineStatus1 * se1ptr = (const NMEA2000::EngineStatus1 *)(uiptr + 1);
   stat1f = *se1ptr;
 
-  const StatEng2 * se2ptr = (const StatEng2 *)(se1ptr + 1);
+  const NMEA2000::EngineStatus2 * se2ptr = (const NMEA2000::EngineStatus2 *)(se1ptr + 1);
   stat2f = *se2ptr;
 
-  const StatGear * sgptr = (const StatGear *)(se2ptr +1);
+  const NMEA2000::GearStatus * sgptr = (const NMEA2000::GearStatus *)(se2ptr +1);
   gearf = *sgptr;
 
   unlock();
@@ -419,13 +419,13 @@ size_t ch_eng_state::read_buf(char * buf)
   unsigned int * uiptr = (unsigned int*)(iptr + 5);
   uiptr[0] = teng;
 
-  StatEng1 * se1ptr = (StatEng1 *)(uiptr + 1);
+  NMEA2000::EngineStatus1 * se1ptr = (NMEA2000::EngineStatus1 *)(uiptr + 1);
   *se1ptr = stat1;
 
-  StatEng2 * se2ptr = (StatEng2 *)(se1ptr + 1);
+  NMEA2000::EngineStatus2 * se2ptr = (NMEA2000::EngineStatus2 *)(se1ptr + 1);
   *se2ptr = stat2;
 
-  StatGear * sgptr = (StatGear *)(se2ptr +1);
+  NMEA2000::GearStatus * sgptr = (NMEA2000::GearStatus *)(se2ptr +1);
   *sgptr = gear;
   
   unlock();
@@ -503,13 +503,13 @@ bool ch_eng_state::log2txt(FILE * pbf, FILE * ptf)
     const char * str1, * str2, * str3;
     str1 = str2 = str3 = "null";
     
-    if((int)stat1 <= (int)EmergencyStop && (int)stat1 >= 0){
+    if((int)stat1 <= (int)NMEA2000::EngineStatus1_MAX && (int)stat1 >= 0){
       str1 = strStatEng1[stat1];
     }
-    if((int)stat2 <= (int)EngineShuttingDown && (int)stat2 >= 0){
+    if((int)stat2 <= (int)NMEA2000::EngineStatus2_MAX && (int)stat2 >= 0){
       str2 = strStatEng2[stat2];
     }
-    if((int)gear <= (int)Reverse && (int) gear >= 0){
+    if((int)gear <= (int)NMEA2000::GearStatus_MAX && (int) gear >= 0){
       str3 = strStatGear[gear];
     }
     

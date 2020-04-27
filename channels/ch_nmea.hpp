@@ -142,6 +142,7 @@ public:
 };
 
 typedef ch_binary_data<64, 256, nullptr> ch_nmea_data;
+typedef ch_binary_data<64, 64, nullptr> ch_n2k_data;
 typedef ch_binary_data<64, 64, nullptr> ch_ctrl_data;
 
 class ch_nmea: public ch_base

@@ -17,6 +17,7 @@
 #define AWS_NMEA_HPP
 
 #include "nmea0183_generated.h"
+#include "nmea2000_generated.h"
 
 // NMEA data type
 enum e_nd_type{

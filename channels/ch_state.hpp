@@ -368,28 +368,12 @@ public:
 };
 
 
-enum StatEng1{
-  CheckEngine, OverTemperature, LowOilPressure, LowOilLevel, LowFuelPressure,
-  LowSystemVoltage, LowCoolantLevel, WaterFlow, WaterInFuel, ChargeIndicator,
-  PreheatIndicator, HighBoostPressure, RevLimitExceeded, EGRSystem,
-  ThrottlePositionSensor, EmergencyStop
-};
 
-extern const char * strStatEng1[EmergencyStop+1];
+extern const char * strStatEng1[NMEA2000::EngineStatus1_MAX +1];
 
-enum StatEng2{
-  WarningLevel1, WarningLevel2, PowerReduction, MaintenanceNeeded,
-  EngineCommError, SuborSecondaryThrottle, NeutralStartProtect,
-  EngineShuttingDown
-};
+extern const char * strStatEng2[NMEA2000::EngineStatus2_MAX +1];
 
-extern const char * strStatEng2[EngineShuttingDown+1];
-
-enum StatGear{
-  Forward, Neutral, Reverse
-};
-
-extern const char * strStatGear[Reverse+1];
+extern const char * strStatGear[NMEA2000::GearStatus_MAX+1];
 
 class ch_eng_state: public ch_base
 {
@@ -409,13 +393,13 @@ private:
   unsigned int teng, tengf; // total engine hour
   int pclnt, pclntf; // coolant pressure
   int pfl, pflf; // fuel pressure
-  StatEng1 stat1, stat1f; // Status 1
-  StatEng2 stat2, stat2f; // Status 2
+  NMEA2000::EngineStatus1 stat1, stat1f; // Status 1
+  NMEA2000::EngineStatus2 stat2, stat2f; // Status 2
   unsigned char ld, ldf; // load
   unsigned char tq, tqf; // torque
   
   long long ttran, ttranf;
-  StatGear gear, gearf;
+  NMEA2000::GearStatus gear, gearf;
   int pgoil, pgoilf;
   float tgoil, tgoilf;
   
@@ -433,10 +417,13 @@ public:
 				  valt(14.1), valtf(14.1),
 				  frate(1.0), fratef(1.0),
 				  teng(0), tengf(0),
-				  stat1(CheckEngine), stat1f(CheckEngine),
-				  stat2(WarningLevel2), stat2f(WarningLevel2),
+				  stat1(NMEA2000::EngineStatus1_CheckEngine),
+				  stat1f(NMEA2000::EngineStatus1_CheckEngine),
+				  stat2(NMEA2000::EngineStatus2_WarningLevel2),
+				  stat2f(NMEA2000::EngineStatus2_WarningLevel2),
 				  ld(0), ldf(0), tq(0), tqf(0), 
-				  gear(Neutral), gearf(Neutral),
+				  gear(NMEA2000::GearStatus_Neutral),
+				  gearf(NMEA2000::GearStatus_Neutral),
 				  pgoil(0), pgoilf(0),
 				  flused(0), flusedf(0),
 				  flavg(0), flavgf(0),
@@ -472,7 +459,8 @@ public:
   void set_dynamic(const long long _t, const int _poil, const float _toil,
 		   const float _temp,  const float _valt, const float _frate,
 		   const unsigned int _teng, const int _pclnt, const int _pfl,
-		   const StatEng1 _stat1, const StatEng2 _stat2,
+		   const NMEA2000::EngineStatus1 _stat1,
+		   const NMEA2000::EngineStatus2 _stat2,
 		   const unsigned char _ld, const unsigned char _tq)
   {
     lock();
@@ -495,7 +483,8 @@ public:
   void get_dynamic(long long & _t,  int & _poil,  float & _toil,
 		   float & _temp, float & _valt,  float & _frate,
 		   unsigned int & _teng,  int & _pclnt,  int & _pfl,
-		   StatEng1 & _stat1,  StatEng2 & _stat2,
+		   NMEA2000::EngineStatus1 & _stat1,
+		   NMEA2000::EngineStatus2 & _stat2,
 		   unsigned char & _ld, unsigned char & _tq)
   {
     lock();
@@ -515,7 +504,7 @@ public:
     unlock();    
   }
 
-  void set_tran(const long long _t, const StatGear _gear, const int _pgoil,
+  void set_tran(const long long _t, const NMEA2000::GearStatus _gear, const int _pgoil,
 		const float _tgoil)
   {
     lock();
@@ -526,7 +515,7 @@ public:
     unlock();
   }
   
-  void get_tran(long long & _t, StatGear & _gear, int & _pgoil, float & _tgoil)
+  void get_tran(long long & _t, NMEA2000::GearStatus & _gear, int & _pgoil, float & _tgoil)
   {
     lock();
     _t = ttran;
@@ -562,8 +551,8 @@ public:
   
   virtual size_t get_dsize(){
     return sizeof(long long)*5 + sizeof(float)*9 + sizeof(unsigned char)*3
-      + sizeof(int)*5 + sizeof(unsigned int) + sizeof(StatEng1)
-      + sizeof(StatEng2) + sizeof(StatGear);
+      + sizeof(int)*5 + sizeof(unsigned int) + sizeof(NMEA2000::EngineStatus1)
+      + sizeof(NMEA2000::EngineStatus2) + sizeof(NMEA2000::GearStatus);
   }
   
   virtual size_t write_buf_back(const char * buf);
