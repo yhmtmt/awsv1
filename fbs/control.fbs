@@ -1,0 +1,46 @@
+include "control_type.fbs";
+
+namespace Control;
+
+union Payload
+{
+	Instruction, Master, Status, Config
+}
+
+table Data
+{
+	t:long;
+	payload:Payload;
+}
+
+struct Instruction
+{
+	rudder:ubyte;
+	engine:ubyte;
+}
+
+struct Master
+{
+	master:ControlSource;
+}
+
+struct Status
+{
+	master:ControlSource;
+	rudder:ubyte;
+	engine:ubyte;
+}
+
+struct Config
+{
+	engine_max:ubyte;
+	engine_forward:ubyte;
+	engine_nutral:ubyte;
+	engine_backward:ubyte;
+	engine_min:ubyte;
+	rudder_max:ubyte;
+	rudder_mid:ubyte;
+	rudder_min:ubyte;
+}
+
+root_type Data;
