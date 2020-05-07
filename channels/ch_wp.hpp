@@ -1,6 +1,6 @@
 #ifndef CH_WP_HPP
 #define CH_WP_HPP
-// Copyright(c) 2016 Yohei Matsumoto, All right reserved. 
+// Copyright(c) 2016-2020 Yohei Matsumoto, All right reserved. 
 
 // ch_wp.hpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -97,7 +97,7 @@ protected:
 
   // for autopilot 
   float dist_next;                  // distance to the next wp
-  float cdiff_next;                 // course difference to the next wp
+  float course_next;                 // course to the next wp
   float xdiff_next;                 // cross track difference 
 
   // finding next navigation target.
@@ -108,7 +108,7 @@ protected:
   }
   
 public:
-  ch_wp(const char * name) :ch_base(name), focus(0), dist_next(0.), cdiff_next(0), xdiff_next(0), cmd(cmd_none), id(0)
+  ch_wp(const char * name) :ch_base(name), focus(0), dist_next(0.), course_next(0), xdiff_next(0), cmd(cmd_none), id(0)
   {
     itr_next = itr_focus = itr = wps.begin();
   }
@@ -142,17 +142,18 @@ public:
     return id;
   }
   
-  void set_diff(const float dist, const float cdiff, const float xdiff)
+  void set_target_course(const float dist, const float course,
+			 const float xdiff)
   {	  
     dist_next = dist;
-    cdiff_next = cdiff;
+    course_next = course;
     xdiff_next = xdiff;
   }
   
-  void get_diff(float & dist, float & cdiff, float & xdiff)
+  void get_target_course(float & dist, float & course, float & xdiff)
   {
     dist = dist_next;
-    cdiff = cdiff_next;
+    course = course_next;
     xdiff = xdiff_next;
   }
   

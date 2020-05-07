@@ -1,0 +1,123 @@
+namespace NMEA2000;
+
+union Payload
+{
+      EngineParametersRapidUpdate,
+      EngineParametersDynamic,
+      TransmissionParametersDynamic,
+      TripParametersVessel,
+      TripParametersEngine,
+      EngineParametersStatic
+}
+
+table Data
+{
+	t:long;
+	payload:Payload;
+}
+
+enum EngineInstance:byte
+{
+	SingleEngineOrDualEnginePort=0,
+	DualEngineStarboard=1
+}
+
+enum EngineStatus1:byte
+{
+	CheckEngine=0,
+	OverTemperature=1,
+	LowOilPressure=2,
+	LowOilLevel=3,
+	LowFuelPressure=4,
+	LowSystemVoltage=5,
+	LowCoolantLevel=6,
+	WaterFlow=7,
+	WaterInFuel=8,
+	ChargeIndicator=9,
+	PreheatIndicator=10,
+	HighBoostPressure=11,
+	RevLimitExceeded=12,
+	EGRSystem=13,
+	ThrottlePositionSensor=14,
+	EmergencyStop=15
+}
+
+enum EngineStatus2:byte
+{
+	WarningLevel1=0,
+	WarningLevel2=1,
+	PowerReduction=2,
+	MaintenanceNeeded=3,
+	EngineCommError=4,
+	SubOrSecondaryThrottle=5,
+	NeutralStartProtect=6,
+	EngineShuttingDown=7
+}
+
+enum GearStatus:byte
+{
+	Forward=0,
+	Neutral=1,
+	Reverse=2
+}
+
+struct EngineParametersRapidUpdate
+{
+      engineInstance:EngineInstance;
+      engineSpeed:ushort; // 0.25x rpm
+      engineBoostPressure:ushort; // hPa
+      engineTrim:byte;
+}
+
+struct EngineParametersDynamic
+{
+      engineInstance:EngineInstance;
+      oilPressure:ushort; // hPa
+      oilTemperature:ushort; // K
+      temperature:ushort; // K
+      alternatorPotential:ushort; // 0.01x V
+      fuelRate:short; // 0.1x L/h
+      totalEngineHours:uint; // s
+      coolantPressure:ushort; // hPa
+      fuelPressure:ushort; // hPa
+      discreteStatus1:EngineStatus1;
+      discreteStatus2:EngineStatus2;
+      percentEngineLoad:byte; // %
+      percentEngineTorque:byte; // %
+}
+
+struct TransmissionParametersDynamic
+{
+      engineInstance:EngineInstance;
+      transmissionGear:GearStatus;
+      oilPressure:ushort; // hPa
+      oilTemperature:ushort; // K
+      discreteStatus1:ubyte;
+}
+
+struct TripParametersVessel
+{
+      timeToEmpty:uint; // 0.001x s
+      distanceToEmpty:uint; // 0.01x m
+      estimatedFuelRemaining:ushort; // L
+      tripRunTime:uint; // 0.001x s
+}
+
+struct TripParametersEngine
+{
+      engineInstance:EngineInstance;
+      tripFuelUsed:ushort; // L
+      fuelRateAverage:short; // 0.1x L/h
+      fuelRateEconomy:short; // 0.1x L/h
+      instantaneousFuelEconomy:short; // 0.1x L/h
+}
+
+struct EngineParametersStatic
+{
+      engineInstance:EngineInstance;
+      ratedEngineSpeed:ushort;
+      VIN:ubyte;
+      softwareID:ushort;
+}
+
+root_type Data;

@@ -4,7 +4,8 @@ namespace Control;
 
 union Payload
 {
-	Instruction, Master, Status, Config
+	Engine, Revolution, Speed, Rudder, Course, 
+	Controller, Config
 }
 
 table Data
@@ -13,20 +14,34 @@ table Data
 	payload:Payload;
 }
 
-struct Instruction
+
+struct Engine
 {
-	rudder:ubyte;
-	engine:ubyte;
+	value:ubyte;
 }
 
-struct Master
+struct Revolution
 {
-	master:ControlSource;
+	value:float;
 }
 
-struct Status
+struct Speed
 {
-	master:ControlSource;
+	value:float;
+}
+
+struct Rudder
+{
+	value:ubyte;
+}
+
+struct Course
+{
+	value:float;
+}
+
+struct Controller
+{
 	rudder:ubyte;
 	engine:ubyte;
 }

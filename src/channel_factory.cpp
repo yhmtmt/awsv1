@@ -52,9 +52,6 @@ void ch_base::register_factory()
   register_factory<ch_sample>("sample");
   register_factory<ch_nmea>("nmea");
   
-  register_factory<ch_aws1_ctrl_inst>("aws1_ctrl_inst");
-  register_factory<ch_aws1_ctrl_stat>("aws1_ctrl_stat");
-  register_factory<ch_aws1_ap_inst>("aws1_ap_inst");
   register_factory<ch_ring<char, 1024> >("crbuf");
   register_factory<ch_ring<char, 2048> >("crbuf2k");
   register_factory<ch_ring<char, 4096> >("crbuf4k");

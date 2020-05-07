@@ -14,14 +14,3 @@
 // along with ch_aws1_ctrl.cpp.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ch_aws1_ctrl.hpp"
-
-const char * str_aws1_ctrl_src[ControlSource_NONE] = 
-{
-  "ui", "ap","fset"
-};
-
-
-const char * str_aws1_ap_mode[AutopilotMode_NONE] =
-{
-  "cursor", "wp", "wpav", "stay"
-};
