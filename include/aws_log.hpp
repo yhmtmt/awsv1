@@ -217,12 +217,13 @@ public:
       ifile->read((char*)&buf_size, sizeof(buf_size));
       ifile->read((char*)buf, buf_size);
       t = current_timestamp;
+      ifile->read((char*)&current_timestamp, sizeof(current_timestamp));       
       if(ifile->eof()){
 	if(!open_read_next_file()){
 	  break;
 	}
+	ifile->read((char*)&current_timestamp, sizeof(current_timestamp));      
       }
-      ifile->read((char*)&current_timestamp, sizeof(current_timestamp));      
     }
     
     return true;    
