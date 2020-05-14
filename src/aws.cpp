@@ -904,6 +904,23 @@ bool c_aws::main()
   }else if(!load_config("aws.conf", conf)){
     return false;
   }
+
+  if(!fs::exists(conf.lib_path())){
+    spdlog::error("Library path {} not found.", conf.lib_path());
+    return false;
+  }
+  
+  if(!fs::exists(conf.log_path())){
+    spdlog::info("Creating log path {}.", conf.log_path());    
+    fs::create_directory(conf.log_path());
+    fs::permissions(conf.log_path(), fs::perms::owner_all);
+  }
+
+  if(!fs::exists(conf.data_path())){
+    spdlog::info("Creating data path {}.", conf.data_path());
+    fs::create_directory(conf.data_path());
+    fs::permissions(conf.data_path(), fs::perms::owner_all);
+  }
   
   string logpath = conf.log_path() + "/aws.log";
   
