@@ -137,8 +137,7 @@ public:
   }
 
   bool init(const string _path, const string _prefix,
-	    const size_t _size_max = (1 << 30),
-	    bool _bread = false)
+	    bool _bread = false, const size_t _size_max = (1 << 30))
   {
     path = _path;
     prefix = _prefix;

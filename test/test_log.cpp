@@ -82,14 +82,14 @@ protected:
 
 TEST_F(LogTest, WriteRead)
 {
-  olog.init(path, prefix, size_max, false);
+  olog.init(path, prefix, false, size_max);
   for (int i = 0; i < data_list.size(); i++){
     bool r = olog.write(data_list[i].t, data_list[i].data,  data_list[i].sz);
     ASSERT_TRUE(r);
   }
   olog.destroy();
   
-  ilog.init(path, prefix, size_max, true);
+  ilog.init(path, prefix, true, size_max);
   long long t = 9800;
   long long tstep = 25;
   while(t < time_end){

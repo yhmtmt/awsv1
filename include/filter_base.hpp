@@ -54,6 +54,7 @@ using namespace std;
 #include "aws_thread.hpp"
 #include "aws_serial.hpp"
 #include "aws_nmea.hpp"
+#include "aws_log.hpp"
 
 #include "table_base.hpp"
 #include "channel_base.hpp"
