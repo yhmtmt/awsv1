@@ -18,15 +18,13 @@
 
 #include "channel_base.hpp"
 
-template<size_t buffer_size = 64,
-	 size_t data_size = 256,
-	 const char * table_definition_file=nullptr>
+template<unsigned short buffer_size = 64,
+	 unsigned short data_size = 256>
 class ch_binary_data_queue: public ch_base
 {
 protected:
-  size_t m_max_buf;
   unsigned char data_queue[buffer_size][data_size];
-  unsigned char data_len[buffer_size];
+  unsigned short data_len[buffer_size];
   
   int m_head, m_tail, m_num;
 public:  
@@ -45,7 +43,7 @@ public:
     if(len >= data_size)
       cerr << "in channel " << m_name << ".push(), data size " << data_len << " passed exceeded maximum data size " << data_size << endl;
     
-    data_len[m_tail] = min(len, data_size);
+    data_len[m_tail] = min((unsigned short)len, data_size);
     memcpy(data_queue[m_tail], data, data_len[m_tail]);
 
     m_tail = (m_tail + 1) % buffer_size;
@@ -83,7 +81,7 @@ public:
   {
     
     return buffer_size * data_size * sizeof(unsigned char)
-      + sizeof(unsigned char);
+      + sizeof(unsigned short) * (buffer_size + 1);
   }
   
   virtual size_t write_buf(const char *buf)
@@ -91,13 +89,14 @@ public:
     // buffer layout
     // | <number of data> | <data length 1> | <data 1> 
     // | <data length 2> | <data 2> | ... | <data length n> | <data n> |
-    unsigned char num = buf[0];
+    unsigned short num = *((unsigned short *)buf);
     size_t len = sizeof(num);
     lock();
     for(int i = 0; i < num; i++, m_tail = (m_tail + 1) % buffer_size){
-      const unsigned char * p = (const unsigned char*)(buf + len);
-      memcpy(data_queue[m_tail], p + 1, *p);
-      len += sizeof(*buf) + *buf;
+      const unsigned short * p = (const unsigned short*)(buf + len);
+      memcpy(data_queue[m_tail], (const unsigned char*)(p + 1), *p);
+      data_len[m_tail] = *p;
+      len += sizeof(*p) + *p;
       if(m_num == buffer_size){
 	m_head = (m_head + 1) % data_size;
       }else{
@@ -110,16 +109,15 @@ public:
   
   virtual size_t read_buf(char * buf)
   {
-    unsigned char & num = *((unsigned char *)buf);
-    size_t len = sizeof(unsigned char);
+    unsigned short & num = *((unsigned short *)buf);
+    size_t len = sizeof(unsigned short);
     lock();
-    for(;m_head != m_tail; m_head = (m_head + 1) % buffer_size){
-      unsigned char * p = (unsigned char*)(buf + len);
+    for(num = 0;m_num != num; ++num, m_head = (m_head + 1) % buffer_size){
+      unsigned short * p = (unsigned short*)(buf + len);
       *p = data_len[m_head];
-      memcpy(p+1, data_queue[m_head], *p);
-      len += sizeof(unsigned char) + *p;
+      memcpy((unsigned char*)(p + 1), data_queue[m_head], *p);
+      len += sizeof(unsigned short) + *p;
     }
-    num = m_num;
     m_tail = m_head = m_num = 0;
     unlock();
     return len;

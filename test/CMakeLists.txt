@@ -45,11 +45,17 @@ target_link_libraries(test_nmea gtest_main proj)
 target_include_directories(test_nmea PUBLIC ${PROJECT_SOURCE_DIR}/include)
 add_test(NAME test_nmea COMMAND test_nmea WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-# Test nmea0183 decoder
+# Test aws_log
 add_executable(test_log test_log.cpp ${PROJECT_SOURCE_DIR}/src/aws_nmea.cpp ${PROJECT_SOURCE_DIR}/src/aws_nmea_gps.cpp ${PROJECT_SOURCE_DIR}/src/aws_nmea_ais.cpp)
 target_link_libraries(test_log gtest_main proj stdc++fs)
 target_include_directories(test_log PUBLIC ${PROJECT_SOURCE_DIR}/include)
 add_test(NAME test_log COMMAND test_log WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+# Test ch_binary_data_queue
+add_executable(test_ch_binary_data_queue test_ch_binary_data_queue.cpp ${PROJECT_SOURCE_DIR}/src/aws_nmea.cpp ${PROJECT_SOURCE_DIR}/src/aws_nmea_gps.cpp ${PROJECT_SOURCE_DIR}/src/aws_nmea_ais.cpp)
+target_link_libraries(test_ch_binary_data_queue gtest_main proj stdc++fs)
+target_include_directories(test_ch_binary_data_queue PUBLIC ${PROJECT_SOURCE_DIR}/include)
+add_test(NAME test_ch_binary_data_queue COMMAND test_ch_binary_data_queue WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 install(DIRECTORY DESTINATION ftest)
 file(GLOB FTESTS ftest/*)
