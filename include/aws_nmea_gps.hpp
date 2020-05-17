@@ -63,8 +63,6 @@ public:
     out << " CS:" << (m_cs ? "yes" : "no") << endl;
     return out;
   }
-  virtual e_nd_type get_type() const
-  {return ENDT_GGA;};
 };
 
 class c_gsa: public c_nmea_dat
@@ -96,10 +94,6 @@ public:
   {
     return out;
   };
-  virtual e_nd_type get_type() const
-  {
-    return ENDT_GSA;
-  };
 };
 
 class c_gsv: public c_nmea_dat
@@ -127,11 +121,6 @@ public:
   virtual ostream & show(ostream & out) const
   {
     return out;
-  };
-
-  virtual e_nd_type get_type() const
-  {
-    return ENDT_GSV;
   };
 };
 
@@ -176,9 +165,6 @@ public:
     out << " CS:" << (m_cs ? "yes" : "no") << endl;
     return out;
   }
-  
-  virtual e_nd_type get_type() const
-  {return ENDT_RMC;};
 };
 
 class c_vtg: public c_nmea_dat
@@ -202,11 +188,6 @@ public:
   virtual ostream & show(ostream & out) const
   {
     return out;
-  };
-
-  virtual e_nd_type get_type() const
-  {
-    return ENDT_VTG;
   };
 };
 
@@ -240,8 +221,6 @@ public:
     out << " CS:" << (m_cs ? "yes" : "no") << endl;
     return out;
   }
-  virtual e_nd_type get_type() const
-  {return ENDT_ZDA;};
 };
 
 class c_gll: public c_nmea_dat
@@ -274,9 +253,6 @@ class c_gll: public c_nmea_dat
     out << " Available: " << (available ? "yes":"no") << endl;
     return out;
   }
-
-  virtual e_nd_type get_type() const
-  {return ENDT_GLL; };    
 };
 
 class c_hdt: public c_nmea_dat
@@ -303,9 +279,6 @@ class c_hdt: public c_nmea_dat
     out << " HDG: " << hdg << endl;
     return out;
   }
-
-  virtual e_nd_type get_type() const
-  {return ENDT_HDT;};    
 };
 
 class c_hev: public c_nmea_dat
@@ -332,9 +305,6 @@ public:
     out << " HEV: " << hev << endl;
     return out;
   }
-
-  virtual e_nd_type get_type() const
-  {return ENDT_HEV;};    
 };
 
 class c_rot: public c_nmea_dat
@@ -362,9 +332,6 @@ class c_rot: public c_nmea_dat
       " Available: " << (available ? "Yes":"No") << endl;
     return out;
   }
-
-  virtual e_nd_type get_type() const
-  {return ENDT_ROT;};
 };
 
 
@@ -410,12 +377,7 @@ class c_psat_hpr: public c_psat
     out << " HDG: " << hdg << ", PITCH: " << pitch << ", ROLL: " << roll;
     out << " Source: " << (gyro ? "Gyro":"GPS") << endl;
     return out;
-  }
-  
-  virtual e_nd_type get_type() const
-  {
-    return ENDT_PSAT_HPR;
-  }
+  }  
 };
 
 class c_psat_dec
@@ -520,9 +482,6 @@ public:
 	<< " WinSpd(mps): " << wspd_mps << endl;    
     return out;
   }
-
-  virtual e_nd_type get_type() const
-  {return ENDT_MDA;};
 };
 
 
@@ -550,10 +509,7 @@ public:
   virtual ostream & show(ostream & out) const
   {
     return out;
-  }
-  
-  virtual e_nd_type get_type() const
-  {return ENDT_WMV;};
+  }  
 };
 
 
@@ -582,9 +538,6 @@ public:
       " roll: " << roll << endl;
     return out;
   }
-  
-  virtual e_nd_type get_type() const
-  {return ENDT_XDR;};
 };
 
 #endif

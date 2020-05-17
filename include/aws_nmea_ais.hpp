@@ -203,9 +203,6 @@ public:
   {
     return NMEA0183::Payload_VDM;
   }
-  
-  virtual e_nd_type get_type() const
-  {return ENDT_VDM;};
 };
 
 
@@ -234,9 +231,6 @@ public:
   {
     return NMEA0183::VDMPayload_PositionReportClassA;
   }
-  
-  virtual e_nd_type get_type() const
-  {return ENDT_VDM1;};
 };
 
 class c_vdm_msg4: public c_vdm
@@ -262,9 +256,6 @@ public:
   {
     return NMEA0183::VDMPayload_BaseStationReport;
   }
-  
-  virtual e_nd_type get_type() const
-  {return ENDT_VDM4;};
 };
 
 class c_vdm_msg5: public c_vdm
@@ -293,9 +284,6 @@ public:
   {
     return NMEA0183::VDMPayload_StaticAndVoyageRelatedData;
   }
-  
-  virtual e_nd_type get_type() const
-  {return ENDT_VDM5;};
 };
 
 class c_vdm_msg6: public c_vdm
@@ -317,8 +305,6 @@ public:
   {
     return NMEA0183::VDMPayload_BinaryAddressedMessage;
   }  
-  virtual e_nd_type get_type() const
-  {return ENDT_VDM6;}
 };
 
 class c_vdm_msg8: public c_vdm
@@ -337,8 +323,6 @@ public:
   {
     return NMEA0183::VDMPayload_BinaryBroadcastMessage;
   }  
-  virtual e_nd_type get_type() const
-  {return ENDT_VDM8;};
 };
 
 class c_vdm_msg18: public c_vdm
@@ -369,9 +353,6 @@ public:
   {
     return NMEA0183::VDMPayload_StandardClassBCSPositionReport;
   }
-  
-  virtual e_nd_type get_type() const 
-  {return ENDT_VDM18;};
 };
 
 class c_vdm_msg19: public c_vdm
@@ -403,10 +384,7 @@ public:
   virtual const NMEA0183::VDMPayload get_vdm_payload_type()
   {
     return NMEA0183::VDMPayload_ExtendedClassBCSPositionReport;
-  }
-  
-  virtual e_nd_type get_type() const
-  {return ENDT_VDM19;};
+  }  
 };
 
 class c_vdm_msg24: public c_vdm
@@ -435,9 +413,6 @@ public:
   {
     return NMEA0183::VDMPayload_StaticDataReport;
   }
-  
-  virtual e_nd_type get_type() const
-  {return ENDT_VDM24;};
 };
 
 //////////////////////// c_abk
@@ -463,8 +438,6 @@ public:
   }
   
   virtual ostream & show(ostream & out) const;
-  virtual e_nd_type get_type() const
-  {return ENDT_ABK;};
 };
 
 /////////////////////////////////////////////////////////// vdm decoder

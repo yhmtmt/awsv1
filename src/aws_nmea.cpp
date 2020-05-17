@@ -27,38 +27,6 @@ using namespace std;
 
 #include "aws_nmea.hpp"
 
-const char * str_nd_type[ENDT_UNDEF] = {
-  "GGA", "GSA", "GSV", "RMC", "VTG", "ZDA", "GLL",
-  "HDT", "HEV", "ROT",
-  "PSAT",
-  "MDA", "WMV", "XDR",
-  "TTM", 
-  "DBT", "MTW",
-  "VDM", "VDO", "ABK",
-  "APB", "AAM", "BOD", "BWC", "XTE", "RMB", "APA"
-};
-
-e_nd_type get_nd_type(const char * str)
-{
-  for(int i = 0; i < ENDT_UNDEF; i++){
-    const char * st = str_nd_type[i];
-    if (i == ENDT_PSAT){
-      if(st[0] == str[1] && st[1] == str[2]
-	 && st[2] == str[3] && st[3] == str[4])
-	{
-	  if(str[6] == 'H' && str[7] == 'P' && str[8] == 'R')
-	    return (e_nd_type) ENDT_PSAT_HPR;
-	  return (e_nd_type) i;
-	}
-    }
-    
-    if(st[0] == str[3] && st[1] == str[4] && st[2] == str[5])
-      return (e_nd_type) i;
-  }
-  return ENDT_UNDEF;
-}
-
-
 unsigned char calc_nmea_chksum(const char * str)
 {
   unsigned char cs = 0x00;

@@ -19,37 +19,6 @@
 #include "nmea0183_generated.h"
 #include "nmea2000_generated.h"
 
-// NMEA data type
-enum e_nd_type{
-  /* GPS related NMEA message */
-  ENDT_GGA, ENDT_GSA, ENDT_GSV, ENDT_RMC, ENDT_VTG, ENDT_ZDA, ENDT_GLL,
-  ENDT_HDT, ENDT_HEV, ENDT_ROT,
-  /* Hemisphere V104 specific message */  
-  ENDT_PSAT,
-  /* Airmar WX220 specific message */
-  ENDT_MDA, ENDT_WMV, ENDT_XDR,
-  /* ARPA related NMEA message */
-  ENDT_TTM,
-  /* Fish Finder's NMEA message */
-  ENDT_DBT, ENDT_MTW,
-  /* AIS related NMEA message */
-  ENDT_VDM, ENDT_VDO, ENDT_ABK, 
-  /* Autopilot related NMEA message */
-  ENDT_APB, ENDT_AAM, ENDT_BOD, ENDT_BWC, ENDT_XTE, ENDT_RMB, ENDT_APA,
-  /* Undefined NMEA message */
-  ENDT_UNDEF,
-  
-  /* sub type for decoded VDM message */
-  ENDT_VDM1, ENDT_VDM4, ENDT_VDM5, ENDT_VDM6,
-  ENDT_VDM8, ENDT_VDM18, ENDT_VDM19, ENDT_VDM24,
-
-  /* Hemisphere V104 specific message */  
-  ENDT_PSAT_HPR
-};
-
-extern const char * str_nd_type[ENDT_UNDEF];
-e_nd_type get_nd_type(const char * str);
-
 bool eval_nmea_chksum(const char * str);
 unsigned char calc_nmea_chksum(const char * str);
 unsigned int htoi(const char * str);
@@ -78,6 +47,9 @@ public:
   virtual bool decode(const char * str, const long long t = -1){
     return true;
   }
+  virtual bool encode(char * str){
+    return true;
+  }
   
   const uint8_t * get_buffer_pointer() const
   { return builder.GetBufferPointer(); }
@@ -89,8 +61,6 @@ public:
   {
     return NMEA0183::Payload_NONE;
   }
-  
-  virtual e_nd_type get_type() const = 0;
 };
 
 #include "aws_nmea_gps.hpp"
@@ -135,9 +105,6 @@ public:
   }
   
   virtual bool dec(const char * str);
-  
-  virtual e_nd_type get_type() const
-  {return ENDT_TTM;};
 };
 
 
@@ -153,10 +120,6 @@ public:
 
   virtual bool dec(const char * str);
   
-  virtual e_nd_type get_type() const
-  {
-    return ENDT_DBT;
-  }
   virtual ostream & show(ostream & out) const
   {
     out << "DBT: " << dfe << "ft " << dm << "m " << dfa << "Ft" << endl;
@@ -175,10 +138,6 @@ public:
   
   virtual bool dec(const char * str);
   
-  virtual e_nd_type get_type() const
-  {
-    return ENDT_MTW;
-  }
 };
 
 #include "aws_nmea_ais.hpp"
