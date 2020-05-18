@@ -42,6 +42,7 @@ public:
 
   virtual bool dec(const char * str);
   virtual bool decode(const char * str, const long long t = -1);
+  virtual bool encode(char * str);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -179,6 +180,7 @@ public:
   virtual bool dec(const char * str);
 
   virtual bool decode(const char * str, const long long t = -1);
+  virtual bool encode(char * str);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -208,6 +210,7 @@ public:
   virtual bool dec(const char * str);
   
   virtual bool decode(const char * str, const long long t = -1);
+  virtual bool encode(char * str);
   
   virtual NMEA0183::Payload get_payload_type() const
   {
@@ -365,6 +368,7 @@ class c_psat_hpr: public c_psat
   }
   virtual bool dec(const char * str);
   virtual bool decode(const char * str, const long long t = -1);
+  virtual bool encode(char * str);
   
   virtual NMEA0183::PSATPayload get_psat_payload_type()
   {

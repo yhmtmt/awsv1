@@ -148,6 +148,46 @@ bool c_gga::dec(const char * str)
   return true;
 }
 
+bool c_gga::encode(char *str)
+{
+  str[3] = 'G';
+  str[4] = 'G';
+  str[5] = 'A';
+  str[6] = ',';
+  char * p = str + 7;
+  p += snprintf(p, 12, "%02d%02d%02.3f,", m_h, m_m, m_s);
+  {    
+    int lat_deg = (int)m_lat_deg;        
+    double lat_min = (m_lat_deg - lat_deg) * 60;
+    if(m_lat_deg > 0)
+      p += snprintf(p, 13, "%02d%02.4f,N,", lat_deg, lat_min);
+    else
+      p += snprintf(p, 13, "%02d%02.4f,S,", -lat_deg, lat_min);    
+  }
+  {
+    int lon_deg = (int)m_lon_deg;
+    double lon_min = (m_lon_deg - lon_deg) * 60;
+    if(m_lon_deg > 0)
+      p += snprintf(p, 14, "%03d%02.4f,E,",lon_deg, lon_min);
+    else
+      p += snprintf(p, 14, "%03d%02.4f,W,",lon_deg, lon_min);
+  }
+
+  p += snprintf(p, 3, "%01d,", (int) m_fix_status);
+  p += snprintf(p, 4, "%02d,", m_num_sats);  
+  p += snprintf(p, 5, "%1.1f,", m_hdop);  
+  p += snprintf(p, 13, "%6.2f,M,", m_alt);
+  p += snprintf(p, 10, "%3.2f,M,", m_geos);
+  if(m_fix_status == NMEA0183::GPSFixStatus_DGPSF)
+    p += snprintf(p, 14, "%3.3f,%04d*", m_dgps_age, m_dgps_station);
+  else
+    p += snprintf(p, 3, ",*");
+  
+  p += snprintf(p, 3, "%02d", calc_nmea_chksum(str));
+  return c_nmea_dat::encode(str);
+}
+
+
 /////////////////////////////////////////// gsa decoder
 bool c_gsa::decode(const char * str, const long long t)
 {
@@ -548,6 +588,36 @@ bool c_vtg::dec(const char * str)
   return false;
 }
 
+bool c_vtg::encode(char * str)
+{
+  str[3] = 'V';
+  str[4] = 'T';
+  str[5] = 'G';
+  str[6] = ',';
+  char * p = str + 7;
+  p += snprintf(p, 9, "%03.1f,T,", crs_t);
+  p += snprintf(p, 9, "%03.1f,M,", crs_m);
+  p += snprintf(p, 9, "%03.1f,N,", v_n);
+  p += snprintf(p, 9, "%03.1f,K,", v_k);  
+  switch(fs){
+  case NMEA0183::GPSFixStatus_LOST:
+    *p = 'N'; ++p;
+    break;
+  case NMEA0183::GPSFixStatus_GPSF:
+    *p = 'A'; ++p;
+    break;
+  case NMEA0183::GPSFixStatus_DGPSF:
+    *p = 'D'; ++p;
+    break;
+  case NMEA0183::GPSFixStatus_ESTM:
+    *p = 'E'; ++p;
+    break;    
+  }
+  *p = '*'; ++p;
+  p += snprintf(p, 3, "%02d", calc_nmea_chksum(str));
+  return c_nmea_dat::encode(str);
+}
+
 ////////////////////////////////////////////////zda decoder
 bool c_zda::decode(const char * str, const long long t)
 {
@@ -617,6 +687,21 @@ bool c_zda::dec(const char * str)
   }
   
   return true;
+}
+
+bool c_zda::encode(char * str)
+{
+  str[3] = 'Z';
+  str[4] = 'D';
+  str[5] = 'A';
+  str[6] = ',';
+  char * p = str + 7;
+  p += snprintf(p, 12, "%02d%02d%02.3f,", m_h, m_m, m_s);
+  p += snprintf(p, 19, "%02d,%02d,%04d,%02d,%02d*", m_dy, m_mn, m_yr,
+		m_lzh, m_lzm);
+  *p = '*'; ++p;
+  p += snprintf(p, 3, "%02d", calc_nmea_chksum(str));
+  return c_nmea_dat::encode(str);
 }
 
 
@@ -979,6 +1064,29 @@ bool c_psat_hpr::dec(const char * str)
     ipar++;
   }
  
+  return true;
+}
+
+
+bool c_psat_hpr::encode(char * str)
+{
+  str[0] = '$';
+  str[1] = 'P';
+  str[2] = 'S';
+  str[3] = 'A';
+  str[4] = 'T';
+  str[5] = ',';
+  str[6] = 'H';
+  str[7] = 'P';
+  str[8] = 'R';
+  str[9] = ',';
+  
+  char * p = str + 10;
+  p += snprintf(p, 12, "%02d%02d%02.3f,", hour, mint, sec);
+  p += snprintf(p, 25, "%04.2f,%04.2f,%04.2f,", hdg, pitch, roll);
+  *p = gyro ? 'G' : 'N'; ++p;
+  *p = '*';++p;
+  p += snprintf(p, 3, "%02d", calc_nmea_chksum(str));
   return true;
 }
 

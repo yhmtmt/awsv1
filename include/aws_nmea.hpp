@@ -48,6 +48,9 @@ public:
     return true;
   }
   virtual bool encode(char * str){
+      str[0] = '$';
+      str[1] = m_toker[0];
+      str[2] = m_toker[1];
     return true;
   }
   

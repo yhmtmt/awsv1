@@ -135,6 +135,27 @@ TEST_F(NMEATest, GPGGATest)
   ASSERT_FLOAT_EQ(gga->geoid(),35.9); 
   ASSERT_FLOAT_EQ(gga->latitude(), 35.0 + (41.1493 / 60.0));
   ASSERT_FLOAT_EQ(gga->longitude(), 139.0 + (45.3994 / 60.0));
+
+  // encode test
+  c_gga gga_dec, gga_enc;
+  char buf[85];
+  gga_dec.decode(sentences[1]);
+  gga_dec.encode(buf);
+  gga_enc.decode(buf);
+  ASSERT_EQ(gga_dec.m_h, gga_enc.m_h);
+  ASSERT_EQ(gga_dec.m_m, gga_enc.m_m);
+  ASSERT_FLOAT_EQ(gga_dec.m_s, gga_enc.m_s);  
+  ASSERT_FLOAT_EQ(gga_dec.m_lat_deg, gga_enc.m_lat_deg);
+  ASSERT_FLOAT_EQ(gga_dec.m_lon_deg, gga_enc.m_lon_deg);
+  ASSERT_EQ(gga_dec.m_fix_status, gga_enc.m_fix_status);
+  ASSERT_EQ(gga_dec.m_num_sats, gga_enc.m_num_sats);  
+  ASSERT_EQ(gga_dec.m_lon_dir, gga_enc.m_lon_dir);
+  ASSERT_EQ(gga_dec.m_lat_dir, gga_enc.m_lat_dir);  
+  ASSERT_FLOAT_EQ(gga_dec.m_hdop, gga_enc.m_hdop);
+  ASSERT_FLOAT_EQ(gga_dec.m_alt, gga_enc.m_alt);
+  ASSERT_FLOAT_EQ(gga_dec.m_geos, gga_enc.m_geos);
+  ASSERT_FLOAT_EQ(gga_dec.m_dgps_age, gga_enc.m_dgps_age);    
+  ASSERT_EQ(gga_dec.m_dgps_station, gga_enc.m_dgps_station);  
 }
 
 TEST_F(NMEATest, GPGSATest)
@@ -245,6 +266,18 @@ TEST_F(NMEATest, GPVTGTest)
   ASSERT_FLOAT_EQ(vtg->cogMag(), 0);
   ASSERT_FLOAT_EQ(vtg->sogN(),0); 
   ASSERT_FLOAT_EQ(vtg->sogK(), 0);
+
+  // encode test
+  c_vtg vtg_dec, vtg_enc;
+  char buf[85];
+  vtg_dec.decode(sentences[4]);
+  vtg_dec.encode(buf);
+  vtg_enc.decode(buf);
+  ASSERT_FLOAT_EQ(vtg_dec.crs_t, vtg_enc.crs_t);  
+  ASSERT_FLOAT_EQ(vtg_dec.crs_m, vtg_enc.crs_m);
+  ASSERT_FLOAT_EQ(vtg_dec.v_n, vtg_enc.v_n);
+  ASSERT_FLOAT_EQ(vtg_dec.v_k, vtg_enc.v_k);  
+  ASSERT_EQ(vtg_dec.fs, vtg_enc.fs);  
 }
 
 TEST_F(NMEATest, GPZDATest)
@@ -268,6 +301,22 @@ TEST_F(NMEATest, GPZDATest)
   ASSERT_TRUE(zda->msec() == 30000);
   ASSERT_TRUE(zda->lzh() == 0);
   ASSERT_TRUE(zda->lzm() == 0);
+  
+   // encode test
+  c_zda zda_dec, zda_enc;
+  char buf[85];
+  zda_dec.decode(sentences[6]);
+  zda_dec.encode(buf);
+  cout << "buf:" << buf << endl;
+  zda_enc.decode(buf);
+  ASSERT_EQ(zda_dec.m_h, zda_enc.m_h);
+  ASSERT_EQ(zda_dec.m_m, zda_enc.m_m); 
+  ASSERT_FLOAT_EQ(zda_dec.m_s, zda_enc.m_s);  
+  ASSERT_EQ(zda_dec.m_dy, zda_enc.m_dy);
+  ASSERT_EQ(zda_dec.m_mn, zda_enc.m_mn);
+  ASSERT_EQ(zda_dec.m_yr, zda_enc.m_yr);
+  ASSERT_EQ(zda_dec.m_lzh, zda_enc.m_lzh);
+  ASSERT_EQ(zda_dec.m_lzm, zda_enc.m_lzm);    
 }
 
 
@@ -292,7 +341,21 @@ TEST_F(NMEATest, PSATHPRTest)
   ASSERT_FLOAT_EQ(hpr->heading(), 27.77);
   ASSERT_FLOAT_EQ(hpr->pitch(), -3.18);
   ASSERT_FLOAT_EQ(hpr->roll(), 0);
-  ASSERT_TRUE(hpr->gyro() == false);	   
+  ASSERT_TRUE(hpr->gyro() == false);
+
+   // encode test
+  c_psat_hpr hpr_dec, hpr_enc;
+  char buf[85];
+  hpr_dec.decode(sentences[7] + 10);
+  hpr_dec.encode(buf);
+  hpr_enc.decode(buf + 10);
+  ASSERT_EQ(hpr_dec.hour, hpr_enc.hour);
+  ASSERT_EQ(hpr_dec.mint, hpr_enc.mint); 
+  ASSERT_FLOAT_EQ(hpr_dec.sec, hpr_enc.sec);  
+  ASSERT_FLOAT_EQ(hpr_dec.hdg, hpr_enc.hdg);
+  ASSERT_FLOAT_EQ(hpr_dec.pitch, hpr_enc.pitch);
+  ASSERT_FLOAT_EQ(hpr_dec.roll, hpr_enc.roll);
+  ASSERT_EQ(hpr_dec.gyro, hpr_enc.gyro);
 }
 
 TEST_F(NMEATest, VDMTest1)
