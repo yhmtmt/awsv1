@@ -552,6 +552,10 @@ public:
     m_count_clock = 0;
   }
 
+  static const tmex & get_time_struct(){
+    return m_tm;
+  }
+  
   static const char * get_time_str(){
     return m_time_str;
   }
