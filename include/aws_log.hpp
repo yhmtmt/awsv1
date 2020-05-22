@@ -197,6 +197,7 @@ public:
     ofile->write((const char*)buf, buf_size);
     
     total_size += buf_size + sizeof(t) + sizeof(buf_size);
+    return true;
   }
   
   bool read(long long & t, unsigned char * buf, size_t & buf_size)

@@ -40,8 +40,8 @@ public:
   void push(const unsigned char * data, size_t len = data_size)
   {
     lock();
-    if(len >= data_size)
-      cerr << "in channel " << m_name << ".push(), data size " << data_len << " passed exceeded maximum data size " << data_size << endl;
+    if(len > data_size)
+      cerr << "in channel " << m_name << ".push(), data size " << len << " passed exceeded maximum data size " << data_size << endl;
     
     data_len[m_tail] = min((unsigned short)len, data_size);
     memcpy(data_queue[m_tail], data, data_len[m_tail]);

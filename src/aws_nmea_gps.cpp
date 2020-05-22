@@ -150,6 +150,7 @@ bool c_gga::dec(const char * str)
 
 bool c_gga::encode(char *str)
 {
+  c_nmea_dat::encode(str);
   str[3] = 'G';
   str[4] = 'G';
   str[5] = 'A';
@@ -183,8 +184,8 @@ bool c_gga::encode(char *str)
   else
     p += snprintf(p, 3, ",*");
   
-  p += snprintf(p, 3, "%02d", calc_nmea_chksum(str));
-  return c_nmea_dat::encode(str);
+  p += snprintf(p, 3, "%02x", calc_nmea_chksum(str));
+  return true;
 }
 
 
@@ -590,6 +591,7 @@ bool c_vtg::dec(const char * str)
 
 bool c_vtg::encode(char * str)
 {
+  c_nmea_dat::encode(str);  
   str[3] = 'V';
   str[4] = 'T';
   str[5] = 'G';
@@ -614,8 +616,8 @@ bool c_vtg::encode(char * str)
     break;    
   }
   *p = '*'; ++p;
-  p += snprintf(p, 3, "%02d", calc_nmea_chksum(str));
-  return c_nmea_dat::encode(str);
+  p += snprintf(p, 3, "%02x", calc_nmea_chksum(str));
+  return true;
 }
 
 ////////////////////////////////////////////////zda decoder
@@ -691,6 +693,7 @@ bool c_zda::dec(const char * str)
 
 bool c_zda::encode(char * str)
 {
+  c_nmea_dat::encode(str);  
   str[3] = 'Z';
   str[4] = 'D';
   str[5] = 'A';
@@ -700,8 +703,8 @@ bool c_zda::encode(char * str)
   p += snprintf(p, 19, "%02d,%02d,%04d,%02d,%02d*", m_dy, m_mn, m_yr,
 		m_lzh, m_lzm);
   *p = '*'; ++p;
-  p += snprintf(p, 3, "%02d", calc_nmea_chksum(str));
-  return c_nmea_dat::encode(str);
+  p += snprintf(p, 3, "%02x", calc_nmea_chksum(str));
+  return true;
 }
 
 
@@ -1086,7 +1089,7 @@ bool c_psat_hpr::encode(char * str)
   p += snprintf(p, 25, "%04.2f,%04.2f,%04.2f,", hdg, pitch, roll);
   *p = gyro ? 'G' : 'N'; ++p;
   *p = '*';++p;
-  p += snprintf(p, 3, "%02d", calc_nmea_chksum(str));
+  p += snprintf(p, 3, "%02x", calc_nmea_chksum(str));
   return true;
 }
 

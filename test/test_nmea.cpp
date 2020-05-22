@@ -141,6 +141,7 @@ TEST_F(NMEATest, GPGGATest)
   char buf[85];
   gga_dec.decode(sentences[1]);
   gga_dec.encode(buf);
+  ASSERT_TRUE(eval_nmea_chksum(buf));  
   gga_enc.decode(buf);
   ASSERT_EQ(gga_dec.m_h, gga_enc.m_h);
   ASSERT_EQ(gga_dec.m_m, gga_enc.m_m);
@@ -272,6 +273,7 @@ TEST_F(NMEATest, GPVTGTest)
   char buf[85];
   vtg_dec.decode(sentences[4]);
   vtg_dec.encode(buf);
+  ASSERT_TRUE(eval_nmea_chksum(buf));  
   vtg_enc.decode(buf);
   ASSERT_FLOAT_EQ(vtg_dec.crs_t, vtg_enc.crs_t);  
   ASSERT_FLOAT_EQ(vtg_dec.crs_m, vtg_enc.crs_m);
@@ -307,7 +309,7 @@ TEST_F(NMEATest, GPZDATest)
   char buf[85];
   zda_dec.decode(sentences[6]);
   zda_dec.encode(buf);
-  cout << "buf:" << buf << endl;
+  ASSERT_TRUE(eval_nmea_chksum(buf));
   zda_enc.decode(buf);
   ASSERT_EQ(zda_dec.m_h, zda_enc.m_h);
   ASSERT_EQ(zda_dec.m_m, zda_enc.m_m); 
@@ -348,6 +350,7 @@ TEST_F(NMEATest, PSATHPRTest)
   char buf[85];
   hpr_dec.decode(sentences[7] + 10);
   hpr_dec.encode(buf);
+  ASSERT_TRUE(eval_nmea_chksum(buf));  
   hpr_enc.decode(buf + 10);
   ASSERT_EQ(hpr_dec.hour, hpr_enc.hour);
   ASSERT_EQ(hpr_dec.mint, hpr_enc.mint); 
