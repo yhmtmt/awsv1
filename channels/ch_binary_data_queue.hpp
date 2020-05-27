@@ -37,7 +37,7 @@ public:
   {
   }
 
-  void push(const unsigned char * data, size_t len = data_size)
+  void push(const unsigned char * data, unsigned int len = data_size)
   {
     lock();
     if(len > data_size)
@@ -55,7 +55,7 @@ public:
     unlock();
   }
   
-  void pop(unsigned char * data, size_t & len)
+  void pop(unsigned char * data, unsigned int & len)
   {
     lock();
     if(m_num){
@@ -90,7 +90,7 @@ public:
     // | <number of data> | <data length 1> | <data 1> 
     // | <data length 2> | <data 2> | ... | <data length n> | <data n> |
     unsigned short num = *((unsigned short *)buf);
-    size_t len = sizeof(num);
+    unsigned int len = sizeof(num);
     lock();
     for(int i = 0; i < num; i++, m_tail = (m_tail + 1) % buffer_size){
       const unsigned short * p = (const unsigned short*)(buf + len);
@@ -110,7 +110,7 @@ public:
   virtual size_t read_buf(char * buf)
   {
     unsigned short & num = *((unsigned short *)buf);
-    size_t len = sizeof(unsigned short);
+    unsigned int len = sizeof(unsigned short);
     lock();
     for(num = 0;m_num != num; ++num, m_head = (m_head + 1) % buffer_size){
       unsigned short * p = (unsigned short*)(buf + len);
