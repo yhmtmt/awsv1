@@ -28,8 +28,8 @@ class c_log
 private:
   string path;
   string prefix;
-  size_t size_max;
-  size_t total_size;
+  unsigned int size_max;
+  unsigned int total_size;
   char time_str[32];
   bool bread;
 
@@ -137,7 +137,7 @@ public:
   }
 
   bool init(const string _path, const string _prefix,
-	    bool _bread = false, const size_t _size_max = (1 << 30))
+	    bool _bread = false, const unsigned int _size_max = (1 << 30))
   {
     path = _path;
     prefix = _prefix;
@@ -150,8 +150,8 @@ public:
       for(auto & p : fs::directory_iterator(path)){
 	string fname = p.path().filename();
 	if(fname.find(prefix) == 0){
-	  size_t start_pos = prefix.size() + 1;
-	  size_t end_pos = fname.find(".log");
+	  unsigned int start_pos = prefix.size() + 1;
+	  unsigned int end_pos = fname.find(".log");
 	  if(end_pos == string::npos)
 	    continue;
 	  if(start_pos >= end_pos)
@@ -179,7 +179,7 @@ public:
   }
   
   bool write(const long long t, const unsigned char * buf,
-	     const size_t buf_size)
+	     const unsigned int buf_size)
   {
     if(bread)
       return false;
@@ -200,7 +200,7 @@ public:
     return true;
   }
   
-  bool read(long long & t, unsigned char * buf, size_t & buf_size)
+  bool read(long long & t, unsigned char * buf, unsigned int & buf_size)
   {
     if(!bread)
       return false;
