@@ -88,7 +88,7 @@ struct GSVSatelliteInformation
 	sn:ubyte; // 00-99 dBHz
 }
 
-struct GGA
+table GGA
 {
       hour:ubyte;
       minute:ubyte;
@@ -103,17 +103,17 @@ struct GGA
       longitude:double; // deg      
 }
 
-struct GSA
+table GSA
 {
       selectionMeasurementMode:SelectionMeasurementMode;
       measurementMode:MeasurementMode;
-      satellites:[ubyte:12];
+      satellites:[ubyte];
       pdop:float;
       hdop:float;
       vdop:float;
 }
 
-struct GSV
+table GSV
 {
       numSentences:ubyte;
       sentence:ubyte;
@@ -124,7 +124,7 @@ struct GSV
       satelliteInformation3:GSVSatelliteInformation;      
 }
 
-struct RMC
+table RMC
 {
       measured:bool;
       year:ubyte;
@@ -141,7 +141,7 @@ struct RMC
       longitude:double; // deg      
 }
 
-struct VTG
+table VTG
 {
       fixStatus:GPSFixStatus;
       cogTrue:float; //deg
@@ -150,7 +150,7 @@ struct VTG
       sogK:float; //km/h
 }
 
-struct ZDA
+table ZDA
 {
       hour:ubyte;
       minute:ubyte;
@@ -162,7 +162,7 @@ struct ZDA
       year:ushort;
 }
 
-struct GLL
+table GLL
 {
       fixStatus:GPSFixStatus;
       measured:bool;
@@ -173,23 +173,23 @@ struct GLL
       longitude:double;
 }
 
-struct HDT
+table HDT
 {
       trueHeading:float;
 }
 
-struct HEV
+table HEV
 {
       heave:float;
 }
 
-struct ROT
+table ROT
 {
       measured:bool;
       rateOfTurn:float;
 }
 
-struct MDA
+table MDA
 {
       barometricPressureIoM:float; // inches of mercury
       barometricPressureBar:float; // bar
@@ -204,7 +204,7 @@ struct MDA
       windSpeedMps:float; // meters per sec
 }
 
-struct WMV
+table WMV
 {
       windAngleMode:WindAngleMode;
       windSpeedUnit:SpeedUnit;
@@ -212,13 +212,13 @@ struct WMV
       windSpeed:float; //units can be varied
 }
 
-struct XDR
+table XDR
 {
       pitch:float; // degrees
       roll:float; //degrees
 }
 
-struct HPR
+table HPR
 {
 	hour:ubyte;
 	minute:ubyte;
@@ -239,7 +239,7 @@ table PSAT
 	payload:PSATPayload;
 }
 
-struct TTM
+table TTM
 {
       hour:ubyte;
       minute:ubyte;
@@ -250,7 +250,7 @@ struct TTM
       courseMode:BearingMode;
       distanceUnit:DistanceUnit;
       type:TTMType;
-      targetName:[ubyte:20];
+      targetName:[ubyte];
       targetDistance:float;
       bearingFromOwnShip:float;
       targetSpeed:float;
@@ -259,14 +259,14 @@ struct TTM
       tcpa:float;
 }
 
-struct DBT
+table DBT
 {
       depthFe:float; // feet
       depthM:float;  // meter
       depthFa:float; // fathomas
 }
 
-struct MTW
+table MTW
 {
       waterTemperature:float; // degrees C
 }
@@ -278,7 +278,7 @@ enum AISChannel:byte
      B=2
 }
 
-struct ABK{
+table ABK{
       mmsi:uint;
       messageID:ushort; // M.1371 message id (6,8,12)
       messageSequenceNumber:ushort;
@@ -447,7 +447,7 @@ enum ShipType:byte
      OtherTypeNoAdditionalInformation=99		        
 }
 
-struct PositionReportClassA
+table PositionReportClassA
 {
       repeat:ubyte;
       status:NavigationStatus;
@@ -464,7 +464,7 @@ struct PositionReportClassA
       latitude:int; //0.0001x minutes
 }
 
-struct BaseStationReport{
+table BaseStationReport{
       repeat:ubyte;
       month:ubyte;
       day:ubyte;
@@ -480,7 +480,7 @@ struct BaseStationReport{
       latitude:int;
 }
 
-struct StaticAndVoyageRelatedData
+table StaticAndVoyageRelatedData
 {
       repeat:ubyte;
       aisVersion:ubyte;
@@ -493,9 +493,9 @@ struct StaticAndVoyageRelatedData
       toStarboard:ubyte;
       dte:bool;
       shipType:ShipType;
-      callsign:[ubyte:7];
-      shipName:[ubyte:20];
-      destination:[ubyte:20];
+      callsign:[ubyte];
+      shipName:[ubyte];
+      destination:[ubyte];
       toBow:ushort;
       toStern:ushort;
       mmsi:uint;
@@ -503,28 +503,28 @@ struct StaticAndVoyageRelatedData
       draught:ushort;// 0.1x meters/10 (10cm)
 }
 
-struct BinaryAddressedMessage
+table BinaryAddressedMessage
 {
       repeat:ubyte;
       seqno:ubyte;
       retransmit:bool;
       fid:ubyte;
-      data:[ubyte:115];
+      data:[ubyte];
       dac:ushort;
       mmsi:uint;
       destMmsi:uint;
 }
 
-struct BinaryBroadcastMessage
+table BinaryBroadcastMessage
 {
       repeat:ubyte;
       fid:ubyte;
-      data:[ubyte:119];
+      data:[ubyte];
       dac:ushort;
       mmsi:uint;
 }
 
-struct StandardClassBCSPositionReport
+table StandardClassBCSPositionReport
 {
       repeat:ubyte;
       dgps:bool;
@@ -545,7 +545,7 @@ struct StandardClassBCSPositionReport
       latitude:int; // Minutes/10000
 }
 
-struct ExtendedClassBCSPositionReport
+table ExtendedClassBCSPositionReport
 {
       repeat:ubyte;
       dgps:bool;
@@ -553,7 +553,7 @@ struct ExtendedClassBCSPositionReport
       regional:ubyte;
       assigned:bool; // true: assigned mode, false: autonomous mode
       raim:bool;
-      shipName:[ubyte:20];
+      shipName:[ubyte];
       shipType:ShipType;
       epfd:EPFDFixType;
       dte:bool;
@@ -569,20 +569,20 @@ struct ExtendedClassBCSPositionReport
       latitude:int; // Minutes/10000
 }
 
-struct StaticDataReport
+table StaticDataReport
 {
       repeat:ubyte;
       partno:ubyte;
-      shipName:[ubyte:20];
+      shipName:[ubyte];
       shipType:ShipType;
       toPort:ubyte;
       toStarboard:ubyte;      
       model:ubyte;
-      callsign:[ubyte:7];
+      callsign:[ubyte];
       toBow:ushort;
       toStern:ushort;
       mmsi:uint;
-      vendorID:[ubyte:3];
+      vendorID:[ubyte];
       serial:uint;
       motehrshipMmsi:uint;      
 }
