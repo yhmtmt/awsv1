@@ -15,38 +15,38 @@ table Data
 }
 
 
-struct Engine
+table Engine
 {
 	value:ubyte;
 }
 
-struct Revolution
+table Revolution
 {
 	value:float;
 }
 
-struct Speed
+table Speed
 {
 	value:float;
 }
 
-struct Rudder
+table Rudder
 {
 	value:ubyte;
 }
 
-struct Course
+table Course
 {
 	value:float;
 }
 
-struct Controller
+table Controller
 {
 	rudder:ubyte;
 	engine:ubyte;
 }
 
-struct Config
+table Config
 {
 	engine_max:ubyte;
 	engine_forward:ubyte;
