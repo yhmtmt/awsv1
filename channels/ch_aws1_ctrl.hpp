@@ -19,7 +19,7 @@
 
 #include "control_generated.h"
 
-typedef ch_binary_data_queue<64, 64> ch_ctrl_data;
+typedef ch_binary_data_queue<64, 128> ch_ctrl_data;
 
 // map a value with 3 threasholds (for rudder contrl and states)
 inline  int map_oval(int val,
