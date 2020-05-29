@@ -59,7 +59,10 @@ public:
   {
     lock();
     if(m_num){
-      len = data_len[m_head];      
+      len = data_len[m_head];
+      if(len > data_size){
+	 cerr << "in channel " << m_name << ".pop(), data size " << len << " passed exceeded maximum data size " << data_size << endl;
+      }
       memcpy(data, data_queue[m_head], data_len[m_head]);
       
       m_head = (m_head + 1) % buffer_size;
