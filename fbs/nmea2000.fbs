@@ -61,7 +61,7 @@ enum GearStatus:byte
 	Reverse=2
 }
 
-struct EngineParametersRapidUpdate
+table EngineParametersRapidUpdate
 {
       engineInstance:EngineInstance;
       engineSpeed:ushort; // 0.25x rpm
@@ -69,7 +69,7 @@ struct EngineParametersRapidUpdate
       engineTrim:byte;
 }
 
-struct EngineParametersDynamic
+table EngineParametersDynamic
 {
       engineInstance:EngineInstance;
       oilPressure:ushort; // hPa
@@ -86,7 +86,7 @@ struct EngineParametersDynamic
       percentEngineTorque:byte; // %
 }
 
-struct TransmissionParametersDynamic
+table TransmissionParametersDynamic
 {
       engineInstance:EngineInstance;
       transmissionGear:GearStatus;
@@ -95,7 +95,7 @@ struct TransmissionParametersDynamic
       discreteStatus1:ubyte;
 }
 
-struct TripParametersVessel
+table TripParametersVessel
 {
       timeToEmpty:uint; // 0.001x s
       distanceToEmpty:uint; // 0.01x m
@@ -103,7 +103,7 @@ struct TripParametersVessel
       tripRunTime:uint; // 0.001x s
 }
 
-struct TripParametersEngine
+table TripParametersEngine
 {
       engineInstance:EngineInstance;
       tripFuelUsed:ushort; // L
@@ -112,7 +112,7 @@ struct TripParametersEngine
       instantaneousFuelEconomy:short; // 0.1x L/h
 }
 
-struct EngineParametersStatic
+table EngineParametersStatic
 {
       engineInstance:EngineInstance;
       ratedEngineSpeed:ushort;
