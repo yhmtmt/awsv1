@@ -19,7 +19,7 @@
 #include "ch_binary_data_queue.hpp"
 
 typedef ch_binary_data_queue<64, 256> ch_nmea_data;
-typedef ch_binary_data_queue<64, 64> ch_n2k_data;
+typedef ch_binary_data_queue<64, 128> ch_n2k_data;
 
 class ch_nmea: public ch_base
 {
