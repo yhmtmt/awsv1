@@ -208,22 +208,22 @@ TEST_F(NMEATest, GPGSVTest)
   ASSERT_EQ(gsv->numSentences(), 3);
   ASSERT_EQ(gsv->sentence(), 1);
   ASSERT_EQ(gsv->numSatellitesUsable(), 12);
-  ASSERT_EQ(gsv->satelliteInformation0().satellite(), 26);
-  ASSERT_EQ(gsv->satelliteInformation0().elevation(), 72);
-  ASSERT_EQ(gsv->satelliteInformation0().azimus(), 352);
-  ASSERT_EQ(gsv->satelliteInformation0().sn(), 28);  
-  ASSERT_EQ(gsv->satelliteInformation1().satellite(), 5);
-  ASSERT_EQ(gsv->satelliteInformation1().elevation(), 65);
-  ASSERT_EQ(gsv->satelliteInformation1().azimus(), 66);
-  ASSERT_EQ(gsv->satelliteInformation1().sn(), 37);  
-  ASSERT_EQ(gsv->satelliteInformation2().satellite(), 15);
-  ASSERT_EQ(gsv->satelliteInformation2().elevation(), 50);
-  ASSERT_EQ(gsv->satelliteInformation2().azimus(), 268);
-  ASSERT_EQ(gsv->satelliteInformation2().sn(), 35);  
-  ASSERT_EQ(gsv->satelliteInformation3().satellite(), 27);
-  ASSERT_EQ(gsv->satelliteInformation3().elevation(), 33);
-  ASSERT_EQ(gsv->satelliteInformation3().azimus(), 189);
-  ASSERT_EQ(gsv->satelliteInformation3().sn(), 37);  
+  ASSERT_EQ(gsv->satelliteInformation0()->satellite(), 26);
+  ASSERT_EQ(gsv->satelliteInformation0()->elevation(), 72);
+  ASSERT_EQ(gsv->satelliteInformation0()->azimus(), 352);
+  ASSERT_EQ(gsv->satelliteInformation0()->sn(), 28);  
+  ASSERT_EQ(gsv->satelliteInformation1()->satellite(), 5);
+  ASSERT_EQ(gsv->satelliteInformation1()->elevation(), 65);
+  ASSERT_EQ(gsv->satelliteInformation1()->azimus(), 66);
+  ASSERT_EQ(gsv->satelliteInformation1()->sn(), 37);  
+  ASSERT_EQ(gsv->satelliteInformation2()->satellite(), 15);
+  ASSERT_EQ(gsv->satelliteInformation2()->elevation(), 50);
+  ASSERT_EQ(gsv->satelliteInformation2()->azimus(), 268);
+  ASSERT_EQ(gsv->satelliteInformation2()->sn(), 35);  
+  ASSERT_EQ(gsv->satelliteInformation3()->satellite(), 27);
+  ASSERT_EQ(gsv->satelliteInformation3()->elevation(), 33);
+  ASSERT_EQ(gsv->satelliteInformation3()->azimus(), 189);
+  ASSERT_EQ(gsv->satelliteInformation3()->sn(), 37);  
 }
 
 TEST_F(NMEATest, GPGLLTest)
