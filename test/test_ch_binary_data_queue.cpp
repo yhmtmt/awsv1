@@ -35,7 +35,7 @@ public:
 
 TEST_F(ChBinaryDataQueueTest, PushPop)
 {
-  size_t sz;
+  unsigned int sz;
 
   unsigned char buf[32];
   auto test = [&] (int n){
@@ -57,7 +57,7 @@ TEST_F(ChBinaryDataQueueTest, PushPop)
 
 TEST_F(ChBinaryDataQueueTest, ReadWriteBuf)
 {
-  size_t sz0, sz1;
+  unsigned int sz0, sz1;
   unsigned char * buf = new unsigned char[chan0.get_dsize()];
 
   auto test = [&] (int n){
