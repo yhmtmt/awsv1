@@ -94,7 +94,7 @@ TEST_F(LogTest, WriteRead)
   long long tstep = 25;
   while(t < time_end){
     long long tread = t;
-    size_t szread;
+    unsigned int szread;
 
     if(t < time_start){
       ASSERT_FALSE(ilog.read(tread, (unsigned char*)buf, szread));
