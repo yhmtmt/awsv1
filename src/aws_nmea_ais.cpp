@@ -278,18 +278,22 @@ void c_vdm_msg1::dec_payload(s_pl * ppl, const long long t)
   {
     dec_payload(ppl);
     builder.Clear();
-    NMEA0183::PositionReportClassA 
-      positionReportClassA(m_repeat, (NMEA0183::NavigationStatus) m_status,
-			   m_accuracy==1,
-			   m_second, (NMEA0183::ManeuverIndicator) m_maneuver,
-			   m_raim != 0,
-			   m_turn,
-			   (unsigned short)(m_speed * 10),
-			   (unsigned short)(m_course * 10),
-			   m_heading,
-			   m_mmsi,
-			   m_lon_min, m_lat_min);    
-    auto payload = builder.CreateStruct(positionReportClassA);
+
+    auto payload =
+      CreatePositionReportClassA(builder,
+				 m_repeat,
+				 (NMEA0183::NavigationStatus) m_status,
+				 m_accuracy==1,
+				 m_second,
+				 (NMEA0183::ManeuverIndicator) m_maneuver,
+				 m_raim != 0,
+				 m_turn,
+				 (unsigned short)(m_speed * 10),
+				 (unsigned short)(m_course * 10),
+				 m_heading,
+				 m_mmsi,
+				 m_lon_min, m_lat_min);    
+
     auto vdm = CreateVDM(builder,
 			 m_vdo,
 			 (m_is_chan_A ?
@@ -432,14 +436,15 @@ void c_vdm_msg4::dec_payload(s_pl * ppl, const long long t)
   {
     dec_payload(ppl);
     builder.Clear();
-    NMEA0183::BaseStationReport
-      baseStationReport(m_repeat,
-			m_month, m_day, m_hour, m_minute, m_second,
-			(NMEA0183::EPFDFixType)m_epfd, m_raim, m_accuracy == 1,
-			m_year,
-			m_mmsi,
-			m_lon_min, m_lat_min);    
-    auto payload = builder.CreateStruct(baseStationReport);
+    auto payload = CreateBaseStationReport(builder, m_repeat,
+					   m_month, m_day, m_hour,
+					   m_minute, m_second,
+					   (NMEA0183::EPFDFixType)m_epfd,
+					   m_raim, m_accuracy == 1,
+					   m_year,
+					   m_mmsi,
+					   m_lon_min, m_lat_min);    
+
     auto vdm = CreateVDM(builder,
 			 m_vdo,
 			 (m_is_chan_A ?
@@ -560,27 +565,24 @@ void c_vdm_msg5::dec_payload(s_pl * ppl, const long long t)
     {
     dec_payload(ppl);
     builder.Clear();
-    NMEA0183::StaticAndVoyageRelatedData    
-      staticAndVoyageRelatedData(m_repeat,
-				 m_ais_version,
-				 (NMEA0183::EPFDFixType)m_epfd,
-				 m_month, m_day, m_hour, m_minute,
-				 m_to_port, m_to_starboard,
-				 m_dte,
-				 (NMEA0183::ShipType)m_shiptype,
-				 m_to_bow, m_to_stern,
-				 m_mmsi,
-				 m_imo,
-				 m_draught);
-    for (int i = 0; i < 7; i++)
-      staticAndVoyageRelatedData.mutable_callsign()->Mutate(i, m_callsign[i]);
-    for (int i = 0; i < 20; i++)
-      staticAndVoyageRelatedData.mutable_shipName()->Mutate(i, m_shipname[i]);
-    for (int i = 0; i < 20; i++)
-      staticAndVoyageRelatedData.mutable_destination()->Mutate(i,
-							       m_destination[i]);
-    
-    auto payload = builder.CreateStruct(staticAndVoyageRelatedData);
+
+    auto payload = 
+    CreateStaticAndVoyageRelatedData(builder,
+				     m_repeat,
+				     m_ais_version,
+				     (NMEA0183::EPFDFixType)m_epfd,
+				     m_month, m_day, m_hour, m_minute,
+				     m_to_port, m_to_starboard,
+				     m_dte,
+				     (NMEA0183::ShipType)m_shiptype,
+				     builder.CreateVector(m_callsign, 7),
+				     builder.CreateVector(m_shipname, 20),
+				     builder.CreateVector(m_destination, 20),
+				     m_to_bow, m_to_stern,
+				     m_mmsi,
+				     m_imo,
+				     m_draught);    
+
     auto vdm = CreateVDM(builder,
 			 m_vdo,
 			 (m_is_chan_A ?
@@ -727,16 +729,14 @@ void c_vdm_msg6::dec_payload(s_pl * ppl, const long long t)
     {
     dec_payload(ppl);
     builder.Clear();
-    NMEA0183::BinaryAddressedMessage
-      binaryAddressedMessage(m_repeat,
-			     m_seqno, m_retransmit,
-			     m_fid, m_dac,
-			     m_mmsi,
-			     m_mmsi_dst);
-    for (int i = 0; i < 115; i++)
-      binaryAddressedMessage.mutable_data()->Mutate(i, m_msg.msg[i]);
-    
-    auto payload = builder.CreateStruct(binaryAddressedMessage);
+    auto payload = 
+      NMEA0183::CreateBinaryAddressedMessage(builder, m_repeat,
+					     m_seqno, m_retransmit,
+					     m_fid,
+					     builder.CreateVector(m_msg.msg, 115),
+					     m_dac,
+					     m_mmsi,
+					     m_mmsi_dst);
     auto vdm = CreateVDM(builder,
 			 m_vdo,
 			 (m_is_chan_A ?
@@ -814,14 +814,12 @@ void c_vdm_msg8::dec_payload(s_pl * ppl, const long long t)
   {
     dec_payload(ppl);
     builder.Clear();
-    NMEA0183::BinaryBroadcastMessage
-      binaryBroadcastMessage(m_repeat,
-			     m_fid, m_dac,
-			     m_mmsi);
-    for (int i = 0; i < 119; i++)
-      binaryBroadcastMessage.mutable_data()->Mutate(i, m_msg.msg[i]);
-    
-    auto payload = builder.CreateStruct(binaryBroadcastMessage);
+    auto payload =
+      NMEA0183::CreateBinaryBroadcastMessage(builder, m_repeat,
+					     m_fid,
+					     builder.CreateVector(m_msg.msg, 119),
+					     m_dac,
+					     m_mmsi);
     auto vdm = CreateVDM(builder,
 			 m_vdo,
 			 (m_is_chan_A ?
@@ -959,17 +957,20 @@ void c_vdm_msg18::dec_payload(s_pl * ppl, const long long t)
   {
     dec_payload(ppl);
     builder.Clear();
-    NMEA0183::StandardClassBCSPositionReport
-      standardClassBCSPositionReport(m_repeat, m_accuracy == 1,
-				     m_second, 0/*not defined yet*/,
-				     m_cs, m_disp, m_dsc, m_band, m_msg22,
-				     m_assigned, m_raim,
-				     (unsigned short) (m_speed * 10),
-				     (unsigned short) (m_course * 10),
-				     m_heading,
-				     m_mmsi, m_lon_min, m_lat_min);
-    
-    auto payload = builder.CreateStruct(standardClassBCSPositionReport);
+    auto payload =
+      NMEA0183::CreateStandardClassBCSPositionReport(builder,
+						     m_repeat, m_accuracy == 1,
+						     m_second,
+						     0/*not defined yet*/,
+						     m_cs, m_disp,
+						     m_dsc, m_band, m_msg22,
+						     m_assigned, m_raim,
+						     (unsigned short) (m_speed * 10),
+						     (unsigned short) (m_course * 10),
+						     m_heading,
+						     m_mmsi,
+						     m_lon_min, m_lat_min);
+        
     auto vdm = CreateVDM(builder,
 			 m_vdo,
 			 (m_is_chan_A ?
@@ -1092,23 +1093,20 @@ void c_vdm_msg19::dec_payload(s_pl * ppl, const long long t)
     {
     dec_payload(ppl);
     builder.Clear();
-    NMEA0183::ExtendedClassBCSPositionReport
-      extendedClassBCSPositionReport(m_repeat, m_accuracy == 1,
-				     m_second, 0/*not defined yet*/,
-				     m_assigned, m_raim,
-				     (NMEA0183::ShipType)m_shiptype,
-				     (NMEA0183::EPFDFixType)m_epfd,
-				     m_dte,
-				     m_to_port, m_to_starboard,
-				     (unsigned short) (m_speed * 10),
-				     (unsigned short) (m_course * 10),
-				     m_heading,
-				     m_to_bow, m_to_stern, 
-				     m_mmsi, m_lon_min, m_lat_min);
-    for (int i = 0; i < 20; i++)
-      extendedClassBCSPositionReport.mutable_shipName()->Mutate(i,
-								m_shipname[i]);
-    auto payload = builder.CreateStruct(extendedClassBCSPositionReport);
+    auto payload = 
+      CreateExtendedClassBCSPositionReport(builder, m_repeat, m_accuracy == 1,
+					   m_second, 0/*not defined yet*/,
+					   m_assigned, m_raim,
+					   builder.CreateVector(m_shipname, 20),
+					   (NMEA0183::ShipType)m_shiptype,
+					   (NMEA0183::EPFDFixType)m_epfd,
+					   m_dte,
+					   m_to_port, m_to_starboard,
+					   (unsigned short) (m_speed * 10),
+					   (unsigned short) (m_course * 10),
+					   m_heading,
+					   m_to_bow, m_to_stern, 
+					   m_mmsi, m_lon_min, m_lat_min);
     auto vdm = CreateVDM(builder,
 			 m_vdo,
 			 (m_is_chan_A ?
@@ -1255,23 +1253,18 @@ void c_vdm_msg24::dec_payload(s_pl * ppl, const long long t)
   {
     dec_payload(ppl);
     builder.Clear();
-    NMEA0183::StaticDataReport
-      staticDataReport(m_repeat, m_part_no,
-		       (NMEA0183::ShipType)m_shiptype,
-		       m_to_port, m_to_starboard,
-		       m_model,
-		       m_to_bow, m_to_stern, 
-		       m_mmsi,
-		       m_serial,
-		       m_ms_mmsi);
-    for (int i = 0; i < 20; i++)
-      staticDataReport.mutable_shipName()->Mutate(i, m_shipname[i]);
-    for(int i = 0; i < 7; i++)
-      staticDataReport.mutable_callsign()->Mutate(i, m_callsign[i]);
-    for(int i = 0; i < 3; i++)
-      staticDataReport.mutable_vendorID()->Mutate(i, m_vendorid[i]);
-    
-    auto payload = builder.CreateStruct(staticDataReport);
+    auto payload = 
+      CreateStaticDataReport(builder, m_repeat, m_part_no,
+			     builder.CreateVector(m_shipname, 20),
+			     (NMEA0183::ShipType)m_shiptype,
+			     m_to_port, m_to_starboard,
+			     m_model,
+			     builder.CreateVector(m_callsign, 7),
+			     m_to_bow, m_to_stern, 
+			     m_mmsi,
+			     builder.CreateVector(m_vendorid, 3),
+			     m_serial,
+			     m_ms_mmsi);
     auto vdm = CreateVDM(builder,
 			 m_vdo,
 			 (m_is_chan_A ?
@@ -1367,8 +1360,8 @@ bool c_abk::decode(const char * str, const long long t)
     if(!dec(str))
       return false;
     builder.Clear();
-    NMEA0183::ABK abk(m_mmsi, m_msg_id, m_seq, m_stat);
-    auto payload = builder.CreateStruct(abk); 
+    auto payload = NMEA0183::CreateABK(builder, m_mmsi,
+				       m_msg_id, m_seq, m_stat);
     auto data = CreateData(builder,
 			   t,
 			   get_payload_type(),
