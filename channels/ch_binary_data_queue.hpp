@@ -128,6 +128,8 @@ public:
   
   virtual void print(ostream & out)
   {
+    out << "ch " << m_name << endl;
+    out << "ndata:" << m_num << " head:" << m_head << " tail:" << m_tail << endl;
   }
   
   virtual int write(FILE * pf, long long tcur)
