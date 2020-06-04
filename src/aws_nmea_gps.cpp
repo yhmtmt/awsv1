@@ -862,6 +862,7 @@ bool c_hev::decode(const char * str, const long long t)
   if(!dec(str))
     return false;
 
+  builder.Clear();
   auto payload = NMEA0183::CreateHEV(builder, hev); 
   auto data = CreateData(builder,
 			 t,
