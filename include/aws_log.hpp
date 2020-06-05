@@ -21,6 +21,7 @@ namespace fs = experimental::filesystem;
 #include <filesystem>
 namespace fs = filesystem;
 #endif
+#include <algorithm>
 
 	       
 class c_log
@@ -161,7 +162,7 @@ public:
 	}
       }
     }
-    
+    sort(time_stamps.begin(), time_stamps.end());
     return true;
   }
 
@@ -221,7 +222,7 @@ public:
       if(ifile->eof()){
 	if(!open_read_next_file()){
 	  break;
-	}
+	}       
 	ifile->read((char*)&current_timestamp, sizeof(current_timestamp));      
       }
     }

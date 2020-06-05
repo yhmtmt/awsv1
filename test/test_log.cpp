@@ -106,7 +106,7 @@ TEST_F(LogTest, WriteRead)
 
     
     if(t % time_step != 0){
-      ASSERT_TRUE(szread == 0);
+      ASSERT_EQ(szread, 0);
       t += tstep;
       continue;
     }
@@ -117,9 +117,9 @@ TEST_F(LogTest, WriteRead)
       if(data_list[irec].t == tread)
 	break;
     }
-    
+
     // size check
-    ASSERT_TRUE(szread == data_list[irec].sz);
+    ASSERT_EQ(szread, data_list[irec].sz);
     
     // data check
     bool cmp = true;    
