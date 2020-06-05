@@ -1,17 +1,17 @@
-// Copyright(c) 2016 Yohei Matsumoto, All right reserved. 
+// Copyright(c) 2016-2020 Yohei Matsumoto, All right reserved. 
 
-// aws_nmea_gps.cpp is free software: you can redistribute it and/or modify
+// aws_nmea_ais.cpp is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// aws_nmea_gps.cpp is distributed in the hope that it will be useful,
+// aws_nmea_ais.cpp is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with aws_nmea_gps.cpp.  If not, see <http://www.gnu.org/licenses/>. 
+// along with aws_nmea_ais.cpp.  If not, see <http://www.gnu.org/licenses/>. 
 #include <cstdio>
 #include <stdlib.h>
 #include <wchar.h>
@@ -322,9 +322,15 @@ void c_vdm_msg1::dec_payload(s_pl * ppl)
 
   tmpc = ((dat[7] & 0x3F) << 2) | 
     ((dat[8] & 0x30) >> 4);
-  m_turn = (float) (tmpc * (1.0 / 4.733));
-  m_turn *= (tmpc < 0 ? - m_turn : m_turn);
 
+  if(tmpc & 0x80){
+    m_turn = (float) (1.0 / 4.733) * ((~tmpc & 0xff) + 1);
+    m_turn *= -m_turn;
+  }else{
+    m_turn = (float) (1.0 / 4.733) * (tmpc);
+    m_turn *= m_turn;
+  }
+  
   tmpu = ((dat[8] & 0x0F) << 6) |
     (dat[9] & 0x3F);
   m_speed = (float)((float) tmpu * (1.0/10.0));

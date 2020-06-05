@@ -310,15 +310,17 @@ TEST_F(NMEATest, GPZDATest)
   zda_dec.decode(sentences[6]);
   zda_dec.encode(buf);
   ASSERT_TRUE(eval_nmea_chksum(buf));
+
   zda_enc.decode(buf);
-  ASSERT_EQ(zda_dec.m_h, zda_enc.m_h);
-  ASSERT_EQ(zda_dec.m_m, zda_enc.m_m); 
-  ASSERT_FLOAT_EQ(zda_dec.m_s, zda_enc.m_s);  
+  
+  ASSERT_FLOAT_EQ(zda_dec.m_s, zda_enc.m_s);    
   ASSERT_EQ(zda_dec.m_dy, zda_enc.m_dy);
   ASSERT_EQ(zda_dec.m_mn, zda_enc.m_mn);
   ASSERT_EQ(zda_dec.m_yr, zda_enc.m_yr);
   ASSERT_EQ(zda_dec.m_lzh, zda_enc.m_lzh);
-  ASSERT_EQ(zda_dec.m_lzm, zda_enc.m_lzm);    
+  ASSERT_EQ(zda_dec.m_lzm, zda_enc.m_lzm);
+  ASSERT_EQ(zda_dec.m_h, zda_enc.m_h);
+  ASSERT_EQ(zda_dec.m_m, zda_enc.m_m); 
 }
 
 

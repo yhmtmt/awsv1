@@ -65,6 +65,8 @@ bool c_gga::decode(const char * str, const long long t)
 
 bool c_gga::dec(const char * str)
 {
+  c_nmea_dat::dec(str);
+  
   int i = 0;
   int ipar = 0;
   int len;
@@ -211,6 +213,7 @@ bool c_gsa::decode(const char * str, const long long t)
 
 bool c_gsa::dec(const char * str)
 {
+  c_nmea_dat::dec(str);    
   int i = 0;
   int ipar = 0;
   int len;
@@ -307,6 +310,7 @@ bool c_gsv::decode(const char * str, const long long t)
 
 bool c_gsv::dec(const char * str)
 {
+  c_nmea_dat::dec(str);    
   int i = 0;
   int ipar = 0, npar = 20;
   int isat = 0;
@@ -406,6 +410,7 @@ bool c_rmc::decode(const char * str, const long long t)
 
 bool c_rmc::dec(const char * str)
 {
+    c_nmea_dat::dec(str);  
   int i = 0;
   int ipar = 0;
   int len;
@@ -522,6 +527,7 @@ bool c_vtg::decode(const char * str, const long long t)
 
 bool c_vtg::dec(const char * str)
 {
+  c_nmea_dat::dec(str);  
   int i = 0;
   int ipar = 0;
   int len;
@@ -643,6 +649,7 @@ bool c_zda::decode(const char * str, const long long t)
 
 bool c_zda::dec(const char * str)
 {
+  c_nmea_dat::dec(str);  
   int i = 0;
   int ipar = 0;
   int len;
@@ -692,14 +699,14 @@ bool c_zda::dec(const char * str)
 
 bool c_zda::encode(char * str)
 {
-  c_nmea_dat::encode(str);  
+  c_nmea_dat::encode(str);
   str[3] = 'Z';
   str[4] = 'D';
   str[5] = 'A';
   str[6] = ',';
   char * p = str + 7;
-  p += snprintf(p, 12, "%02d%02d%02.3f,", m_h, m_m, m_s);
-  p += snprintf(p, 19, "%02d,%02d,%04d,%02d,%02d*", m_dy, m_mn, m_yr,
+  p += snprintf(p, 12, "%02d%02d%02.3f,", (int)m_h, (int)m_m, m_s);
+  p += snprintf(p, 19, "%02d,%02d,%04d,%02d,%02d*", (int)m_dy, (int)m_mn, m_yr,
 		m_lzh, m_lzm);
   *p = '*'; ++p;
   p += snprintf(p, 3, "%02x", calc_nmea_chksum(str));
@@ -733,6 +740,7 @@ bool c_gll::decode(const char * str, const long long t)
 
 bool c_gll::dec(const char * str)
 {
+  c_nmea_dat::dec(str);    
   int i = 0;
   int ipar = 0;
   int len;
@@ -825,6 +833,7 @@ bool c_hdt::decode(const char * str, const long long t)
 
 bool c_hdt::dec(const char * str)
 {
+  c_nmea_dat::dec(str);    
   int i = 0;
   int ipar = 0;
   int len;
@@ -875,6 +884,7 @@ bool c_hev::decode(const char * str, const long long t)
 
 bool c_hev::dec(const char * str)
 {
+  c_nmea_dat::dec(str);    
   int i = 0;
   int ipar = 0;
   int len;
@@ -924,6 +934,7 @@ bool c_rot::decode(const char * str, const long long t)
 
 bool c_rot::dec(const char * str)
 {
+  c_nmea_dat::dec(str);  
   int i = 0;
   int ipar = 0;
   int len;
@@ -1114,6 +1125,7 @@ bool c_mda::decode(const char * str, const long long t)
 
 bool c_mda::dec(const char * str)
 {
+  c_nmea_dat::dec(str);      
   int i = 0;
   int ipar = 0;
   int len;
@@ -1231,6 +1243,7 @@ bool c_wmv::decode(const char * str, const long long t)
 
 bool c_wmv::dec(const char * str)
 {
+  c_nmea_dat::dec(str);      
   int i = 0;
   int ipar = 0;
   int len;
@@ -1314,6 +1327,7 @@ bool c_xdr::decode(const char * str, const long long t)
 
 bool c_xdr::dec(const char * str)
 {
+  c_nmea_dat::dec(str);      
   int i = 0;
   int ipar = 0;
   int len;

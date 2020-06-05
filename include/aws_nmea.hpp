@@ -43,7 +43,7 @@ public:
     return out;
   };
 
-  virtual bool dec(const char * str){ return true; };
+  virtual bool dec(const char * str){ m_toker[0] = str[1]; m_toker[1] = str[2]; return true; };
   virtual bool decode(const char * str, const long long t = -1){
     return true;
   }
