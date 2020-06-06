@@ -86,6 +86,16 @@ public:
     return buffer_size * data_size * sizeof(unsigned char)
       + sizeof(unsigned short) * (buffer_size + 1);
   }
+
+  const unsigned short get_queue_len()
+  {
+    return buffer_size;
+  }
+
+  const unsigned short get_data_size()
+  {
+    return data_size;
+  }
   
   virtual size_t write_buf(const char *buf)
   {
@@ -128,8 +138,10 @@ public:
   
   virtual void print(ostream & out)
   {
-    out << "ch " << m_name << endl;
-    out << "ndata:" << m_num << " head:" << m_head << " tail:" << m_tail << endl;
+    out << "ch " << m_name
+	<< " ndata:" << m_num
+	<< " head:" << m_head
+	<< " tail:" << m_tail << endl;
   }
   
   virtual int write(FILE * pf, long long tcur)
