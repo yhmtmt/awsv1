@@ -241,6 +241,7 @@ class c_gll: public c_nmea_dat
 
   virtual bool dec(const char * str);
   virtual bool decode(const char * str, const long long t = -1);
+  virtual bool encode(char * str);
   
   virtual NMEA0183::Payload get_payload_type() const
   {

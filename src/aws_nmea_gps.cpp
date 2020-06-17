@@ -813,6 +813,53 @@ bool c_gll::dec(const char * str)
   return true;
 }
 
+bool c_gll::encode(char * str)
+{
+  c_nmea_dat::encode(str);
+  str[3] = 'G';
+  str[4] = 'L';
+  str[5] = 'L';
+  str[6] = ',';
+  char * p = str + 7;
+  {    
+    int lat_deg = (int)lat;        
+    double lat_min = (lat - lat_deg) * 60;
+    if(lat_dir == EGP_N)
+      p += snprintf(p, 13, "%02d%02.4f,N,", lat_deg, lat_min);
+    else
+      p += snprintf(p, 13, "%02d%02.4f,S,", -lat_deg, lat_min);    
+  }
+  {
+    int lon_deg = (int)lon;
+    double lon_min = (lon - lon_deg) * 60;
+    if(lon_dir == EGP_E)
+      p += snprintf(p, 14, "%03d%02.4f,E,",lon_deg, lon_min);
+    else
+      p += snprintf(p, 14, "%03d%02.4f,W,",lon_deg, lon_min);
+  }
+  
+  p += snprintf(p, 12, "%02d%02d%02.3f,", hour, mint, (float)msec * 0.001);
+
+  p += snprintf(p, 3, "%c,", available ? 'A' : 'V' );
+  char cfs = 'A';
+  switch(fs){
+  case NMEA0183::GPSFixStatus_LOST:
+    cfs = 'N'; break;
+  case NMEA0183::GPSFixStatus_GPSF:
+    cfs = 'A'; break;
+  case NMEA0183::GPSFixStatus_DGPSF:
+    cfs = 'D'; break;
+  case NMEA0183::GPSFixStatus_ESTM:
+    cfs = 'E'; break;
+  default:
+    break;
+  }
+
+  p += snprintf(p, 3, "%c*", cfs);  
+  p += snprintf(p, 3, "%02x", calc_nmea_chksum(str));
+  return true;
+  
+}
 
 ////////////////////////////////////////////////hdt decoder
 bool c_hdt::decode(const char * str, const long long t)

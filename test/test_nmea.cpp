@@ -246,6 +246,24 @@ TEST_F(NMEATest, GPGLLTest)
   ASSERT_EQ(gll->fixStatus(), NMEA0183::GPSFixStatus_LOST);
   ASSERT_FLOAT_EQ(gll->latitude(), 49.0 + (16.45 / 60.0));
   ASSERT_FLOAT_EQ(gll->longitude(), -(123.0 + (11.12 / 60.0)));
+  
+  // encode test
+  c_gll gll_dec, gll_enc;
+  char buf[85];
+  gll_dec.decode(sentences[5]);
+  gll_dec.encode(buf);
+  ASSERT_TRUE(eval_nmea_chksum(buf));
+  cout << buf << endl;
+  gll_enc.decode(buf);
+  ASSERT_EQ(gll_dec.hour, gll_enc.hour);
+  ASSERT_EQ(gll_dec.mint, gll_enc.mint);
+  ASSERT_FLOAT_EQ(gll_dec.msec, gll_enc.msec);  
+  ASSERT_FLOAT_EQ(gll_dec.lat, gll_enc.lat);
+  ASSERT_FLOAT_EQ(gll_dec.lon, gll_enc.lon);
+  ASSERT_EQ(gll_dec.fs, gll_enc.fs);
+  ASSERT_EQ(gll_dec.available, gll_enc.available);  
+  ASSERT_EQ(gll_dec.lon_dir, gll_enc.lon_dir);
+  ASSERT_EQ(gll_dec.lat_dir, gll_enc.lat_dir);    
 }
 
 
