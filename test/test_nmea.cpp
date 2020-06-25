@@ -10,7 +10,7 @@ using namespace std;
 class NMEATest: public ::testing::Test
 {
 protected:
-  static const char * sentences[29];
+  static const char * sentences[30];
   c_nmea_dec dec;
   virtual void SetUp(){
     dec.add_nmea0183_decoder("RMC");
@@ -20,6 +20,7 @@ protected:
     dec.add_nmea0183_decoder("VTG");
     dec.add_nmea0183_decoder("GLL");
     dec.add_nmea0183_decoder("ZDA");
+    dec.add_nmea0183_decoder("DBT");
     dec.add_psat_decoder("HPR");
 
     dec.add_nmea0183_vdm_decoder(1); // 1
@@ -44,7 +45,7 @@ protected:
   }
 };
 
-const char * NMEATest::sentences[29] = {
+const char * NMEATest::sentences[30] = {
   "$GPRMC,085120.307,A,3541.1493,N,13945.3994,E,000.0,240.3,181211,,,A*6A",
   "$GPGGA,085120.307,3541.1493,N,13945.3994,E,1,08,1.0,6.9,M,35.9,M,,0000*5E",
   "$GPGSA,A,3,29,26,05,10,02,27,08,15,,,,,1.8,1.0,1.5*3E",
@@ -78,7 +79,8 @@ const char * NMEATest::sentences[29] = {
   "!AIVDO,1,1,,B,H1c2;qDTijklmno31<<C970`43<1,0*28",
   "!AIVDM,1,1,,A,KCQ9r=hrFUnH7P00,0*41",
   "!AIVDM,1,1,,B,KC5E2b@U19PFdLbMuc5=ROv62<7m,0*16",
-  "!AIVDM,1,1,,B,K5DfMB9FLsM?P00d,0*70"
+  "!AIVDM,1,1,,B,K5DfMB9FLsM?P00d,0*70",
+  "$SDDBT,15.7,f,4.8,M,2.6,F*3D"
 };
 
 
@@ -339,6 +341,25 @@ TEST_F(NMEATest, GPZDATest)
   ASSERT_EQ(zda_dec.m_lzm, zda_enc.m_lzm);
   ASSERT_EQ(zda_dec.m_h, zda_enc.m_h);
   ASSERT_EQ(zda_dec.m_m, zda_enc.m_m); 
+}
+
+TEST_F(NMEATest, GPDBTTest)
+{
+  cout << sentences[29] << endl;
+  const c_nmea_dat * dat = dec.decode(sentences[29]);
+  ASSERT_TRUE(dat != nullptr);
+  ASSERT_TRUE(dat->get_payload_type() == NMEA0183::Payload_DBT);
+  const uint8_t * buffer = dat->get_buffer_pointer();
+  size_t size = dat->get_buffer_size();
+  ASSERT_TRUE(size < 256);
+  ASSERT_TRUE(buffer != nullptr);
+  const NMEA0183::Data * data = NMEA0183::GetData(buffer);
+  ASSERT_TRUE(data != nullptr);
+  const NMEA0183::DBT * dbt = data->payload_as_DBT();
+  ASSERT_TRUE(dbt != nullptr);
+  ASSERT_FLOAT_EQ(dbt->depthFe(), 15.7);
+  ASSERT_FLOAT_EQ(dbt->depthM(), 4.8);
+  ASSERT_FLOAT_EQ(dbt->depthFa(), 2.6);
 }
 
 
