@@ -217,6 +217,25 @@ bool c_ttm::dec(const char * str)
 }
 
 //////////////////////////////////////////////// dbt decoder
+bool c_dbt::decode(const char * str, const long long t)
+{
+  dfe = dm = dfa = 0.0f;
+  if(!dec(str))
+    return false;
+
+  builder.Clear();
+  auto payload = NMEA0183::CreateDBT(builder,
+			   dfe,
+			   dm,
+			   dfa);
+  auto data = CreateData(builder,
+			 t,
+			 get_payload_type(),
+			 payload.Union());
+    
+  builder.Finish(data);  
+}
+
 bool c_dbt::dec(const char * str)
 {
   int i = 0;

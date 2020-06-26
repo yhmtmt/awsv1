@@ -122,6 +122,11 @@ public:
   }
 
   virtual bool dec(const char * str);
+  virtual bool decode(const char * str, const long long t = -1);
+  virtual NMEA0183::Payload get_payload_type() const
+  {
+    return NMEA0183::Payload_DBT;
+  }
   
   virtual ostream & show(ostream & out) const
   {
