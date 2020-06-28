@@ -203,12 +203,13 @@ public:
   
   bool read(long long & t, unsigned char * buf, unsigned int & buf_size)
   {
-    if(!bread)
+    if(!bread){
       return false;
-    
+    }
     if(current_timestamp_index == -1){
-      if(!open_read_file(t))
+      if(!open_read_file(t)){
 	return false;
+      }
       ifile->read((char*)&current_timestamp, sizeof(current_timestamp));      
     }
     
