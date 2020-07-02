@@ -1,35 +1,63 @@
 
 enum RadarControlState: byte
 {
-	OFF=-1,
-	MANUAL=0,
-	AUTO_1=1,
-	AUTO_2=2
+OFF=-1,
+MANUAL=0,
+AUTO_1=1,
+AUTO_2=2
 }
 
 enum RadarState: byte
 {
-	OFF=0,
-	STANDBY=1,
-	WARMING_UP=2,
-	TIMED_IDLE=3,
-	STOPPING=4,
-	SPINNING_DOWN=5,
-	STARTING=6,
-	SPINNING_UP=7,
-	TRANSMIT=8
+OFF=0,
+STANDBY=1,
+WARMING_UP=2,
+TIMED_IDLE=3,
+STOPPING=4,
+SPINNING_DOWN=5,
+STARTING=6,
+SPINNING_UP=7,
+TRANSMIT=8
+}
+
+enum RadarCommandType: byte
+{
+TXOFF=0,	
+TXON=1,
+RANGE=2,
+BEARING_ALIGNMENT=3,
+NO_TRANSMIT_START=4,
+NO_TRANSMIT_END=5,  
+GAIN=6,
+SEA=7,
+RAIN=8,
+INTERFERENCE_REJECTION=9,
+SCAN_SPEED=10,
+TIMED_IDLE=11,
+TIMED_RUN=12
 }
 
 struct Radar{
-       state:RadarState;
-       range:int;
-       gain:int;
-       gainmode:RadarControlState;
-       rain:int;
-       rainmode:RadarControlState;
-       sea:int;
-       seamode:RadarControlState;
-       ifr:int;
-       spd:int;
+state:RadarState;
+range:int;
+gain:int;
+gainmode:RadarControlState;
+rain:int;
+rainmode:RadarControlState;
+sea:int;
+seamode:RadarControlState;
+ifr:int;
+spd:int;
+}
+
+struct RadarCommand{
+type:RadarCommandType;
+val:int;
+state:RadarControlState;
+}
+
+table RadarLine{
+bearing:int;
+line:[ubyte];       
 }
 
