@@ -18,6 +18,7 @@
 #define _AWS_MAP_DEBUG
 
 namespace AWSMap2 {
+  
   struct vec3{
     union{
       double x;
@@ -141,13 +142,39 @@ namespace AWSMap2 {
   class LayerData;
   class LayerDataPtr;
 
+  // MapDataBase provide access to the databese.
+  // The nodes and their data is casched so that the total size is kept
+  // less than their limits given. (The data least recently used is basically
+  // discarded first.)
+  
+  // Methods: 
+  // "request" method is used to retrieve layer data in a region specified.
+  // If all the data requested is on the cache, the class returns their layer
+  // data immediately. Otherwise, the missing nodes and their layer data are
+  // identified and loaded.
+
+  // "insert" method is used to add a certain layer data to the data base.
+  // the layer data is automatically splitted into multiple nodes to satisfy
+  // the data size limits. (The layer data class should implemented splitter.)
+
+  // "erase" method is used to remove a ceratin layer data from the data base.
+  // The layer data should be specified by that provided layer data with
+  // request method. The class does not provide update method inside layer data.
+  // If you need to modify the layer data, first erase the data, and then
+  // insert newly created updated layer data.
+
+  // 
   class MapDataBase
   {
   private:
-    static unsigned int maxSizeLayerData[lt_undef]; // maximum size of each LayerData instance
-    static unsigned int maxNumNodes;			// maximum number of Node instances
-    static unsigned int maxTotalSizeLayerData;	// maximum total size of LayerData instances
-    static char * path;							// local storage path to save Node and LayerData. 
+    static unsigned int maxSizeLayerData[lt_undef]; // maximum size of
+                                                    // each LayerData instance
+    static unsigned int maxNumNodes;		    // maximum number of
+                                                    // Node instances
+    static unsigned int maxTotalSizeLayerData;	    // maximum total size of
+                                                    // LayerData instances
+    static char * path;				    // local storage path to
+                                                    // save Node and LayerData. 
     
   public:
     static unsigned int getMaxSizeLayerData(const LayerType & layerType)
@@ -155,7 +182,8 @@ namespace AWSMap2 {
       return maxSizeLayerData[layerType];
     }
     
-    static void setMaxSizeLayerData(const LayerType & layerType, const unsigned int size)
+    static void setMaxSizeLayerData(const LayerType & layerType,
+				    const unsigned int size)
     {
       maxSizeLayerData[layerType] = size;
     }
@@ -183,8 +211,8 @@ namespace AWSMap2 {
     static void setPath(const char * path);
     
   private:
-    Node * pNodes[20];							// 20 triangles of the first icosahedron
-    
+    Node * pNodes[20];     // 20 triangles of the first icosahedron
+    mutex mtx;
   public:
     MapDataBase();
     virtual ~MapDataBase();
@@ -192,36 +220,54 @@ namespace AWSMap2 {
     bool init();
     
     // request layerData within the circle specified with (center, radius).
-    void request(list<list<LayerDataPtr>> & layerDatum, const list<LayerType> & layerTypes,
-		 const vec3 & center, const float radius, const float resolution = 0);
+    void request(list<list<LayerDataPtr>> & layerDatum,
+		 const list<LayerType> & layerTypes,
+		 const vec3 & center, const float radius,
+		 const float resolution = 0);
 
     // insert an instance of LayerData to the location.
     bool insert(const LayerData * layerData);
     
-    // erase an instance of LayerData. The instance should be got via request method
+    // erase an instance of LayerData.
+    // The instance should be got via request method
     bool erase(const LayerData * layerData);
     
-    // restruct MapDataBase on the memory, as the number of nodes and total size of layer data are to be under their limits.
+    // restruct MapDataBase on the memory, as the number of
+    // nodes and total size of layer data are to be less than their limits.
     // (this method should be called periodically)
     void restruct();
     
-    // save MapDataBase (only the parts updated)
+    // save MapDataBase (only the nodes and data updated)
     bool save();
   };
   
   class Node
   {
   private:
+    // Node list for memory management.
     static Node * head, * tail;
+    
+    // Number of nodes in the node list.
     static unsigned int numNodesAlive;
     
+    // Insert newly instantiated node to the node list. 
     static void insert(Node * pNode);
-    static void pop(Node * pNode);      // remove pNode from node list.
-    static void accessed(Node * pNode); // move pNode to the tail of the node list.
+
+    // Remove pNode from node list.
+    static void pop(Node * pNode);
+
+    // Move pNode to the tail of the node list.
+    // called when the node is accessed.
+    static void accessed(Node * pNode); 
   public:
-    static void restruct();				// remove nodes if the limit of  maximum number of nodes are violated. 
-	                                    // Nodes without downlink nodes instantiated and least recently used are removed.
-    static Node * load(Node * pNodeUp, unsigned int idChild); // loads child node.
+    
+    // Remove nodes if the limit of  maximum number of nodes are violated.
+    // Nodes with no downlink node least recently used are removed.
+    static void restruct(); 
+
+    // Loads child node.
+    static Node * load(Node * pNodeUp, unsigned int idChild);
+    
     static const unsigned int getNumNodesAlive()
     {
       return numNodesAlive;
@@ -311,17 +357,20 @@ namespace AWSMap2 {
       refcount--;
     }
     
-    // getPath(char*, unsigned int) returns the path string the length is less than the specified limit.
+    // getPath(char*, unsigned int) returns the path string
+    // the length is less than the specified limit.
     void getPath(char * path, unsigned int maxlen);
     
     // save Node data and layer data recursively for all downlinks
     // this function is called only from MapDataBase::save()
     bool save();
     
-    // collision(vec3) determines whether the specified point collides with the node.
+    // collision(vec3) determines whether the specified point collides
+    // with the node.
     const bool collision(const vec3 & location, const double err = 0.0f);
     
-    // collision(vec3, float) determines whether the specified circle collides with the node.
+    // collision(vec3, float) determines whether the specified circle
+    // collides with the node.
     const bool collision(const vec3 & center, const float radius);
     
     
@@ -422,128 +471,50 @@ namespace AWSMap2 {
     
     // interfaces to be implemented in sub-classes.
   protected:
-    virtual bool _reduce(const size_t sz_lim) = 0;        // reduce the data structure to meet the size limit
-    virtual bool _merge(const LayerData & layerData) = 0; // merge given layerData to this layerData
-    virtual void _release() = 0;			  // release all internal data structure but does not mean the destruction of this object
+    // reduce the data structure to meet the size limit
+    virtual bool _reduce(const size_t sz_lim) = 0;
+    
+    // merge given layerData to this layerData
+    virtual bool _merge(const LayerData & layerData) = 0;
+    
+    // release all internal data structure but does not mean
+    // the destruction of this object
+    virtual void _release() = 0;			  
     
   public:
-    virtual const LayerType getLayerType() const = 0;     // returns LayerType value.
-    virtual bool save(ofstream & ofile) = 0;              // save data to ofile stream.
-    virtual bool load(ifstream & ifile) = 0;              // load data from ifile stream.
-    virtual bool split(list<Node*> & nodes, Node * pParentNode = NULL) const = 0; // split the layer data into nodes given
-    virtual LayerData * clone() const = 0;	// returns clone of the instance
-    virtual size_t size() const = 0;		// returns size in memory 
-    virtual float resolution() const = 0;	// returns minimum distance between objects in meter		
-    virtual float radius() const = 0;		// returns radius of the object's distribution in meter
-    virtual vec3 center() const = 0;	// returns center of the object's distribution
+    // returns LayerType value.
+    virtual const LayerType getLayerType() const = 0;
+    
+    // save data to ofile stream.
+    virtual bool save(ofstream & ofile) = 0;
+    
+    // load data from ifile stream.
+    virtual bool load(ifstream & ifile) = 0;
+
+    // split the layer data into nodes given
+    virtual bool split(list<Node*> & nodes, Node * pParentNode = NULL) const = 0;
+    // returns clone of the instance
+    virtual LayerData * clone() const = 0;
+    
+    // returns size in memory 
+    virtual size_t size() const = 0;
+    
+    // returns minimum distance between objects in meter		
+    virtual float resolution() const = 0;
+
+    // returns radius of the object's distribution in meter
+    virtual float radius() const = 0;
+    
+    // returns center of the object's distribution
+    virtual vec3 center() const = 0;
+
+    // dump the data inside as text 
     virtual void print() const = 0;
   };
   
-  class Points : public LayerData
-  {
-  protected:
-    struct s_points{
-      long long tstart, tend; // recorded time
-      double range; // scanner range 
-      vector<vec3> pts; // points measured 
-      vector<vec3> vec; // vector toward scanner center 
-      size_t size() {
-	return sizeof(unsigned int) + sizeof(long long) + (sizeof(unsigned int) + sizeof(vec3)) * pts.size();
-      }
-    };
+  #include "aws_map_point.hpp"
+  #include "aws_map_coast_line.hpp"
     
-    virtual bool _reduce(const size_t sz_lim) = 0;        // reduce the data structure to meet the size limit
-    virtual bool _merge(const LayerData & layerData) = 0; // merge given layerData to this layerData
-    virtual void _release() = 0;			  // release all internal data structure but does not mean the destruction of this object
-  public:
-    Points();
-    virtual ~Points();
-    
-    virtual const LayerType getLayerType() const = 0;     // returns LayerType value.
-    virtual bool save(ofstream & ofile) = 0;              // save data to ofile stream.
-    virtual bool load(ifstream & ifile) = 0;              // load data from ifile stream.
-    virtual bool split(list<Node*> & nodes, Node * pParentNode = NULL) const = 0; // split the layer data into nodes given
-    virtual LayerData * clone() const = 0;	// returns clone of the instance
-    virtual size_t size() const = 0;		// returns size in memory 
-    virtual float resolution() const = 0;	// returns minimum distance between objects in meter		
-    virtual float radius() const = 0;		// returns radius of the object's distribution in meter
-    virtual vec3 center() const = 0;	// returns center of the object's distribution
-    virtual void print() const = 0;   
-  };
-  
-  class CoastLine : public LayerData
-  {
-  protected:
-    static const vector<vec3> null_vec_vec3;
-    static const vector<vec2> null_vec_vec2;
-    
-    struct s_line {
-      vector<vec2> pts;
-      vector<vec3> pts_ecef;
-      
-      size_t size() {
-	return sizeof(unsigned int) + (sizeof(vec2) + sizeof(vec3)) * pts.size();
-      }
-    };
-    size_t total_size;
-    double dist_min;
-    double pt_radius;
-    vec3 pt_center;
-    vec2 pt_center_blh;
-    
-    vector<s_line*> lines;
-    void add(list<vec2> & line);
-    int try_reduce(int nred);
-    void update_properties();
-  public:
-    CoastLine();
-    virtual ~CoastLine();
-    
-    const unsigned int getNumLines() const
-    {
-      return lines.size();
-    }
-    
-    const vector<vec3> & getPointsECEF(unsigned int id) const
-    {
-      if (id >= lines.size())
-	return null_vec_vec3;
-      return lines[id]->pts_ecef;
-    }
-    
-    const vector<vec2> & getPointsBLH(unsigned int id) const
-    {
-      if (id >= lines.size())
-	return null_vec_vec2;
-      return lines[id]->pts;
-    }
-    
-    bool loadJPJIS(const char * fname);
-  protected:
-    virtual bool _reduce(const size_t sz_lim);
-    virtual bool _merge(const LayerData & layerData);
-    virtual void _release();
-  public:
-    virtual const LayerType getLayerType() const { return lt_coast_line; };
-    virtual bool save(ofstream & ofile);
-    virtual bool load(ifstream & ifile);
-    virtual bool split(list<Node*> & nodes, Node * pParentNode = NULL) const;
-    virtual LayerData * clone() const;
-    virtual size_t size() const;
-    virtual float resolution() const;
-    virtual float radius() const; // returns radius of the object's distribution in meter
-    virtual vec3 center() const; // returns center of the object's distribution
-    virtual void setCenter(const vec3 & _center)
-    {
-      pt_center = _center;
-    }
-    virtual void setRadius(const float _radius)
-    {
-      pt_radius = _radius;
-    }
-    virtual void print() const;
-  };
-  
   class LayerDataPtr
   {
   private:
