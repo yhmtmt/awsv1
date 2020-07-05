@@ -228,9 +228,14 @@ namespace AWSMap2 {
     // insert an instance of LayerData to the location.
     bool insert(const LayerData * layerData);
     
-    // erase an instance of LayerData.
-    // The instance should be got via request method
-    bool erase(const LayerData * layerData);
+    // remove the layerData, upperlayer data is recursively reconstructed.
+    // layerData in leaf node is only allowed as the argument.
+    bool remove(const LayerData * layerData);
+    
+    // remove the data with given id in layerData,
+    // upperlayer data is recursively reconstructed.
+    // layerData in leaf node is only allowed as the argument.    
+    bool remove(const LayerData * layerData, const unsigned int id);
     
     // restruct MapDataBase on the memory, as the number of
     // nodes and total size of layer data are to be less than their limits.
@@ -322,6 +327,11 @@ namespace AWSMap2 {
     Node(const unsigned char _id, Node * _upLink, const vec2 vtx_blh0, const vec2 vtx_blh1, const vec2 vtx_blh2);
     
     virtual ~Node();
+
+    bool hasDownlink()
+    {
+      return bdownLink;
+    }
     
     // setId(unsigned char) set node index in the upper layer.
     void setId(const unsigned char _id){
@@ -390,7 +400,8 @@ namespace AWSMap2 {
     // deleteLayerData deletes the layer data given in the argument.
     // The method delete the layer data in the node when the pointer is exactly the same as that given in the argument.
     // so the pointer given as the argument should be got via getLayerData
-    bool deleteLayerData(const LayerData * layerData);	
+    bool deleteLayerData(const LayerData * layerData);
+    bool deleteLayerData(const LayerData * layerData, const unsigned int id);
   };
   
   class LayerData
@@ -468,7 +479,8 @@ namespace AWSMap2 {
     void release();
     bool reduce(const size_t sz_lim);
     bool merge(const LayerData & layerData);
-    
+    bool remove(const unsigned int id);
+      
     // interfaces to be implemented in sub-classes.
   protected:
     // reduce the data structure to meet the size limit
@@ -480,7 +492,9 @@ namespace AWSMap2 {
     // release all internal data structure but does not mean
     // the destruction of this object
     virtual void _release() = 0;			  
-    
+
+    // remove data with specified id.
+    virtual bool _remove(const unsigned int id) = 0;
   public:
     // returns LayerType value.
     virtual const LayerType getLayerType() const = 0;

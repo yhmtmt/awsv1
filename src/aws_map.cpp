@@ -356,18 +356,25 @@ namespace AWSMap2 {
     return true;
   }
   
-  bool MapDataBase::erase(const LayerData * layerData)
+
+  bool MapDataBase::remove(const LayerData * layerData)
   {
     unique_lock<mutex> lock(mtx);
-    if (!layerData){
+    Node * pNode = layerData->getNode();    
+    if(!pNode->hasDownlink())
       return false;
-    }
     
+    return pNode->deleteLayerData(layerData);
+  }
+
+  bool MapDataBase::remove(const LayerData * layerData, const unsigned int id)
+  {
+    unique_lock<mutex> lock(mtx);
     Node * pNode = layerData->getNode();
+    if(!pNode->hasDownlink())
+      return false;
     
-    pNode->deleteLayerData(layerData);
-    
-    return true;
+    return pNode->deleteLayerData(layerData, id);
   }
   
   void MapDataBase::restruct()
@@ -493,18 +500,43 @@ namespace AWSMap2 {
   
   bool Node::deleteLayerData(const LayerData * layerData)
   {
-    bupdate = true;
-    Node::accessed(this);
-    
+    if(!bdownLink)
+      return false;    
+      
     auto itr = layerDataList.find(layerData->getLayerType());
     if (itr == layerDataList.end())
       return false;
+
+    bupdate = true;
+    Node::accessed(this);
+   
     itr->second->release();
     delete itr->second;
     
     layerDataList.erase(itr);
+    
     return true;
   }
+
+  bool Node::deleteLayerData(const LayerData * layerData, const unsigned int id)
+  {
+    if(!bdownLink)
+      return false;
+    
+    auto itr = layerDataList.find(layerData->getLayerType());
+    if(itr == layerDataList.end())
+      return false;
+
+    if(!itr->second->remove(id)){
+      return false;
+    }
+    
+    bupdate = true;
+    Node::accessed(this);
+    
+    return true;
+  }
+  
   
   void Node::releaseLayerData()
   {
@@ -1192,6 +1224,24 @@ namespace AWSMap2 {
     return result;
   }
 
+  bool LayerData::remove(const unsigned int id)
+  {
+
+    if(!isActive())
+      return false;
+
+    unsigned int size_prev = size();
+    
+    if(!_remove(id))
+      {
+	return false;
+      }
+
+    resize(size() - size_prev);    
+    LayerData::accessed(this);
+    bupdate = true;
+    return true;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////c_icosahedron
