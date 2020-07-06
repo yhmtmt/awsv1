@@ -225,7 +225,7 @@ namespace AWSMap2 {
   ////////////////////////////////////////////////////////////// MapDataBase
   unsigned int MapDataBase::maxSizeLayerData[lt_undef] =
     {
-      0x000FFFFF
+      0x0004FFFFF
     };
   unsigned int MapDataBase::maxNumNodes = 64;
   unsigned int MapDataBase::maxTotalSizeLayerData = 0x4FFFFF0;
@@ -507,13 +507,20 @@ namespace AWSMap2 {
     if (itr == layerDataList.end())
       return false;
 
-    bupdate = true;
-    Node::accessed(this);
+    if(itr->second != layerData)
+      return false;
+
+    LayerData * pNewEmptyLayerData =
+      LayerData::create(layerData->getLayerType());
    
     itr->second->release();
-    delete itr->second;
+    delete itr->second;    
+    itr->second = pNewEmptyLayerData;
+
+    upLink->reconstructLayerDataFromDownlink(layerData->getLayerType());
     
-    layerDataList.erase(itr);
+    bupdate = true;
+    Node::accessed(this);
     
     return true;
   }
@@ -527,9 +534,13 @@ namespace AWSMap2 {
     if(itr == layerDataList.end())
       return false;
 
-    if(!itr->second->remove(id)){
+    if(itr->second != layerData)
       return false;
-    }
+    
+    if(!itr->second->remove(id))
+      return false;
+
+    upLink->reconstructLayerDataFromDownlink(layerData->getLayerType());
     
     bupdate = true;
     Node::accessed(this);
@@ -768,7 +779,20 @@ namespace AWSMap2 {
   
     for(int i = 0; i < 4; i++)
       Node::insert(downLink[i]);
-  
+
+    for(auto itr = layerDataList.begin();
+	itr != layerDataList.end(); itr++){
+      if(!itr->second->isActive()){
+	if(!itr->second->load()){
+	  char node_path[2048];
+	  getPath(node_path, 2048);
+	  cerr << "Failed to load layer data type "
+	       << strLayerType[itr->first] << " at " <<  node_path << endl;
+	  continue;
+	}
+      }
+      distributeLayerData(*(itr->second));
+    }
     return true;
   }
 
@@ -968,14 +992,35 @@ namespace AWSMap2 {
     return layerData;
   }
 
+  void Node::reconstructLayerDataFromDownlink(const LayerType layerType)
+  {
+    auto itrDstLayerData = layerDataList.find(layerType);
+    if(itrDstLayerData == layerDataList.end())
+      return;
+
+    delete itrDstLayerData->second;
+    LayerData * pDstLayerData = LayerData::create(layerType);
+    itrDstLayerData->second = pDstLayerData;
+    
+    for (int i = 0; i < 4; i++){
+      if(!downLink[i]){
+	downLink[i] = Node::load(this, i);
+      }
+      pDstLayerData->merge(*(downLink[i]->getLayerData(layerType)));
+    }
+    
+    if (pDstLayerData->size() >  MapDataBase::getMaxSizeLayerData(layerType)){
+      pDstLayerData->reduce(MapDataBase::getMaxSizeLayerData(layerType));
+    }
+  }
+  
   void Node::insertLayerData(LayerData * pLayerData)
   {
     layerDataList.insert(pair<LayerType, LayerData*>(pLayerData->getLayerType(),
 						     pLayerData));
   }
 
-  bool Node::addLayerData(const LayerData & layerData, 
-			  const size_t sz_node_data_lim)
+  bool Node::addLayerData(const LayerData & layerData)
   {
     lock();
     bupdate = true;
@@ -1023,7 +1068,8 @@ namespace AWSMap2 {
       cout << "Merge: src size " << layerData.size() << " dst size " << pDstLayerData->size() << endl;
       pDstLayerData->merge(layerData);
       cout << "Merged: size " << pDstLayerData->size() << endl;
-      if (pDstLayerData->size() > sz_node_data_lim){ 
+      if (pDstLayerData->size() >
+	  MapDataBase::getMaxSizeLayerData(layerData.getLayerType())){ 
 	if (!bdownLink) {
 	  // the first experience the layer data in this node exceed the limit. 
 	  // create 4 lower nodes 
@@ -1031,19 +1077,18 @@ namespace AWSMap2 {
 	  cout << "Creating Downlink on " << path << endl;
 #endif
 	  createDownLink();
-	  distributeLayerData(*pDstLayerData);
 #ifdef _AWS_MAP_DEBUG
 	  cout << "Downlink Created on " << path << endl;
 #endif
 	}
-      
+	
 	// if the data size exceeds the limit, 
 	// reduce the data in this node with certain abstraction, 
 	// and create downlink for detailed data.
 #ifdef _AWS_MAP_DEBUG
 	cout << strLayerType[pDstLayerData->getLayerType()] << " Reduction in " << path << " with size " << pDstLayerData->size() << endl;
 #endif
-	pDstLayerData->reduce(sz_node_data_lim);
+	pDstLayerData->reduce(MapDataBase::getMaxSizeLayerData(pDstLayerData->getLayerType()));
 #ifdef _AWS_MAP_DEBUG
 	cout << "Finished " << strLayerType[pDstLayerData->getLayerType()] << " Reduction in " << path << " with size " << pDstLayerData->size() << endl;
 #endif

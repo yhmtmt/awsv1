@@ -18,6 +18,9 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
   ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
   EXCLUDE_FROM_ALL)
 
+
+add_compile_definitions(PATH_TEST_INPUT_DATA="${CMAKE_CURRENT_LIST_DIR}/data")
+
 if(CMAKE_VERSION VERSION_LESS 2.8.11)
   include_directories("${gtest_SOURCE_DIR}/include")
 endif()
@@ -56,6 +59,14 @@ add_executable(test_ch_binary_data_queue test_ch_binary_data_queue.cpp ${PROJECT
 target_link_libraries(test_ch_binary_data_queue gtest_main proj stdc++fs)
 target_include_directories(test_ch_binary_data_queue PUBLIC ${PROJECT_SOURCE_DIR}/include)
 add_test(NAME test_ch_binary_data_queue COMMAND test_ch_binary_data_queue WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+
+# Test aws_map
+add_executable(test_map test_map.cpp ${PROJECT_SOURCE_DIR}/src/aws_map.cpp ${PROJECT_SOURCE_DIR}/src/aws_map_coast_line.cpp ${PROJECT_SOURCE_DIR}/src/aws_map_point.cpp ${PROJECT_SOURCE_DIR}/src/aws_coord.cpp)
+
+target_link_libraries(test_map gtest_main proj stdc++fs)
+target_include_directories(test_map PUBLIC ${PROJECT_SOURCE_DIR}/include)
+add_test(NAME test_map COMMAND test_map WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 install(DIRECTORY DESTINATION ftest)
 file(GLOB FTESTS ftest/*)

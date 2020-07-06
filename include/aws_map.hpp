@@ -309,6 +309,10 @@ namespace AWSMap2 {
     
     // getPath(list<unsigned char>) helps getPath(char*, unsigned int) to generate path string to this node.
     void getPath(list<unsigned char> & path_id);
+
+    // reconstruct layer data of given type by merging downlink data.
+    // This method is called when 
+    void reconstructLayerDataFromDownlink(const LayerType layerType);
     
     // insertLayerData helps addLayerData. 
     void insertLayerData(LayerData * pLayerData);
@@ -394,8 +398,7 @@ namespace AWSMap2 {
     // addLayerData adds the layer data given in the argument.
     // the function is invoked from LayerData::split, and the split is called from MapDataBase::insert
     // This function recursively call split() and itself so that the size of the layer data does not exceeds its limit.
-    bool addLayerData(const LayerData & layerData, 
-		      const size_t sz_node_data_lim = 0x4FFFFF /* 4MB */);
+    bool addLayerData(const LayerData & layerData);
     
     // deleteLayerData deletes the layer data given in the argument.
     // The method delete the layer data in the node when the pointer is exactly the same as that given in the argument.
