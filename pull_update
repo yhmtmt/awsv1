@@ -1,0 +1,39 @@
+#!/bin/bash
+
+if [ $# -ne 0 ]; then
+    echo $#
+    echo "pusll_update"
+    exit 1
+fi
+    
+list_update() {
+    git status | grep modified | awk '{print $2}'
+}
+
+pull_updates(){
+    git pull
+}
+
+push_updates(){
+    git add $1
+    echo "git add $1"
+    git commit -m "$2"
+    git push -u origin master
+}
+
+echo "Updating awsv1"
+pull_updates
+
+filters=`ls -d filters/*/`
+home_dir=`pwd`
+
+for filter in $filters
+do
+    if [ $filter = "filters/sample/" ]; then
+	continue;
+    fi
+    cd $filter
+    echo "Updating $filter"
+    pull_updates
+    cd $home_dir
+done

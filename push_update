@@ -1,0 +1,52 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+    echo $#
+    echo "push_update <comment>"
+    exit 1
+fi
+    
+list_update() {
+    git status | grep modified | awk '{print $2}'
+}
+
+push_updates(){
+    git add $1
+    echo "git add $1"
+    git commit -m "$2"
+    git push -u origin master
+}
+
+updates=`list_update`
+
+echo "Push updates."
+echo "Processing awsv1"
+echo "Files:$updates"
+if [ -z "$updates" ]; then
+    echo "No updates."
+else
+    echo "Files:$updates"
+    push_updates "${updates[@]}" $1
+fi
+
+
+filters=`ls -d filters/*/`
+home_dir=`pwd`
+
+for filter in $filters
+do
+    if [ $filter = "filters/sample/" ]; then
+	continue;
+    fi
+    cd $filter
+    echo "Processing $filter"
+    updates=`list_update`
+    if [ -z "$updates" ]; then
+	echo "No updates."
+    else
+	echo "Files:$updates"
+	push_updates "${updates[@]}" $1
+    fi
+
+    cd $home_dir
+done
