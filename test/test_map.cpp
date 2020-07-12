@@ -91,7 +91,5 @@ const char * MapTest::jpgis_list[4] =
   };
   
 TEST_F(MapTest, Init)
-{
-    cout << "Data file is in " << PATH_TEST_INPUT_DATA << endl;
-    
+{   
 }

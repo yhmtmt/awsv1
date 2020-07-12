@@ -150,7 +150,7 @@ namespace AWSMap2{
     
     for (int iline = 0; iline < lines.size(); iline++) {
       vector<vec3> & pts = lines[iline]->pts_ecef;
-      // first find correspondance between points in the line and nodes.
+      // Find correspondances between points in the line and nodes.
       
       vector<char> asgnc(pts.size(), -1);
       if (pParentNode) {
@@ -171,9 +171,12 @@ namespace AWSMap2{
       }
       asgnc.back() = -1;
       
-      // second split line into lines, while doubling boundary points not to miss links between nodes
-      int in = asgnc[0], inn = -1; // node index "in" and next node index "inn"
-      int ipts = 0, ipte = 0; // start point index "ipts" and end point index "ipte".
+      // Split line into lines, while duplicating boundary points not
+      // to miss links between nodes
+      int in = asgnc[0];   // node index
+      int inn = -1;        // next node index 
+      int ipts = 0;        // start point index      
+      int ipte = 0;        // end point index
       list<vec2> line_new; // newly added line partially extracted from lines[iline]
       for (int ipt = 1; ipt < pts.size(); ipt++) {
 	inn = asgnc[ipt];

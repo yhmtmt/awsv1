@@ -387,7 +387,8 @@ namespace AWSMap2 {
     // collides with the node.
     const bool collision(const vec3 & center, const float radius);
     
-    
+    // Determine which downlink nodes collide with the points.
+    // Finally, corresponding downlink indices to points are stored in inodes.
     const void collision_downlink(const vector<vec3> & pts, vector<char> & inodes);
 
     // getLayerData called from MapDataBase::request
