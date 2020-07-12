@@ -316,7 +316,7 @@ f_base::f_base(const char * name):m_lib(nullptr),
   strncpy(m_name, name, strlen(name) + 1);
 
   register_fpar("TimeShift", &m_offset_time, "Filter time offset relative to global clock. (may be offline mode only)");
-  register_fpar("Interval", &m_intvl, "Execution interval in cycle. (default 0)");
+  register_fpar("Interval", &m_intvl, "Execution interval in cycle. (default 1)");
   register_fpar("ProcCount", &m_count_proc, "Number of execution."); 
   register_fpar("ClockCount", &m_count_clock, "Number of clock cycles passed." );
   register_fpar("ProcRate", &m_proc_rate, "Processing rate.(Read only)");

@@ -498,8 +498,8 @@ protected:
   long long m_offset_time;
   
   // cycle count the filter should be processed. cycle time is defined in c_aws.
-  unsigned int m_intvl;
-  
+  int m_intvl;
+ 
   // time in 10^-7 second. the variable is common for all filters
   static long long m_cur_time;
   
