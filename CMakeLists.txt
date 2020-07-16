@@ -7,9 +7,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0 -pg")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -s -DNODEBUG -march=native")
+find_package(Threads REQUIRED)
 find_package(Protobuf REQUIRED)
+#find_package(Protobuf CONFIG REQUIRED)
 find_package(GRPC REQUIRED)
+#find_package(gRPC CONFIG REQUIRED)
+
 find_package(Flatbuffers REQUIRED)
+
 
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})

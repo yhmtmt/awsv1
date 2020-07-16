@@ -32,7 +32,7 @@ function(GRPC_GENERATE_CPP SRCS HDRS DEST)
       get_filename_component(ABS_PATH ${ABS_FIL} PATH)
       list(FIND _protobuf_include_path ${ABS_PATH} _contains_already)
       if(${_contains_already} EQUAL -1)
-          list(APPEND _protobuf_include_path -I ${ABS_PATH})
+        list(APPEND _protobuf_include_path -I ${ABS_PATH})
       endif()
     endforeach()
   else()
@@ -44,7 +44,7 @@ function(GRPC_GENERATE_CPP SRCS HDRS DEST)
       get_filename_component(ABS_PATH ${DIR} ABSOLUTE)
       list(FIND _protobuf_include_path ${ABS_PATH} _contains_already)
       if(${_contains_already} EQUAL -1)
-          list(APPEND _protobuf_include_path -I ${ABS_PATH})
+        list(APPEND _protobuf_include_path -I ${ABS_PATH})
       endif()
     endforeach()
   endif()
@@ -60,7 +60,7 @@ function(GRPC_GENERATE_CPP SRCS HDRS DEST)
 
     add_custom_command(
       OUTPUT "${DEST}/${FIL_WE}.grpc.pb.cc"
-             "${DEST}/${FIL_WE}.grpc.pb.h"
+      "${DEST}/${FIL_WE}.grpc.pb.h"
       COMMAND protobuf::protoc
       ARGS --grpc_out ${DEST} ${_protobuf_include_path} --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} ${ABS_FIL}
       DEPENDS ${ABS_FIL} protobuf::protoc gRPC::grpc_cpp_plugin
@@ -79,48 +79,57 @@ if(NOT DEFINED GRPC_GENERATE_CPP_APPEND_PATH)
   set(GRPC_GENERATE_CPP_APPEND_PATH TRUE)
 endif()
 
-# Find gRPC include directory
-find_path(GRPC_INCLUDE_DIR grpc/grpc.h)
-mark_as_advanced(GRPC_INCLUDE_DIR)
+find_package(gRPC CONFIG)
 
-# Find gRPC library
-find_library(GRPC_LIBRARY NAMES grpc)
-mark_as_advanced(GRPC_LIBRARY)
-add_library(gRPC::grpc UNKNOWN IMPORTED)
-set_target_properties(gRPC::grpc PROPERTIES
+if (${gRPC_FOUND})
+  MESSAGE ("gRPC found. we'll skip the legacy package configuration lines we have locally.")
+else()
+  
+  # Find gRPC include directory
+  find_path(GRPC_INCLUDE_DIR grpc/grpc.h)
+  mark_as_advanced(GRPC_INCLUDE_DIR)
+
+  # Find gRPC library
+  find_library(GRPC_LIBRARY NAMES grpc)
+  mark_as_advanced(GRPC_LIBRARY)
+  add_library(gRPC::grpc UNKNOWN IMPORTED)
+  set_target_properties(gRPC::grpc PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${GRPC_INCLUDE_DIR}
     INTERFACE_LINK_LIBRARIES "-lpthread;-ldl"
     IMPORTED_LOCATION ${GRPC_LIBRARY}
-)
+    )
 
-# Find gRPC C++ library
-find_library(GRPC_GRPC++_LIBRARY NAMES grpc++)
-mark_as_advanced(GRPC_GRPC++_LIBRARY)
-add_library(gRPC::grpc++ UNKNOWN IMPORTED)
-set_target_properties(gRPC::grpc++ PROPERTIES
+  # Find gRPC C++ library
+  find_library(GRPC_GRPC++_LIBRARY NAMES grpc++)
+  mark_as_advanced(GRPC_GRPC++_LIBRARY)
+  add_library(gRPC::grpc++ UNKNOWN IMPORTED)
+  set_target_properties(gRPC::grpc++ PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${GRPC_INCLUDE_DIR}
     INTERFACE_LINK_LIBRARIES gRPC::grpc
     IMPORTED_LOCATION ${GRPC_GRPC++_LIBRARY}
-)
+    )
 
-# Find gRPC C++ reflection library
-find_library(GRPC_GRPC++_REFLECTION_LIBRARY NAMES grpc++_reflection)
-mark_as_advanced(GRPC_GRPC++_REFLECTION_LIBRARY)
-add_library(gRPC::grpc++_reflection UNKNOWN IMPORTED)
-set_target_properties(gRPC::grpc++_reflection PROPERTIES
+  # Find gRPC C++ reflection library
+  find_library(GRPC_GRPC++_REFLECTION_LIBRARY NAMES grpc++_reflection)
+  mark_as_advanced(GRPC_GRPC++_REFLECTION_LIBRARY)
+  add_library(gRPC::grpc++_reflection UNKNOWN IMPORTED)
+  set_target_properties(gRPC::grpc++_reflection PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${GRPC_INCLUDE_DIR}
     INTERFACE_LINK_LIBRARIES gRPC::grpc++
     IMPORTED_LOCATION ${GRPC_GRPC++_REFLECTION_LIBRARY}
-)
+    )
 
-# Find gRPC CPP generator
-find_program(GRPC_CPP_PLUGIN NAMES grpc_cpp_plugin)
-mark_as_advanced(GRPC_CPP_PLUGIN)
-add_executable(gRPC::grpc_cpp_plugin IMPORTED)
-set_target_properties(gRPC::grpc_cpp_plugin PROPERTIES
+  # Find gRPC CPP generator
+  find_program(GRPC_CPP_PLUGIN NAMES grpc_cpp_plugin)
+  mark_as_advanced(GRPC_CPP_PLUGIN)
+  add_executable(gRPC::grpc_cpp_plugin IMPORTED)
+  set_target_properties(gRPC::grpc_cpp_plugin PROPERTIES
     IMPORTED_LOCATION ${GRPC_CPP_PLUGIN}
-)
+    )
 
-include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(gRPC DEFAULT_MSG
+  include(${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
+  FIND_PACKAGE_HANDLE_STANDARD_ARGS(gRPC DEFAULT_MSG
     GRPC_LIBRARY GRPC_INCLUDE_DIR GRPC_GRPC++_REFLECTION_LIBRARY GRPC_CPP_PLUGIN)
+
+  
+endif()
