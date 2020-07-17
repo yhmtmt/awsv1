@@ -206,6 +206,8 @@ public:
     if(!bread){
       return false;
     }
+
+    
     if(current_timestamp_index == -1){
       if(!open_read_file(t)){
 	return false;
@@ -215,16 +217,16 @@ public:
     
     buf_size = 0;
     
-    while(current_timestamp <= t){
+    if(current_timestamp < t){
       ifile->read((char*)&buf_size, sizeof(buf_size));
       ifile->read((char*)buf, buf_size);
       t = current_timestamp;
       ifile->read((char*)&current_timestamp, sizeof(current_timestamp));       
       if(ifile->eof()){
-	if(!open_read_next_file()){
-	  break;
+  if(open_read_next_file()){
+	  ifile->read((char*)&current_timestamp, sizeof(current_timestamp));      
 	}       
-	ifile->read((char*)&current_timestamp, sizeof(current_timestamp));      
+	
       }
     }
     
