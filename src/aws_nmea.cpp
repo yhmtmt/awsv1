@@ -233,7 +233,8 @@ bool c_dbt::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);  
+  builder.Finish(data);
+  return true;  
 }
 
 bool c_dbt::dec(const char * str)

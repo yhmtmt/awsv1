@@ -14,6 +14,7 @@
 // along with aws_log.hpp.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef AWS_LOG_HPP
+#define AWS_LOG_HPP
 #if __GNUC__ < 8
 #include <experimental/filesystem>
 namespace fs = experimental::filesystem;
@@ -22,6 +23,7 @@ namespace fs = experimental::filesystem;
 namespace fs = filesystem;
 #endif
 #include <algorithm>
+#include <regex>
 
 class c_log
 {
@@ -109,8 +111,9 @@ private:
       if (time_stamps[i] > t)
       {
         if (i == 0) // the logging time epoch is later.
-          return -1;
+          return 0;
         i = i >> 1;
+        sz = j;
         continue;
       }
 
@@ -150,6 +153,10 @@ public:
     size_max = _size_max;
     bread = _bread;
 
+    string rstr(prefix);
+    rstr += "_[0-9]+.log";
+    regex r(rstr);
+
     // in read mode, list the files with prefix in the path and record all
     // the timestamps of the files.
     if (bread)
@@ -157,14 +164,10 @@ public:
       for (auto &p : fs::directory_iterator(path))
       {
         string fname = p.path().filename();
-        if (fname.find(prefix) == 0)
+        if (regex_match(fname.begin(), fname.end(), r))
         {
           unsigned int start_pos = prefix.size() + 1;
           unsigned int end_pos = fname.find(".log");
-          if (end_pos == string::npos)
-            continue;
-          if (start_pos >= end_pos)
-            continue;
           long long t = atoll(fname.substr(start_pos, end_pos).c_str());
           time_stamps.push_back(t);
         }
@@ -174,6 +177,10 @@ public:
     return true;
   }
 
+  bool is_replay(){
+    return bread;
+  }
+  
   void destroy()
   {
     if (ofile)

@@ -60,7 +60,8 @@ bool c_gga::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 bool c_gga::dec(const char * str)
@@ -208,7 +209,8 @@ bool c_gsa::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 bool c_gsa::dec(const char * str)
@@ -304,7 +306,8 @@ bool c_gsv::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
   
 
@@ -404,8 +407,8 @@ bool c_rmc::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
-    
+  builder.Finish(data);
+  return true;    
 }
 
 bool c_rmc::dec(const char * str)
@@ -521,7 +524,8 @@ bool c_vtg::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 
@@ -643,7 +647,8 @@ bool c_zda::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 
@@ -734,7 +739,8 @@ bool c_gll::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 
@@ -875,7 +881,8 @@ bool c_hdt::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 bool c_hdt::dec(const char * str)
@@ -925,7 +932,8 @@ bool c_hev::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 
@@ -976,7 +984,8 @@ bool c_rot::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 bool c_rot::dec(const char * str)
@@ -1078,7 +1087,8 @@ bool c_psat_hpr::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 psat.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 bool c_psat_hpr::dec(const char * str)
@@ -1167,7 +1177,8 @@ bool c_mda::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 bool c_mda::dec(const char * str)
@@ -1285,7 +1296,8 @@ bool c_wmv::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 bool c_wmv::dec(const char * str)
@@ -1368,7 +1380,8 @@ bool c_xdr::decode(const char * str, const long long t)
 			 get_payload_type(),
 			 payload.Union());
     
-  builder.Finish(data);    
+  builder.Finish(data);
+  return true;
 }
 
 

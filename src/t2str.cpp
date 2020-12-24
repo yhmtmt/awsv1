@@ -31,5 +31,5 @@ int main(int argc, char ** argv)
 	   tm.tm_msec,
 	   tm.tm_year + 1900);
 
-  return true;
+  return 0;
 };

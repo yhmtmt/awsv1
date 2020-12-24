@@ -561,10 +561,7 @@ public:
   }
   
   static long long get_time(){
-    long long t;
-    unique_lock<mutex> lock(m_mutex);
-    t = m_cur_time;
-    return t;
+    return m_clk.get_time();
   }
   
   static const unsigned get_period(){

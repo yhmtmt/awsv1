@@ -83,5 +83,5 @@ int main(int argc, char ** argv)
   
   printf("%lld", mkgmtimeex(tm) * MSEC);
   
-  return true;
+  return 0;
 };
