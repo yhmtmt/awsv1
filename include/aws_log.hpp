@@ -71,6 +71,7 @@ private:
     ifile = new ifstream;
 
     string fname = path + "/" + prefix + get_time_str(time_stamps[current_timestamp_index]);
+    cout << "Opening " << fname << endl;    
     ifile->open(fname, ios_base::binary);
     return ifile->is_open();
   }
@@ -88,6 +89,7 @@ private:
     ifile = new ifstream;
 
     string fname = path + "/" + prefix + get_time_str(time_stamps[current_timestamp_index]);
+    cout << "Opening " << fname << endl;
     ifile->open(fname, ios_base::binary);
     return ifile->is_open();
   }
@@ -101,25 +103,32 @@ private:
   const int get_time_index(const long long t)
   {
     int sz = time_stamps.size();
-    int i = sz >> 1;
-    while (i < sz)
+    int imin = 0, imax = sz - 1;
+
+    // return if the time is out of range.
+    if(t < time_stamps[imin])
+      return 0;
+    if(t >= time_stamps[imax])
+      return imax;
+
+    int i = (imax - imin) >> 1;    
+    while (1)
     {
       int j = i + 1;
-      if (j == sz) // the end
-        return i;
 
       if (time_stamps[i] > t)
       {
-        if (i == 0) // the logging time epoch is later.
-          return 0;
-        i = i >> 1;
-        sz = j;
+        if (i == imin) // the logging time epoch is later.
+          return imin;
+        imax = i;
+	i = imin + ((imax - imin) >> 1);
         continue;
       }
 
       if (time_stamps[j] <= t)
       {
-        i = i + ((sz - i) >> 1);
+	imin = j;	
+        i = imin + ((imax - imin) >> 1);
         continue;
       }
 
@@ -138,8 +147,11 @@ public:
 
   ~c_log()
   {
-    if (ofile)
+    if (ofile){
+      if(current_timestamp > 0)
+	open_new_write_file(current_timestamp);
       delete ofile;
+    }
 
     if (ifile)
       delete ifile;
@@ -174,6 +186,13 @@ public:
       }
     }
     sort(time_stamps.begin(), time_stamps.end());
+    cout << "Log Data " << rstr << endl;
+    int index = 0;
+    for (auto itr = time_stamps.begin(); itr != time_stamps.end(); itr++){
+      cout << index << ":" << *itr << endl;
+      index++;
+    }
+	
     return true;
   }
 
@@ -183,8 +202,11 @@ public:
   
   void destroy()
   {
-    if (ofile)
+    if (ofile){
+      if(current_timestamp > 0)
+	open_new_write_file(current_timestamp);
       delete ofile;
+    }
     ofile = nullptr;
     if (ifile)
       delete ifile;
@@ -213,6 +235,7 @@ public:
     ofile->write((const char *)buf, buf_size);
 
     total_size += buf_size + sizeof(t) + sizeof(buf_size);
+    current_timestamp = t;
     return true;
   }
 
