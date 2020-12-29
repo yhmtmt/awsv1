@@ -194,7 +194,8 @@ bool f_base::s_fpar::get(char * valstr, size_t sz){
 
 void f_base::s_fpar::get_info(string & expstr)
 {
-  expstr = string(explanation);
+  if(explanation)
+    expstr = string(explanation);
 }
 
 ////////////////////////////////////////////////////// f_base members
