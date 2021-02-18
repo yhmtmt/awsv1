@@ -57,6 +57,12 @@ private:
 
   bool open_read_next_file()
   {
+    if (ifile)
+    {
+      delete ifile;
+      ifile = nullptr;
+    }
+    
     if (current_timestamp_index == time_stamps.size())
       return false;
 
@@ -64,10 +70,6 @@ private:
     if (current_timestamp_index == time_stamps.size())
       return false;
 
-    if (ifile)
-    {
-      delete ifile;
-    }
     ifile = new ifstream;
 
     string fname = path + "/" + prefix + get_time_str(time_stamps[current_timestamp_index]);
@@ -219,6 +221,15 @@ public:
   bool write(const long long t, const unsigned char *buf,
              const unsigned int buf_size)
   {
+    if(buf_size <= 0){
+      cerr << "The data size is not correct. Data size " << buf_size << endl;
+      return false;
+    }
+      
+    if(t < current_timestamp){
+      cerr << "Timestamp is not consistent. Previous time is " << current_timestamp << " and now " << t << endl;
+      return false;
+    }
     if (bread)
       return false;
 
@@ -257,12 +268,25 @@ public:
 
     buf_size = 0;
 
+    if(ifile == nullptr)
+      return false;
+    
     if (current_timestamp < t)
     {
       ifile->read((char *)&buf_size, sizeof(buf_size));
       ifile->read((char *)buf, buf_size);
       t = current_timestamp;
       ifile->read((char *)&current_timestamp, sizeof(current_timestamp));
+      
+      if(current_timestamp < t){
+	cerr << "Timestamp is not consistent. Previous timestamp is " << t << " and now " << current_timestamp << endl;
+	if(open_read_next_file()){
+          ifile->read((char *)&current_timestamp, sizeof(current_timestamp));	
+	}else{
+	  return false;
+	}
+      }
+      
       if (ifile->eof())
       {
         if (open_read_next_file())

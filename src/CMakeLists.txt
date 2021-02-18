@@ -27,3 +27,21 @@ install(TARGETS blh2ecef DESTINATION bin)
 add_executable(ecef2blh ecef2blh.cpp aws_coord.cpp)
 install(TARGETS ecef2blh DESTINATION bin)
 
+#build configuration for libaws_state.so
+find_package(PythonLibs 3 REQUIRED)
+
+STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+" "\\1" python_major_vers "${PYTHONLIBS_VERSION_STRING}")
+STRING(REGEX REPLACE "^[0-9]+\\.([0-9])+\\.[0-9]+" "\\1" python_minor_vers "${PYTHONLIBS_VERSION_STRING}")
+STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+)" "\\1" python_patch_vers "${PYTHONLIBS_VERSION_STRING}")
+
+
+find_package(Boost COMPONENTS python-py${python_major_vers}${python_minor_vers} REQUIRED)
+
+add_library(aws_state SHARED aws_state.cpp aws_coord.cpp aws_clock.cpp)
+target_include_directories(aws_state PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(aws_state PUBLIC ${Boost_INCLUDE_DIRS})
+target_include_directories(aws_state PUBLIC ${PYTHON_INCLUDE_DIRS})
+target_compile_definitions(aws_state PUBLIC PY_EXPORT)
+target_link_libraries(aws_state ${Boost_LIBRARIES})
+install(TARGETS aws_state DESTINATION lib)
+
