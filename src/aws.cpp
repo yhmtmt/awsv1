@@ -437,16 +437,18 @@ public:
 	paws->unlock();
 	break;
       }
-      FltrMsg msg;
       f->lock_cmd();
-      msg.set_message(f->get_msg(), f->get_msg_size());
+      {
+	FltrMsg msg;
+	msg.set_message(f->get_msg(), f->get_msg_size());
+	
+	if(!writer->Write(msg)){
+	  spdlog::error("Failed to send message from {}. RPC closed.", f->get_name());
+	  break;
+	}
+      }
       f->unlock_cmd();
       paws->unlock();
-
-      if(!writer->Write(msg)){
-	spdlog::error("Failed to send message from {}. RPC closed.", f->get_name());
-	break;
-      }
 	    
       nanosleep(&ts, NULL);
     }
