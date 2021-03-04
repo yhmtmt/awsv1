@@ -91,7 +91,7 @@ void c_aws1_state::add_engr(const long long _trev, const float _rev,
   }else
     trev_min = trev[tail_rev];
 
-  sampler.sample(*this);
+  sampler.sample_10hz_data(*this);
 }
 
 void c_aws1_state:: add_engd(const long long _tengd, const float _tmpeng,
@@ -114,7 +114,7 @@ void c_aws1_state:: add_engd(const long long _tengd, const float _tmpeng,
   }else
     tengd_min = tengd[tail_engd];
 
-  sampler.sample(*this);  
+  sampler.sample_1hz_data(*this);  
 }
 
 void c_aws1_state::add_position(const long long _tpos, const double _lat, const double _lon)
@@ -138,7 +138,7 @@ void c_aws1_state::add_position(const long long _tpos, const double _lat, const 
   }else
     tgll_min = tgll[tail_gll];
   
-  sampler.sample(*this);
+  sampler.sample_10hz_data(*this);
 }
 
 
@@ -158,7 +158,7 @@ void c_aws1_state::add_velocity(const long long _tvel, const float _sog, const f
   }else
     tvtg_min = tvtg[tail_vtg];
 
-  sampler.sample(*this);  
+  sampler.sample_10hz_data(*this);  
 }
   
 void c_aws1_state::add_attitude(const long long _tatt,
@@ -180,7 +180,7 @@ void c_aws1_state::add_attitude(const long long _tatt,
   }else
     thpr_min = thpr[tail_hpr];
 
-  sampler.sample(*this);  
+  sampler.sample_10hz_data(*this);  
 }
 
 void c_aws1_state::add_heave(const long long _thev, const float _hev)
@@ -198,7 +198,7 @@ void c_aws1_state::add_heave(const long long _thev, const float _hev)
   }else
     thev_min = thev[tail_hev];
 
-  sampler.sample(*this);  
+  sampler.sample_10hz_data(*this);  
 }
 
 void c_aws1_state::add_mda(const long long _tmda,
@@ -225,7 +225,7 @@ void c_aws1_state::add_mda(const long long _tmda,
   }else
     tmda_min = tmda[tail_mda];
 
-  sampler.sample(*this);  
+  sampler.sample_1hz_data(*this);  
 }
   
 void c_aws1_state::add_depth(const long long _tdbt, const float _depth)
@@ -243,7 +243,7 @@ void c_aws1_state::add_depth(const long long _tdbt, const float _depth)
   }else
     tdbt_min = tdbt[tail_dbt];
 
-  sampler.sample(*this);  
+  sampler.sample_1hz_data(*this);  
 }
 
 void c_aws1_state::add_eng(const long long _teng,  int _eng)
@@ -261,7 +261,7 @@ void c_aws1_state::add_eng(const long long _teng,  int _eng)
   }else
     teng_min = teng[tail_eng];
 
-  sampler.sample(*this);  
+  sampler.sample_10hz_data(*this);  
 }
 
 void c_aws1_state::add_rud(const long long _trud, int _rud)
@@ -279,15 +279,19 @@ void c_aws1_state::add_rud(const long long _trud, int _rud)
   }else
     trud_min = trud[tail_rud];
 
-  sampler.sample(*this);  
+  sampler.sample_10hz_data(*this);  
 }
-
-void c_aws1_state::sample_position(const long long t,
-				   double & _lat, double & _lon, double & _hev,
-				   double & _x, double & _y, double & _z)
-{   
+void c_aws1_state::sample_10hz_data(const long long t,
+				    double & _lat, double & _lon, double & _hev,
+				    double & _x, double & _y, double & _z,
+				    float & _u, float & _v, 
+				    float & _roll, float & _pitch, float  & _yaw,
+				    float & _rev, int & _trim,
+				    int & _eng, int & _rud)
+{
   int i0, i1;
-  float alpha, ialpha;    
+  float alpha, ialpha;
+  
   find_sample_index(tgll, tail_gll, t, i0, i1);
   calc_sample_coef(tgll, t, i0, i1, alpha, ialpha);
 
@@ -301,14 +305,6 @@ void c_aws1_state::sample_position(const long long t,
   calc_sample_coef(thev, t, i0, i1, alpha, ialpha);
 
   _hev = hev[i0] * alpha + hev[i1] * ialpha;
-}
-
-void c_aws1_state::sample_kinetics(const long long t, 
-				   float & _u, float & _v, 
-				   float & _r, float & _p, float  & _y)
-{
-  int i0, i1;
-  float alpha, ialpha;
   find_sample_index(tvtg, tail_vtg, t, i0, i1);
   calc_sample_coef(tvtg, t, i0, i1, alpha, ialpha);
 
@@ -319,56 +315,46 @@ void c_aws1_state::sample_kinetics(const long long t,
   find_sample_index(thpr, tail_hpr, tcor, i0, i1);
   calc_sample_coef(thpr, tcor, i0, i1, alpha, ialpha);
 
-  _r = roll[i0] * alpha + roll[i1] * ialpha;
-  _p = pitch[i0] * alpha + pitch[i1] * ialpha;
-  _y = yaw[i0] * alpha + yaw[i1] * ialpha;
+  _roll = roll[i0] * alpha + roll[i1] * ialpha;
+  _pitch = pitch[i0] * alpha + pitch[i1] * ialpha;
+  _yaw = yaw[i0] * alpha + yaw[i1] * ialpha;
 
-  double dir = _cog - _y;
+  double dir = _cog - _yaw;
   _u = cos(dir) * _sog;
   _v = sin(dir) * _sog;
-}
-
-void c_aws1_state::sample_control(const long long t, int & _eng, int & _rud,
-				  float & _rev, int & _trim,
-				  float & _tmpeng, float & _valt,
-				  float & _frate, double & _hour)
-{
-  int i0, i1;
-  find_sample_index(teng, tail_eng, t, i0, i1);
- 
-  _eng = eng[i0];
-
-  find_sample_index(trud, tail_rud, t, i0, i1);
- 
-  _rud = rud[i0];
-
-  find_sample_index(tengd, tail_engd, t, i0, i1);
-    
-  _tmpeng = tmpeng[i0];
-  _valt = valt[i0];
-  _frate = frate[i0];
-  _hour = hour[i0];
-    
-  float alpha, ialpha;
+  
   find_sample_index(trev, tail_rev, t, i0, i1);
   calc_sample_coef(trev, t, i0, i1, alpha, ialpha);
   _rev = rev[i0] * alpha + rev[i1] * ialpha;
   _trim = trim[i0] * alpha + trim[i1] * ialpha;
+
+  find_sample_index(teng, tail_eng, t, i0, i1);
+  _eng = eng[i0];
+
+  find_sample_index(trud, tail_rud, t, i0, i1); 
+  _rud = rud[i0];
+  find_sample_index(tengd, tail_engd, t, i0, i1);
 }
 
-
-void c_aws1_state::sample_environment(const long long t,
-				      float & _wdir, float & _wspd,
-				      float & _hmd, float & _tmpa,
-				      float & _dwpt, float & _bar,
-				      float & _depth)
+void c_aws1_state::sample_1hz_data(const long long t, float & _tmpeng,
+				   float & _valt, float & _frate,
+				   double & _hour, float & _wdir, float & _wspd,
+				   float & _hmd, float & _tmpa,
+				   float & _dwpt, float & _bar,
+				   float & _depth)
 {
   int i0, i1;
   float alpha, ialpha;
-
+  find_sample_index(tengd, tail_engd, t, i0, i1);
+  calc_sample_coef(tengd, t, i0, i1, alpha, ialpha);
+  _tmpeng = tmpeng[i0] * alpha + tmpeng[i1] * ialpha;
+  _valt = valt[i0] * alpha + valt[i1] * ialpha;
+  _frate = frate[i0] * alpha + frate[i1] * ialpha;
+  _hour = hour[i0] * alpha + hour[i1] * ialpha;
+  
   find_sample_index(tmda, tail_mda, t, i0, i1);
   calc_sample_coef(tmda, t, i0, i1, alpha, ialpha);
-    
+  
   _wdir = wdir[i0] * alpha + wdir[i1] * ialpha;
   _wspd = wspd[i0] * alpha + wspd[i1] * ialpha;
   _hmd = hmd[i0] * alpha + hmd[i1] * ialpha;
@@ -378,129 +364,96 @@ void c_aws1_state::sample_environment(const long long t,
 
   find_sample_index(tdbt, tail_dbt, t, i0, i1);
   calc_sample_coef(tdbt, t, i0, i1, alpha, ialpha);
-  _depth = depth[i0] * alpha + depth[i1] * ialpha;
+  _depth = depth[i0] * alpha + depth[i1] * ialpha;   
 }
 
-bool c_aws1_state::get_position(const int idx,
-				double & _lat, double & _lon, double & _hev,
-				double & _x, double & _y, double & _z)
+
+bool c_aws1_state::get_10hz_data(const int idx,
+				 double & _lat, double & _lon, double & _hev,
+				 double & _x, double & _y, double & _z,
+				 float & _u, float & _v, float & _w,
+				 float & _roll, float & _pitch, float  & _yaw,
+				 float & _dr_dt, float & _dp_dt, float & _dy_dt,
+				 float & _rev, int & _trim,
+				 int & _eng, int & _rud)
 {
   if(idx > 0) // prediction is not sapported
     return false;
 
-  if(idx <= -sampler.num) // past sample out of buffer
+  if(idx <= -sampler.num10hz) // past sample out of buffer
     return false;
   
-  int i = sampler.tail - idx - 1;
+  int i = sampler.tail10hz - idx - 1;
   if(i < 0)
     i += sampler.size_buf;
   i %= sampler.size_buf;
-  
+
   _lat = sampler.lat[i];
   _lon = sampler.lon[i];
   _hev = sampler.hev[i];
   _x = sampler.x[i];
   _y = sampler.y[i];
   _z = sampler.z[i];
-  
-  return true;
-}
-
-
-
-bool c_aws1_state::get_kinetics(const int idx,
-				float & _u, float & _v, float & _w,
-				float & _r, float & _p, float  & _y,
-				float & _dr_dt, float & _dp_dt, float & _dy_dt)
-{
-  if(idx > 0) // prediction is not sapported
-    return false;
-
-  if(idx <= -sampler.num) // past sample out of buffer
-    return false;
-  
-  int i = sampler.tail - idx - 1;
-  if(i < 0)
-    i += sampler.size_buf;
-  i %= sampler.size_buf;
-  
 
   _u = sampler.ucor[i];
   _v = sampler.vcor[i];
   _w = sampler.wcor[i];
 
-  _r = sampler.roll[i];
-  _p = sampler.pitch[i];
-  _y = sampler.yaw[i];
+  _roll = sampler.roll[i];
+  _pitch = sampler.pitch[i];
+  _yaw = sampler.yaw[i];
   
   _dr_dt = sampler.dr_dt[i];
   _dp_dt = sampler.dp_dt[i];
   _dy_dt = sampler.dy_dt[i];
-  return true;
+
+  _eng = sampler.eng[i];
+  _rud = sampler.rud[i];
+
+  _rev = sampler.rev[i];
+  _trim = sampler.trim[i];  
 }
 
-
-bool c_aws1_state::get_control(const int idx, int & _eng, int & _rud,
-			       float & _rev, int & _trim,
-			       float & _tmpeng, float & _valt, float & _frate,
-			       double & _hour)
-{
-    if(idx > 0) // prediction is not sapported
-    return false;
-
-    if(idx <= -sampler.num) // past sample out of buffer
-      return false;
-    
-    int i = sampler.tail - idx - 1;
-    if(i < 0)
-      i += sampler.size_buf;
-    i %= sampler.size_buf;
-
-    _eng = sampler.eng[i];
-    _rud = sampler.rud[i];
-    _rev = sampler.rev[i];
-    _trim = sampler.trim[i];
-    _tmpeng = sampler.tmpeng[i];
-    _valt = sampler.valt[i];
-    _frate = sampler.frate[i];
-    _hour = sampler.hour[i];
-    
-    return true;
-}
-
-bool c_aws1_state::get_environment(const int idx, float & _wdir, float & _wspd,
-				   float & _hmd, float & _tmpa,
-				   float & _dwpt, float & _bar,
-				   float & _depth)
+bool c_aws1_state::get_1hz_data(const int idx, float & _tmpeng,
+				float & _valt, float & _frate,
+				double & _hour, float & _wdir, float & _wspd,
+				float & _hmd, float & _tmpa,
+				float & _dwpt, float & _bar,
+				float & _depth)
 {
   if(idx > 0) // prediction is not sapported
     return false;
 
-  if(idx <= -sampler.num) // past sample out of buffer
+  if(idx <= -sampler.num1hz) // past sample out of buffer
     return false;
   
-  int i = sampler.tail - idx - 1;
+  int i = sampler.tail1hz - idx - 1;
   if(i < 0)
     i += sampler.size_buf;
   i %= sampler.size_buf;
-
+  
+  _tmpeng = sampler.tmpeng[i];
+  _valt = sampler.valt[i];
+  _frate = sampler.frate[i];
+  _hour = sampler.hour[i];
+  
   _wdir = sampler.wdir[i];
   _wspd = sampler.wspd[i];
   _hmd = sampler.hmd[i];
   _tmpa = sampler.tmpa[i];
   _dwpt = sampler.dwpt[i];
   _bar = sampler.bar[i];
-  _depth = sampler.depth[i];
-  return true;
+  _depth = sampler.depth[i];    
 }
 
 //////////////////////////////////////////////// class c_aws1_state_sampler
 c_aws1_state_sampler::c_aws1_state_sampler(int _size_buf, long long _dt):
-  size_buf(_size_buf), tail(0), num(0), t(-1), dt(_dt),
+  size_buf(_size_buf), tail10hz(0), tail1hz(0),
+  num10hz(0), num1hz(0), t10hz(-1), t1hz(-1),
+  dt(_dt),
   xant(0), yant(0), zant(-1.04)
 {
   inv_dt_sec = (double) SEC / (double) dt ;
-  num = tail = 0;
   
   rev.resize(size_buf);
   trim.resize(size_buf);
@@ -540,129 +493,145 @@ c_aws1_state_sampler::c_aws1_state_sampler(int _size_buf, long long _dt):
 }
 
 
-const long long c_aws1_state_sampler::get_time(int idx)
+const long long c_aws1_state_sampler::get_time_10hz_data(int idx)
 {
-  if(idx < num)
-    return t + dt * idx;
+  if(idx < num10hz)
+    return t10hz + dt * idx;
   return -1;
 }
 
+const long long c_aws1_state_sampler::get_time_1hz_data(int idx)
+{
+  if(idx < num1hz)
+    return t1hz + dt * idx;
+  return -1;
+}
 
 const long long c_aws1_state_sampler::get_cycle_time()
 {
   return dt;
 }
-  
-bool c_aws1_state_sampler::sample(c_aws1_state & st)
+
+void c_aws1_state_sampler::sample_1hz_data(c_aws1_state & st)
 {
-  int _eng, _rud;
-  float _rev;
-  int _trim;
-  float _tmpeng, _valt, _frate;
-  double _hour;
-  long long tnext = t + dt;
-  if(!st.is_samplable(tnext))
-    return false;
-  
-  st.sample_control(tnext, _eng, _rud, _rev, _trim,
-		    _tmpeng, _valt, _frate, _hour);
+  while(1){
+    long long tnext = t1hz + dt;
+    if(!st.is_1hz_data_samplable(tnext))
+      return;
 
-  float _wdir, _wspd, _hmd, _tmpa, _dwpt, _bar, _depth;
-  st.sample_environment(tnext, _wdir, _wspd, _hmd, _tmpa,
-			_dwpt, _bar, _depth);
+    float _tmpeng, _valt, _frate;
+    double _hour;
+    float _wdir, _wspd, _hmd, _tmpa, _dwpt, _bar, _depth;
+    st.sample_1hz_data(tnext, _tmpeng, _valt, _frate, _hour,
+		       _wdir, _wspd, _hmd, _tmpa, _dwpt, _bar,
+		       _depth);
+    tmpeng[tail1hz] = _tmpeng;
+    valt[tail1hz] = _valt;
+    frate[tail1hz] = _frate;
+    hour[tail1hz] = _hour;
+    wdir[tail1hz] = _wdir;
+    wspd[tail1hz] = _wspd;
+    hmd[tail1hz] = _hmd;
+    tmpa[tail1hz] = _tmpa;
+    dwpt[tail1hz] = _dwpt;
+    bar[tail1hz] = _bar;
+    depth[tail1hz] = _depth;
     
-  double _lat, _lon, _hev, _x, _y, _z;
-  st.sample_position(tnext, _lat, _lon, _hev, _x, _y, _z);
-    
-  float _u, _v, _roll, _pitch, _yaw;
-  st.sample_kinetics(tnext, _u, _v, _roll, _pitch, _yaw);
-
-  rev[tail] = _rev;
-  trim[tail] = _trim;
-  lat[tail] = _lat;
-  lon[tail] = _lon;
-  x[tail] = _x;
-  y[tail] = _y;
-  z[tail] = _z;
-  u[tail] = _u;
-  v[tail] = _v;
-  roll[tail] = _roll;
-  pitch[tail] = _pitch;
-  yaw[tail] = _yaw;
-  eng[tail] = _eng;
-  rud[tail] = _rud;
-  hev[tail] = (float)_hev;
-  wdir[tail] = _wdir;
-  wspd[tail] = _wspd;
-  hmd[tail] = _hmd;
-  tmpa[tail] = _tmpa;
-  dwpt[tail] = _dwpt;
-  bar[tail] = _bar;
-  depth[tail] = _depth;
-  tmpeng[tail] = _tmpeng;
-  valt[tail] = _valt;
-  frate[tail] = _frate;
-  hour[tail] = _hour;
-
-  num++;
-  int ip = tail;
-  int i0 = tail - 1;
-  if(i0 < 0)
-    i0 += size_buf;
-
-  if(num == 1){ // is not differentiable
-    dr_dt[tail] = 0;
-    dp_dt[tail] = 0;
-    dy_dt[tail] = 0;
-    w[tail] = 0;
-    du_dt[tail] = 0;
-    dv_dt[tail] = 0;
-    ucor[tail] = 0;
-    vcor[tail] = 0;
-    wcor[tail] = 0;
+    num1hz++;
+    tail1hz = (tail1hz + 1) % size_buf;
+    t1hz = tnext;
   }
+}
+
+
+void c_aws1_state_sampler::sample_10hz_data(c_aws1_state & st)
+{
+  while(1){
+    long long tnext = t10hz + dt;
+    if(!st.is_10hz_data_samplable(tnext))
+      return;
+    
+    int _eng, _rud;
+    float _rev;
+    int _trim;  
+    double _lat, _lon, _hev, _x, _y, _z;
+    float _u, _v, _roll, _pitch, _yaw;  
+    st.sample_10hz_data(tnext, _lat, _lon, _hev, _x, _y, _z,
+			_u, _v, _roll, _pitch, _yaw, _rev, _trim, _eng, _rud);
+    
+    rev[tail10hz] = _rev;
+    trim[tail10hz] = _trim;
+    lat[tail10hz] = _lat;
+    lon[tail10hz] = _lon;
+    x[tail10hz] = _x;
+    y[tail10hz] = _y;
+    z[tail10hz] = _z;
+    u[tail10hz] = _u;
+    v[tail10hz] = _v;
+    roll[tail10hz] = _roll;
+    pitch[tail10hz] = _pitch;
+    yaw[tail10hz] = _yaw;
+    eng[tail10hz] = _eng;
+    rud[tail10hz] = _rud;
+    hev[tail10hz] = (float)_hev;
+    
+    num10hz++;
+    int ip = tail10hz;
+    int i0 = tail10hz - 1;
+    if(i0 < 0)
+      i0 += size_buf;
+    
+    if(num10hz == 1){ // is not differentiable
+      dr_dt[tail10hz] = 0;
+      dp_dt[tail10hz] = 0;
+      dy_dt[tail10hz] = 0;
+      w[tail10hz] = 0;
+      du_dt[tail10hz] = 0;
+      dv_dt[tail10hz] = 0;
+      ucor[tail10hz] = 0;
+      vcor[tail10hz] = 0;
+      wcor[tail10hz] = 0;
+    }
+    
+    if(num10hz > 1){ // backward difference
+      dr_dt[ip] = (float)(normalize_angle_rad(roll[ip] - roll[i0]) * inv_dt_sec);
+      dp_dt[ip] = (float)(normalize_angle_rad(pitch[ip] - pitch[i0]) * inv_dt_sec);
+      dy_dt[ip] = (float)(normalize_angle_rad(yaw[ip] - yaw[i0]) * inv_dt_sec);
       
-  if(num > 1){ // backward difference
-    dr_dt[ip] = (float)(normalize_angle_rad(roll[ip] - roll[i0]) * inv_dt_sec);
-    dp_dt[ip] = (float)(normalize_angle_rad(pitch[ip] - pitch[i0]) * inv_dt_sec);
-    dy_dt[ip] = (float)(normalize_angle_rad(yaw[ip] - yaw[i0]) * inv_dt_sec);
-
-    w[ip] = (float)((_hev - hev[i0]) * inv_dt_sec);
-    du_dt[ip] = (float)((_u - u[i0]) * inv_dt_sec);
-    dv_dt[ip] = (float)((_v - v[i0]) * inv_dt_sec);
-
-    float _ucor, _vcor, _wcor;
-    correct_velocity(u[ip], v[ip], w[ip], dr_dt[ip], dp_dt[ip], dy_dt[ip],
-		     xant, yant, zant, _ucor, _vcor, _wcor);
-    ucor[ip] = _ucor;
-    vcor[ip] = _vcor;
-    wcor[ip] = _wcor;
-  }
-
-  int in = i0 - 1;
-  if(in < 0)
-    in += size_buf;
+      w[ip] = (float)((_hev - hev[i0]) * inv_dt_sec);
+      du_dt[ip] = (float)((_u - u[i0]) * inv_dt_sec);
+      dv_dt[ip] = (float)((_v - v[i0]) * inv_dt_sec);
+      
+      float _ucor, _vcor, _wcor;
+      correct_velocity(u[ip], v[ip], w[ip], dr_dt[ip], dp_dt[ip], dy_dt[ip],
+		       xant, yant, zant, _ucor, _vcor, _wcor);
+      ucor[ip] = _ucor;
+      vcor[ip] = _vcor;
+      wcor[ip] = _wcor;
+    }
     
-  if(num > 2){ // symmetric difference
-    double inv_2dt = 0.5 * inv_dt_sec;
-    dr_dt[i0] = (float)(normalize_angle_rad(roll[ip] - roll[in]) * inv_2dt);
-    dp_dt[i0] = (float)(normalize_angle_rad(pitch[ip] - pitch[in]) * inv_2dt);
-    dy_dt[i0] = (float)(normalize_angle_rad(yaw[ip] - yaw[in]) * inv_2dt);
-    w[ip] = (float)((hev[ip] - hev[in]) * inv_2dt);
-    du_dt[ip] = (float)((u[ip] - u[in]) * inv_2dt);
-    dv_dt[ip] = (float)((v[ip] - v[in]) * inv_2dt);
-    float _ucor, _vcor, _wcor;
-    correct_velocity(u[i0], v[i0], w[i0], dr_dt[i0], dp_dt[i0], dy_dt[i0],
-		     xant, yant, zant, _ucor, _vcor, _wcor);
-    ucor[i0] = _ucor;
-    vcor[i0] = _vcor;
-    wcor[i0] = _wcor;
+    int in = i0 - 1;
+    if(in < 0)
+      in += size_buf;
     
+    if(num10hz > 2){ // symmetric difference
+      double inv_2dt = 0.5 * inv_dt_sec;
+      dr_dt[i0] = (float)(normalize_angle_rad(roll[ip] - roll[in]) * inv_2dt);
+      dp_dt[i0] = (float)(normalize_angle_rad(pitch[ip] - pitch[in]) * inv_2dt);
+      dy_dt[i0] = (float)(normalize_angle_rad(yaw[ip] - yaw[in]) * inv_2dt);
+      w[ip] = (float)((hev[ip] - hev[in]) * inv_2dt);
+      du_dt[ip] = (float)((u[ip] - u[in]) * inv_2dt);
+      dv_dt[ip] = (float)((v[ip] - v[in]) * inv_2dt);
+      float _ucor, _vcor, _wcor;
+      correct_velocity(u[i0], v[i0], w[i0], dr_dt[i0], dp_dt[i0], dy_dt[i0],
+		       xant, yant, zant, _ucor, _vcor, _wcor);
+      ucor[i0] = _ucor;
+      vcor[i0] = _vcor;
+      wcor[i0] = _wcor;    
+    }
+    
+    tail10hz = (tail10hz + 1) % size_buf;
+    t10hz = tnext;    
   }
-
-  tail = (tail + 1) % size_buf;
-  t = tnext;
-  
-  return true;    
 }  
   

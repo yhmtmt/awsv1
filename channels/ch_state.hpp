@@ -16,7 +16,8 @@
 // along with ch_state.hpp.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "channel_base.hpp"
-
+#include "aws_state.hpp"
+#define SAMPLER_SIZE 100
 
 // state channel contains row sensor data.
 class ch_state: public ch_base
@@ -24,6 +25,8 @@ class ch_state: public ch_base
 protected:
   long long m_tfile;          // current time record of the log file playing
 
+  c_aws1_state st;
+  
   Eigen::Vector3d x_gps;      // GPS antenna (V104)  position.
   
   // Attitude data (V104)
@@ -100,27 +103,45 @@ public:
 			       lon(0), lat(0), alt(0),
 			       x(0), y(0), z(0),
 			       cog(0), sog(0), depth(0),
-			       ccog(0.0f), csog(0.0f)      
+			       ccog(0.0f), csog(0.0f),
+			       st(SAMPLER_SIZE, SAMPLER_SIZE)
   {
     for(int i = 0; i < 9; i++) R[i] = 0.0;
     R[0] = R[4] = R[8] = 1.0;
   }
 
+  void set_sampling_start_time(const long long t)
+  {
+    lock();
+    st.set_time(t);
+    unlock();
+  }
+  
   void set_gps_ant_pos(const Eigen::Vector3d & _x_gps)
   {
     lock();
     x_gps = _x_gps;
+    st.set_gps_antenna_position(_x_gps[0], _x_gps[1], _x_gps[2]);
     unlock();
   }
+
+  void set_gps_attitude_delay(const long long delay)
+  {
+    lock();
+    st.set_gps_attitude_delay(delay);
+    unlock();
+  }
+  
   
   void set_attitude(const long long _tatt,
 		    const float _r, const float _p, const float _y)
   {
     lock();
     if(tatt != _tatt){
-      double _roll_rad = (float)(roll * (PI / 180.f));
-      double _pitch_rad = (float)(pitch * (PI / 180.f));
-      double _yaw_rad = (float)(yaw * (PI / 180.f));
+      double _roll_rad = (roll * (PI / 180.f));
+      double _pitch_rad = (pitch * (PI / 180.f));
+      double _yaw_rad = (yaw * (PI / 180.f));
+      
       double idt = (double) SEC / (double) (_tatt - tatt);
       dyaw = (float)(idt * normalize_angle_rad(_yaw_rad - yaw_rad));
       dpitch = (float)(idt * normalize_angle_rad(_pitch_rad - pitch_rad));
@@ -136,6 +157,8 @@ public:
       roll = _r; 
       pitch = _p;
       yaw = _y;
+      
+      st.add_attitude(_tatt, _roll_rad, _pitch_rad, _yaw_rad);
     }
     unlock();
   }
@@ -147,9 +170,13 @@ public:
       tpos = _tpos;
       lat = _lat;
       lon = _lon;
+      
       double lat_rad = (lat * (PI / 180.)), lon_rad = (lon * (PI / 180.));
+      
       getwrldrot(lat_rad, lon_rad, R);
       blhtoecef(lat_rad, lon_rad, alt, x, y, z);
+      
+      st.add_position(_tpos, lat_rad, lon_rad);
     }
     unlock();
   }
@@ -159,6 +186,8 @@ public:
     lock();
     talt = _talt;
     alt = _alt;
+    
+    st.add_heave(_talt, _alt);
     unlock();
   }
 
@@ -186,6 +215,8 @@ public:
       // Note: in body fixed coordinate x is bow direction, but in world coordinate, x is east direction
       cvx = vx - v_rot(1);
       cvy = vy - v_rot(0);
+
+      st.add_velocity(_tvel, mps, th); 
     }
     unlock();
   }
@@ -194,6 +225,8 @@ public:
     lock();
     tdp = _tdp;
     depth = _depth;
+
+    st.add_depth(_tdp, _depth);
     unlock();
   }
   
@@ -210,8 +243,42 @@ public:
     dew = _dew;
     dir_wnd_t = _dir_wnd_t;
     wspd_mps = _wspd_mps;
+
+
+    st.add_mda(_twx, _dir_wnd_t * (PI / 180.), _wspd_mps, _hmdr, _temp_air,
+	       _dew, _bar);
     unlock();
   }
+
+
+  void set_engr(const long long _tengr, const float _rev, const int _trim)
+  {
+    lock();
+    st.add_engr(_tengr, _rev, _trim);
+    unlock();
+  }
+
+  void set_engd(const long long _tengd, const float _tmpeng, const float _valt, const float _frate, const double _hour)
+  {
+    lock();
+    st.add_engd(_tengd, _tmpeng, _valt, _frate, _hour);
+    unlock();    
+  }
+
+  void set_eng(const long long _teng, const int _eng)
+  {
+    lock();
+    st.add_eng(_teng, _eng);
+    unlock();
+  }
+
+  void set_rud(const long long _trud, const int _rud)
+  {
+    lock();
+    st.add_rud(_trud, _rud);
+    unlock();
+  }
+  
   
   void get_weather(long long & _twx, float & _bar, float & _temp_air,
 		   float & _hmdr, float & _dew,
@@ -341,6 +408,43 @@ public:
     unlock();
   }
   
+  bool get_10hz_data(long long & _t,
+		     double & _lat, double & _lon, double & _hev,
+		     double & _x, double & _y, double & _z,
+		     float & _u, float & _v, float & _w, 
+		     float & _roll, float & _pitch, float  & _yaw,
+		     float & _dr_dt, float & _dp_dt, float & _dy_dt,
+		     float & _rev, int & _trim,
+		     int & _eng, int & _rud, const int idx = 0)
+  {
+    lock();
+    _t = st.get_time_10hz_data(idx);
+    bool res = st.get_10hz_data(idx, _lat, _lon, _hev, _x, _y, _z, _u, _v, _w,
+				_roll, _pitch, _yaw, _dr_dt, _dp_dt, _dy_dt,
+				_rev, _trim, _eng, _rud);
+    unlock();
+
+    return res;
+  }
+
+  bool get_1hz_data(long long & _t,  float & _tmpeng,
+		    float & _valt, float & _frate,
+		    double & _hour, float & _wdir, float & _wspd,
+		    float & _hmd, float & _tmpa,
+		    float & _dwpt, float & _bar,
+		    float & _depth, const int idx = 0)
+  {
+    lock();
+    _t = st.get_time_1hz_data(idx);    
+    bool res = st.get_1hz_data(idx, _tmpeng,
+			       _valt, _frate,
+			       _hour, _wdir, _wspd,
+			       _hmd, _tmpa,
+			       _dwpt, _bar,
+			       _depth);
+    unlock();
+    return res;
+  }
   
   
   virtual size_t get_dsize()

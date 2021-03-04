@@ -15,7 +15,12 @@
 // along with aws_coord.cpp.  If not, see <http://www.gnu.org/licenses/>. 
 #include <iostream>
 #include <cmath>
+#include <cstring>
+#include <algorithm>
+
 using namespace std;
+
+#include <time.h>
 
 #include "aws_coord.hpp"
 #include <proj_api.h>

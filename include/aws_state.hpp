@@ -7,10 +7,10 @@
 
 
 // this function calculate antenna rotation induced velocity variation
-void correct_velocity(const float u, const float v, const float w,
-		      const float dr_dt, const float dp_dt, const float dy_dt,
-		      const float xant, const float yant, const float zant,
-		      float & ucor, float & vcor, float & wcor)
+inline void correct_velocity(const float u, const float v, const float w,
+			     const float dr_dt, const float dp_dt, const float dy_dt,
+			     const float xant, const float yant, const float zant,
+			     float & ucor, float & vcor, float & wcor)
 {
   ucor = u - (-dy_dt * yant + dp_dt * zant);
   vcor = v - ( dy_dt * xant - dr_dt * zant);
@@ -23,9 +23,9 @@ class c_aws1_state_sampler
 {
 public:  
   int size_buf;
-  int num;
-  int tail;
-  long long t;
+  int num10hz, num1hz;
+  int tail10hz, tail1hz;
+  long long t10hz, t1hz;
   long long dt;
   double inv_dt_sec;
   vector<float> rev;
@@ -67,7 +67,7 @@ public:
 
   void set_time(const long long _t)
   {
-    t = _t;
+    t10hz = t1hz = _t;
     clear();
   }
 
@@ -80,15 +80,18 @@ public:
   }
 
   
-  const long long get_time(int idx = 0);
+  const long long get_time_10hz_data(int idx = 0);
+  const long long get_time_1hz_data(int idx = 0);
   const long long get_cycle_time();  
 
   void clear()
   {
-    num = tail = 0; 
+    num1hz = tail1hz = 0;
+    num10hz = tail10hz = 0;     
   }
   
-  bool sample(c_aws1_state & st);
+  void sample_10hz_data(c_aws1_state & st);
+  void sample_1hz_data(c_aws1_state & st);
 };
 
 class c_aws1_state
@@ -238,14 +241,14 @@ private:
 			float & alpha, float & ialpha)
   {
     double dt_inv = 1.0/(double)(ts[i1] - ts[i0]);
-    alpha = (float)((double)(tsmpl - ts[i1]) * dt_inv);
+    alpha = (float)((double)(ts[i1] - tsmpl) * dt_inv);
     ialpha = 1.0 - alpha;        
   }
 
   c_aws1_state_sampler sampler;
 public:
 
-  bool is_samplable(const long long t)    
+  bool is_10hz_data_samplable(const long long t)    
   {
     // check if position data is samplable
     if(!is_samplable(tgll_max, tgll_min, t))
@@ -268,10 +271,21 @@ public:
     if(trud_min < 0)
       return false;
 
-    if(tengd_min < 0)
-      return false;
     
     if(!is_samplable(trev_max, trev_min, t))
+      return false;
+
+    return true;
+  }
+
+  bool is_1hz_data_samplable(const long long t)
+  {
+    if(tengd_min > t || tmda_min > t || tdbt_min > t){
+      cerr << "1hz data never be samplable." << endl;
+      return false;
+    }
+	    
+    if(!is_samplable(tengd_max, tengd_min, t))
       return false;
 
     // ehck if environment data is samplable
@@ -280,9 +294,9 @@ public:
 
     if(!is_samplable(tdbt_max, tdbt_min, t))
       return false;
-
     return true;
   }
+  
   
   c_aws1_state(int _size_buf, int size_sampler,
 	       long long dt_sampler = 100 * MSEC);
@@ -305,90 +319,99 @@ public:
   void add_depth(const long long _tdbt, const float _depth);
   void add_eng(const long long _teng,  int _eng);
   void add_rud(const long long _trud, int _rud);
- 
-  void sample_position(const long long t,
-		       double & _lat, double & _lon, double & _hev,
-		       double & _x, double & _y, double & _z);
+
+  void sample_10hz_data(const long long t,
+			double & _lat, double & _lon, double & _hev,
+			double & _x, double & _y, double & _z,
+			float & _u, float & _v, 
+			float & _roll, float & _pitch, float  & _yaw,
+			float & _rev, int & _trim,
+			int & _eng, int & _rud);
   
-  void sample_kinetics(const long long t, 
-		       float & _u, float & _v, 
-		       float & _r, float & _p, float  & _y);
-
-  void sample_control(const long long t, int & _eng, int & _rud,
-		      float & _rev, int & _trim,
-		      float & _tmpeng, float & _valt, float & _frate,
-		      double & _hour);
-
-  void sample_environment(const long long t, float & _wdir, float & _wspd,
-			  float & _hmd, float & _tmpa,
-			  float & _dwpt, float & _bar,
-			  float & _depth);
-
-  const long long get_time(int idx = 0)
+  void sample_1hz_data(const long long t, float & _tmpeng,
+		       float & _valt, float & _frate,
+		       double & _hour, float & _wdir, float & _wspd,
+		       float & _hmd, float & _tmpa,
+		       float & _dwpt, float & _bar,
+		       float & _depth);
+  
+  const long long get_time_10hz_data(int idx = 0)
   {
-    return sampler.get_time(idx);
+    return sampler.get_time_10hz_data(idx);
   }
 
-  bool get_position(const int idx,
-		       double & _lat, double & _lon, double & _hev,
-		       double & _x, double & _y, double & _z);
-  
-  
-  bool get_kinetics(const int idx, 
-		    float & _u, float & _v, float & _w,
-		    float & _r, float & _p, float  & _y,
-		    float & _dr_dt, float & _dp_dt, float & _dy_dt);
+  const long long get_time_1hz_data(int idx = 0)
+  {
+    return sampler.get_time_1hz_data(idx);
+  }
 
+  bool get_10hz_data(const int idx,
+		     double & _lat, double & _lon, double & _hev,
+		     double & _x, double & _y, double & _z,
+		     float & _u, float & _v, float & _w, 
+		     float & _roll, float & _pitch, float  & _yaw,
+		     float & _dr_dt, float & _dp_dt, float & _dy_dt,
+		     float & _rev, int & _trim,
+		     int & _eng, int & _rud);
+  bool get_1hz_data(const int idx, float & _tmpeng,
+		    float & _valt, float & _frate,
+		    double & _hour, float & _wdir, float & _wspd,
+		    float & _hmd, float & _tmpa,
+		    float & _dwpt, float & _bar,
+		    float & _depth);
 
-  bool get_control(const int idx, int & _eng, int & _rud,
-		      float & _rev, int & _trim,
-		      float & _tmpeng, float & _valt, float & _frate,
-		      double & _hour);
-
-  bool get_environment(const int idx, float & _wdir, float & _wspd,
-			  float & _hmd, float & _tmpa,
-			  float & _dwpt, float & _bar,
-			  float & _depth);
 #ifdef PY_EXPORT
-  boost::python::tuple get_position_py(const int idx)
+  boost::python::tuple get_10hz_data_py(const int idx)
   {
-     double _lat, _lon, _hev, _x, _y, _z;
-     if(!get_position(idx, _lat, _lon, _hev, _x, _y, _z))
-       return boost::python::make_tuple(false, _lat, _lon, _hev, _x, _y, _z);     
-     return boost::python::make_tuple(true, _lat, _lon, _hev, _x, _y, _z);     
-  };
-  
-  boost::python::tuple get_kinetics_py(const int idx)
-  {
-    float _u, _v, _w, _r, _p,  _y, _dr_dt, _dp_dt, _dy_dt;
-    if(!get_kinetics(idx, _u, _v, _w, _r, _p,  _y, _dr_dt, _dp_dt, _dy_dt))
-      return boost::python::make_tuple(false, _u, _v, _w, _r, _p,  _y, _dr_dt, _dp_dt, _dy_dt);
-    return boost::python::make_tuple(true, _u, _v, _w, _r, _p,  _y, _dr_dt, _dp_dt, _dy_dt);
-  }
-  
-
-  boost::python::tuple get_control_py(const int idx)
-  {
+    double _lat, _lon, _hev, _x, _y, _z;
+    float _u, _v, _w, _roll, _pitch, _yaw, _dr_dt, _dp_dt, _dy_dt;
     int _eng, _rud;
     float _rev;
     int _trim;
+    if(!get_10hz_data(idx,
+		      _lat, _lon, _hev,
+		      _x, _y, _z,
+		      _u, _v, _w,
+		      _roll, _pitch, _yaw,
+		      _dr_dt, _dp_dt, _dy_dt,
+		      _rev, _trim, _eng, _rud))
+      return boost::python::make_tuple(false,
+				       boost::python::make_tuple(_lat, _lon,
+								 _hev, _x, _y,
+								 _z),
+				       boost::python::make_tuple(_u, _v, _w,
+								 _roll, _pitch,
+								 _yaw, _dr_dt,
+								 _dp_dt,
+								 _dy_dt),
+				       boost::python::make_tuple(_rev, _trim),
+				       _eng, _rud);     
+    return boost::python::make_tuple(true,
+				     boost::python::make_tuple(_lat, _lon, _hev,
+							       _x, _y, _z),
+				     boost::python::make_tuple(_u, _v, _w,
+							       _roll, _pitch,
+							       _yaw, _dr_dt,
+							       _dp_dt, _dy_dt),
+				     boost::python::make_tuple(_rev, _trim),
+				     _eng, _rud);     
+  };
+  
+  boost::python::tuple get_1hz_data_py(const int idx)
+  {
     float _tmpeng, _valt, _frate;
     double _hour;
-    if(!get_control(idx, _eng, _rud, _rev, _trim, _tmpeng, _valt, _frate, _hour))
-      return boost::python::make_tuple(false, _eng, _rud, _rev, _trim, _tmpeng, _valt, _frate, _hour);
-
-    return boost::python::make_tuple(true, _eng, _rud, _rev, _trim, _tmpeng, _valt, _frate, _hour);
+    float _wdir, _wspd, _hmd, _tmpa, _dwpt, _bar, _depth;
+    if(!get_1hz_data(idx, _tmpeng, _valt, _frate, _hour,
+		     _wdir, _wspd, _hmd, _tmpa, _dwpt, _bar, _depth))
+      return boost::python::make_tuple(false, _tmpeng, _valt, _frate, _hour,
+				       _wdir, _wspd, _hmd, _tmpa, _dwpt, _bar,
+				       _depth);
+    return boost::python::make_tuple(true, _tmpeng, _valt, _frate, _hour,
+				     _wdir, _wspd, _hmd, _tmpa, _dwpt, _bar,
+				     _depth);
   }
   
-
-  boost::python::tuple get_environment_py(const int idx)
-  {
-    float _wdir, _wspd, _hmd, _tmpa, _dwpt, _bar, _depth;
-    if(!get_environment(idx, _wdir, _wspd, _hmd, _tmpa, _dwpt, _bar, _depth))
-      return boost::python::make_tuple(false, _wdir, _wspd, _hmd, _tmpa, _dwpt, _bar, _depth);
-
-    return boost::python::make_tuple(true, _wdir, _wspd, _hmd, _tmpa, _dwpt, _bar, _depth);
-  }
 
 #endif
   
@@ -447,11 +470,10 @@ BOOST_PYTHON_MODULE( libaws_state ){
     .def("set_gps_attitude_delay", &c_aws1_state::set_gps_attitude_delay)
     .def("set_gps_antenna_position", &c_aws1_state::set_gps_antenna_position)
     .def("set_time", &c_aws1_state::set_time)
-    .def("get_position", &c_aws1_state::get_position_py)
-    .def("get_kinetics", &c_aws1_state::get_kinetics_py)
-    .def("get_control", &c_aws1_state::get_control_py)
-    .def("get_environment", &c_aws1_state::get_environment_py)
-    .def("get_time", &c_aws1_state::get_time)
+    .def("get_time_10hz_data", &c_aws1_state::get_time_10hz_data)    
+    .def("get_time_1hz_data", &c_aws1_state::get_time_1hz_data)
+    .def("get_10hz_data", &c_aws1_state::get_10hz_data_py)
+    .def("get_1hz_data", &c_aws1_state::get_1hz_data_py)
     .def("add_engr", &c_aws1_state::add_engr)
     .def("add_engd", &c_aws1_state::add_engd)
     .def("add_position", &c_aws1_state::add_position)
