@@ -54,6 +54,20 @@ inline double normalize_angle_rad(double angle)
   return angle;
 }
 
+
+// calculate c0*a0 + c1*a1
+inline float interpolate_angle_rad(float a0, float a1,
+				   float c0 = 0.5, float c1 = 0.5)
+{
+  double diff = a0 - a1;
+  if(diff > PI){
+    a1 += PI * 2;
+  }else if(diff < -PI){
+    a1 -= PI * 2;
+  }
+  double ws = c0 * a0 + c1 * a1;
+  return normalize_angle_rad((float)ws);
+}
 // Gives rotation matrix corresponding to specified roll, pitch and yaw.
 inline Eigen::Matrix3d rotation_matrix(const float roll, const float pitch,
 				       const float yaw)

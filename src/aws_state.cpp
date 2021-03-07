@@ -308,7 +308,7 @@ void c_aws1_state::sample_10hz_data(const long long t,
   find_sample_index(tvtg, tail_vtg, t, i0, i1);
   calc_sample_coef(tvtg, t, i0, i1, alpha, ialpha);
 
-  float _cog = cog[i0] * alpha + cog[i1] * ialpha;
+  float _cog = interpolate_angle_rad(cog[i0], cog[i1], alpha, ialpha);
   float _sog = sog[i0] * alpha + sog[i1] * ialpha;
 
   long long tcor = t + tatt_delay;
@@ -317,7 +317,7 @@ void c_aws1_state::sample_10hz_data(const long long t,
 
   _roll = roll[i0] * alpha + roll[i1] * ialpha;
   _pitch = pitch[i0] * alpha + pitch[i1] * ialpha;
-  _yaw = yaw[i0] * alpha + yaw[i1] * ialpha;
+  _yaw = interpolate_angle_rad(yaw[i0], yaw[i1], alpha, ialpha);
 
   double dir = _cog - _yaw;
   _u = cos(dir) * _sog;
