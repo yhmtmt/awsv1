@@ -8,7 +8,7 @@ grpc_generate_cpp(GRPC_SRCS GRPC_HDRS ${PROTO_SRC_DIR} ${PROTOS})
 
 
 set(GARMIN_XHD_RADAR_SRCS GarminxHDControl.cpp GarminxHDReceive.cpp socketutil.cpp)
-add_executable(aws aws.cpp aws_temp.cpp CmdAppBase.cpp aws_clock.cpp aws_coord.cpp aws_map.cpp aws_map_point.cpp aws_map_coast_line.cpp aws_nmea_ais.cpp aws_nmea_gps.cpp aws_nmea.cpp aws_serial.cpp aws_sock.cpp aws_stdlib.cpp aws_state.cpp ${CHANS} channel_base.cpp channel_factory.cpp table_base.cpp filter_base.cpp ${PROTO_SRCS} ${GRPC_SRCS})
+add_executable(aws aws.cpp aws_temp.cpp CmdAppBase.cpp aws_clock.cpp aws_coord.cpp aws_state.cpp aws_map.cpp aws_map_point.cpp aws_map_coast_line.cpp aws_nmea_ais.cpp aws_nmea_gps.cpp aws_nmea.cpp aws_serial.cpp aws_sock.cpp aws_stdlib.cpp ${CHANS} channel_base.cpp channel_factory.cpp table_base.cpp filter_base.cpp ${PROTO_SRCS} ${GRPC_SRCS})
 add_dependencies(aws generate-protosrcs)
 add_dependencies(aws generate-grpcsrcs)
 target_link_libraries(aws pthread dl flatbuffers::libflatbuffers gRPC::grpc++_reflection protobuf::libprotobuf stdc++fs atomic)
