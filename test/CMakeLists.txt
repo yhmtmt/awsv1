@@ -68,6 +68,15 @@ target_link_libraries(test_map gtest_main proj stdc++fs)
 target_include_directories(test_map PUBLIC ${PROJECT_SOURCE_DIR}/include)
 add_test(NAME test_map COMMAND test_map WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+# Test aws_png
+add_executable(test_png test_png.cpp ${PROJECT_SOURCE_DIR}/src/aws_png.cpp)
+
+target_link_libraries(test_png gtest_main stdc++fs png)
+target_include_directories(test_png PUBLIC ${PROJECT_SOURCE_DIR}/include)
+add_test(NAME test_png COMMAND test_png WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+
+
 install(DIRECTORY DESTINATION ftest)
 file(GLOB FTESTS ftest/*)
 install(FILES ${FTESTS}
