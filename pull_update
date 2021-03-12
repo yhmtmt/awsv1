@@ -1,7 +1,6 @@
 #!/bin/bash
 
 if [ $# -ne 0 ]; then
-    echo $#
     echo "pusll_update"
     exit 1
 fi
