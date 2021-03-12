@@ -1,8 +1,9 @@
 #!/bin/bash
 
-if [ $# -ne 0 ]; then
-    echo "pusll_update"
-    exit 1
+src_path=
+
+if [ $# -eq 1 ]; then
+    src_path=$1
 fi
     
 list_update() {
@@ -10,7 +11,7 @@ list_update() {
 }
 
 pull_updates(){
-    git pull
+    git pull $1
 }
 
 push_updates(){
@@ -21,7 +22,7 @@ push_updates(){
 }
 
 echo "Updating awsv1"
-pull_updates
+pull_updates $src_path
 
 filters=`ls -d filters/*/`
 home_dir=`pwd`
@@ -33,6 +34,11 @@ do
     fi
     cd $filter
     echo "Updating $filter"
-    pull_updates
-    cd $home_dir
+    if [ -n $src_path ]; then
+	pull_updates $src_path/$filter
+    else
+	pull_updates
+    fi
+    
+    cd "$home_dir"
 done

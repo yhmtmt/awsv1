@@ -47,5 +47,5 @@ do
 	commit_updates "${updates[@]}" $1
     fi
 
-    cd $home_dir
+    cd "$home_dir"
 done
