@@ -62,9 +62,9 @@ add_test(NAME test_ch_binary_data_queue COMMAND test_ch_binary_data_queue WORKIN
 
 
 # Test aws_map
-add_executable(test_map test_map.cpp ${PROJECT_SOURCE_DIR}/src/aws_map.cpp ${PROJECT_SOURCE_DIR}/src/aws_map_coast_line.cpp ${PROJECT_SOURCE_DIR}/src/aws_map_point.cpp ${PROJECT_SOURCE_DIR}/src/aws_coord.cpp)
+add_executable(test_map test_map.cpp ${PROJECT_SOURCE_DIR}/src/aws_map.cpp ${PROJECT_SOURCE_DIR}/src/aws_map_coast_line.cpp ${PROJECT_SOURCE_DIR}/src/aws_map_point.cpp ${PROJECT_SOURCE_DIR}/src/aws_map_depth.cpp ${PROJECT_SOURCE_DIR}/src/aws_coord.cpp ${PROJECT_SOURCE_DIR}/src/aws_png.cpp)
 
-target_link_libraries(test_map gtest_main proj stdc++fs)
+target_link_libraries(test_map gtest_main proj stdc++fs png)
 target_include_directories(test_map PUBLIC ${PROJECT_SOURCE_DIR}/include)
 add_test(NAME test_map COMMAND test_map WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 

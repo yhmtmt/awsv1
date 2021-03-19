@@ -33,184 +33,10 @@ using namespace std;
 #include "aws_map.hpp"
 
 namespace AWSMap2 {
-
-  inline bool det_collision_line_and_sphere_mid(const vec3 & v0,
-						const vec3 & v1,
-						const vec3 & s,
-						const double r2)
-  {
-    double n = (l2Norm(v1, v0));
-    double invn = (1.0 / n);
-    
-    vec3 d = (v1 - v0) * invn;
-    
-    double t =  dot(d, s - v0);
-    
-    if (t < 0.f || t > n){
-      return false;
-    }
-    
-    d *= t;
-    d += v0;
-    if (l2Norm2(d, s) < r2)
-      return true;
-    
-    return false;
-  }
-
-  // detect line and sphere collision
-  // V0, V1 : terminal points of the line
-  // S: the central point of the sphere
-  // R2: squared radius of the sphere
-  // |V0-S| < R or |V1 - S| < R
-  // other wise
-  // s = n(V1-V0)* (S - V0)
-  // L = t(V1-V0) + V0 
-  // 0 < t < 1 and |S - L| < R  
-  inline bool det_collision_line_and_sphere(const vec3 & v0, const vec3 & v1,
-					    const vec3 & s, const float r2)
-  {
-    if (l2Norm2(v0, s) < r2) // v0 is in the sphere
-      return true;
-    
-    if (l2Norm2(v1, s) < r2) // v1 is in the sphere
-      return true;
-
-    // detect if (v0,v1) crosses the arc of the sphere.
-    return det_collision_line_and_sphere_mid(v0, v1, s, r2);
-  }
-
-  // detect the collision between a triangle and a sphere.
-  // v0, v1, v2 are the vertices of the triangle.
-  // s and r2 is the center and squared radius of the sphere
-  inline bool det_collision_tri_and_sphere(const vec3 & v0, const vec3 & v1,
-					   const vec3 & v2, const vec3 & s,
-					   const float r2)
-  {
-    // check three points are in the sphere.
-    double d0 = l2Norm2(v0, s);
-    if (d0 < r2)
-      return true;
-    
-    double d1 = l2Norm2(v1, s);
-    if (d1 < r2)
-      return true;
-    
-    double d2 = l2Norm2(v1, s);
-    if (d2 < r2)
-      return true;
-    
-    if (d0 > BE * BE && d1 > BE * BE && d2 > BE * BE)
-      return false;
-    
-    // inside flag is asserted when s projects on both edge 01 and edge 02
-    bool binside = false;
-    
-    // check around edge 01
-    double n01 = l2Norm(v0, v1);
-    double invn01 = 1.0 / n01;
-    vec3 d01 = (v1 - v0) * invn01;
-    double t01 = dot(d01, s - v0);
-    
-    if (t01 > 0.f && t01 < n01) {
-      d01 *= t01;
-      d01 += v0;
-      if (l2Norm2(d01, s) < r2) // s is near around edge 01
-	return true;
-      
-      binside = true;
-    }
-    
-    // check around edge 02
-    double n02 = l2Norm(v2, v0);
-    double invn02 = 1.0 / n02;
-    vec3 d02 = (v2 - v0) * invn02;
-    double t02 = dot(d02, s - v0);
-    d02 *= t02;
-    d02 += v0;
-    if (t02 > 0.f && t02 < n02) {
-      if (binside) // s is projected on both edge 01 and 02
-	return true;
-      
-      d02 *= t02;
-      d02 += v0;
-      if (l2Norm2(d02, s) < r2) // s is near around edge 02
-	return true;
-    }
-    
-    // check outside near edge 12
-    double n12 = l2Norm(v1, v2);
-    double invn12 = 1.0 / n12;
-    vec3 d12 = (v2 - v1) * invn12;
-    double t12 = dot(d12, s - v1);
-    d12 *= t12;
-    d12 += v1;
-    if (t12 > 0.f && t12 < n12) {
-      d12 *= t12;
-      d12 += v1;
-      if (l2Norm2(d12, s) < r2) // s is near around edge 12 (actually only the outside case is reached here.)
-	return true;
-    }
-    
-    return false;
-  }
-
-  // Determinant of the matrix given as three column vectors a0, a1, and a2.
-  inline double det(const vec3 & a0, const vec3 & a1, const vec3 & a2)
-  {
-    // a0.x a1.x a2.x
-    // a0.y a1.y a2.y
-    // a0.z a1.z a2.z
-    
-    double d = a0.x * a1.y * a2.z + a0.z * a1.x * a2.y + a0.y * a1.z * a2.x
-      - a0.z * a1.y * a2.x - a0.x * a1.z * a2.y - a0.y * a1.x * a2.z;
-    return d;
-  }
-
-  // Detect collision between a triange (t0,t1,t2) and a line(l1, l0).
-  // By default, l0 is set at the coordinate origin.
-  inline bool det_collision(const vec3 & t2, const vec3 & t1, const vec3 & t0,
-			    const vec3 & l1, const vec3 & l0 = vec3(0, 0, 0),
-			    const double err = 0)
-  {
-    vec3 e1 = t1 - t0;
-    vec3 e2 = t2 - t0;
-    vec3 me3 = l0 - l1; // -e3
-    vec3 e4 = l0 - t0;
-    // u e1 + v e2 + t0 = w e3 + l0
-    //   -> u e1 + v e2 - w e3 = l0 - t0
-    //   -> u e1 + v e2 + w me3 = e4
-    
-    double invD = 1.0 / det(e1, e2, me3);
-    // invD = 1.0 / |e1 e2 me3|
-    
-    double u = det(e4, e2, me3) * invD;
-    // u = |e4 e2 me3| * invD, v = |e1 e4 me3| * invD, w = |e1 e2 e4| * invD 
-    
-    // 0 < u < 1
-    if (u < -err || u > (1. + err))
-      return false;
-    
-    double v = det(e1, e4, me3) * invD;
-    // 0 < v < 1
-    if (v < -err || v > (1. + err))
-      return false;
-    
-    if (u + v > (1. + err))
-      return false;
-    
-    double t = det(e1, e2, e4) * invD;
-    // t > 0
-    if (t < -err)
-      return false;
-
-    return true;
-  }
-  
   
   const char * strLayerType[lt_undef] =
     {
-      "coast_line"
+      "coast_line", "depth"
     };
   
   LayerType getLayerType(const char * str) {
@@ -225,7 +51,7 @@ namespace AWSMap2 {
   ////////////////////////////////////////////////////////////// MapDataBase
   unsigned int MapDataBase::maxSizeLayerData[lt_undef] =
     {
-      0x0004FFFFF
+      0x0004FFFFF, 0x0004FFFFF
     };
   unsigned int MapDataBase::maxNumNodes = 64;
   unsigned int MapDataBase::maxTotalSizeLayerData = 0x4FFFFF0;
@@ -298,6 +124,7 @@ namespace AWSMap2 {
     q[10] = vec2(lat0, PI); // x=-1 y=0 (lon=180) z=GR (lat=58)
     q[11] = vec2(-lat0, PI); // x=-1 y=0 (lon=180) z=-GR (lat=-58)
 
+    // Note that the vertices are all in the counter clockwise order.
     // north half
     pNodes[0] = new Node(0, NULL, q[8], q[5], q[4]);
     pNodes[1] = new Node(1, NULL, q[8], q[4], q[0]);
@@ -340,6 +167,18 @@ namespace AWSMap2 {
       pNodes[iface]->getLayerData(layerDatum, layerTypes,
 				  center, radius, resolution);
 
+  }
+
+  void MapDataBase::request(list<const vec3*> & tris,
+			     list<list<unsigned char>> & paths,
+			    list<list<LayerType>> & types,
+			     const vec3 & center, const float radius,
+			     const float radius_cc)
+  {
+    unique_lock<mutex> lock(mtx);
+    for(int iface = 0; iface < 20; iface++)
+      pNodes[iface]->getNodeProfile(tris, paths, types,
+				    center, radius, radius_cc);
   }
   
   bool MapDataBase::insert(const LayerData * layerData)
@@ -624,6 +463,41 @@ namespace AWSMap2 {
     }
     vec_ecef[0] = vtx_ecef[1] - vtx_ecef[0];
     vec_ecef[1] = vtx_ecef[2] - vtx_ecef[0];
+
+    vtx_center = vec3();
+    for(int i = 0; i < 3; i++)
+      vtx_center += vtx_ecef[i];
+    vtx_center *= (1.0/3.0);
+    
+    // check counter clockwise order. if not, exchange vertices 1 and 2
+    if(dot(cross(vec_ecef[0], vec_ecef[1]), vtx_center) < 0) {
+      list<unsigned char> path_id;
+      getPath(path_id);
+      cerr << "In node ";
+      for(auto itr = path_id.begin(); itr != path_id.end(); itr++){
+	cerr << (int)*itr << "/";
+      }
+      cerr << " node vertices is ordered in clock wise manner. automatically exchanged." << endl;
+      
+      {	  
+	vec3 temp;
+	temp = vtx_ecef[1];
+	vtx_ecef[1] = vtx_ecef[2];
+	vtx_ecef[2] = temp;
+	
+	temp = vec_ecef[0];
+	vec_ecef[0] = vec_ecef[1];
+	vec_ecef[1] = temp;
+      }
+      {
+	vec2 temp;
+	temp = vtx_blh[2];
+	vtx_blh[2] = vtx_blh[1];
+	vtx_blh[1] = temp;
+      }
+      
+      bupdate = true;
+    }          
   }
 
   // Save layerdata in the node and the downlink nodes.
@@ -726,6 +600,7 @@ namespace AWSMap2 {
     }
   
     Node * pNode = new Node();
+    pNode->bupdate = false;    
     pNode->upLink = pNodeUp;
     pNode->id = idChild;
     if (pNodeUp)
@@ -749,8 +624,6 @@ namespace AWSMap2 {
       }
       num_layer_datum--;
     }
-  
-    pNode->bupdate = false;
 
     Node::insert(pNode);
     return pNode;
@@ -770,11 +643,11 @@ namespace AWSMap2 {
       eceftoblh(vtx_ecef_mid[i].x, vtx_ecef_mid[i].y,
 		vtx_ecef_mid[i].z, vtx_blh_mid[i].x, vtx_blh_mid[i].y, alt);
   
-    downLink[0] = new Node(0, this, vtx_blh[0], vtx_blh_mid[2], vtx_blh_mid[0]);
-    downLink[1] = new Node(1, this, vtx_blh[1], vtx_blh_mid[0], vtx_blh_mid[1]);
-    downLink[2] = new Node(2, this, vtx_blh[2], vtx_blh_mid[1], vtx_blh_mid[2]);
+    downLink[0] = new Node(0, this, vtx_blh[0], vtx_blh_mid[0], vtx_blh_mid[2]);
+    downLink[1] = new Node(1, this, vtx_blh[1], vtx_blh_mid[1], vtx_blh_mid[0]);
+    downLink[2] = new Node(2, this, vtx_blh[2], vtx_blh_mid[2], vtx_blh_mid[1]);
     downLink[3] = new Node(3, this, vtx_blh_mid[0],
-			   vtx_blh_mid[2], vtx_blh_mid[1]);
+			   vtx_blh_mid[1], vtx_blh_mid[2]);
     bdownLink = true;
   
     for(int i = 0; i < 4; i++)
@@ -813,7 +686,7 @@ namespace AWSMap2 {
   }
 
   // Recursively climb uplink to the root, and the node id is recorded in
-  // the argument.
+  // the argument.(path_id is recorded in root to leaf order.)
   void Node::getPath(list<unsigned char> & path_id)
   {
     if (upLink == NULL){
@@ -977,6 +850,49 @@ namespace AWSMap2 {
       itrDetailedType++;
     }
   }
+
+
+  void Node::getNodeProfile(list<const vec3*> & tris,
+			    list<list<unsigned char>> & paths,
+			    list<list<LayerType>> & types,
+			    const vec3 & center, const float radius,
+			    const float radius_cc)
+  {
+    if (!collision(center, radius))
+      return;
+    
+
+    if (getRadius() < radius_cc){
+      // fill profile data.
+      tris.push_back(vtx_ecef);
+      
+      paths.push_back(list<unsigned char>());
+      getPath(paths.back());
+
+      types.push_back(list<LayerType>());
+      list<LayerType> & layerType = types.back();
+      for(auto itr = layerDataList.begin();
+	  itr != layerDataList.end();
+	  itr++){
+	layerType.push_back(itr->first);	
+      }
+      return;
+    }
+    
+    if(!bdownLink){
+      // create downlink
+      createDownLink();
+    }
+    
+    for (int idown = 0; idown < 4; idown++){
+      if (downLink[idown] == NULL) {
+	downLink[idown] = load(this, idown);
+      }
+      downLink[idown]->getNodeProfile(tris, paths, types, 
+				      center, radius, radius_cc);
+    }
+    
+  }
   
   LayerData * Node::getLayerData(const LayerType layerType)
   {
@@ -1102,8 +1018,9 @@ namespace AWSMap2 {
 #endif
     return true;
   }
+
   
-  ///////////////////////////////////////////////////////////////////// LayerData
+  /////////////////////////////////////////////////////////////////// LayerData
   LayerData * LayerData::head = NULL;
   LayerData * LayerData::tail = NULL;
   unsigned int LayerData::totalSize = 0;
@@ -1174,6 +1091,8 @@ namespace AWSMap2 {
     switch (layerType){
     case lt_coast_line:
       return new CoastLine;
+    case lt_depth:
+      return new Depth;
     }
     return NULL;
   }

@@ -682,10 +682,13 @@ public:
       //cout << "illegal mmsi detected: mmsi " << mmsi <<  endl;
       return ;
     }
+    if( hdg > 360 ) // hdg 511 means cog not available.
+      hdg = cog;
+    
     lock();
     itr = objs.find(mmsi);
     if(itr != objs.end()){
-      c_ais_obj & obj = *(itr->second);
+      c_ais_obj & obj = *(itr->second);      
       obj.update(t, lat, lon, cog, sog, hdg);
       obj.set_ecef_from_blh();
       updates.push_back(&obj);

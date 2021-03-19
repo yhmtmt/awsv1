@@ -24,6 +24,25 @@
 using namespace std;
 
 
+bool s_aws_bmp::init(unsigned int _width, unsigned int _height,
+		     unsigned int _channels, unsigned int _depth)
+{
+  if(data)
+    delete[] data;
+  
+  width = _width;
+  height = _height;
+  channels = _channels;
+  depth = _depth;
+  
+  data = new unsigned char[get_data_size()];
+
+  if(!data)
+    return false;
+  
+  return true;
+}
+
 bool s_aws_bmp::read_png(const char * fname)
 {
   if(data){
@@ -156,3 +175,4 @@ bool s_aws_bmp::write_png(const char * fname)
   
   return true;
 }
+

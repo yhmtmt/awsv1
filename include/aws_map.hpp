@@ -17,8 +17,17 @@
 #define GR 1.61803398875 // golden ratio
 #define _AWS_MAP_DEBUG
 
-namespace AWSMap2 {
+#include "aws_png.hpp"
+
+namespace AWSMap2 {  
   
+  // How to extend LayerData 
+  // 1. Create a class inherited from LayerData, and implement the interfaces.
+  // 2. Add definition of string name of the LayerData to strLayerType[], and
+  //    corresponding enum constant to LayerType
+  // 3. Add an allowable maximum data size of the layer data object,
+  //    to MapDataBase::maxSizeLayerData. The value used to split the data into
+  //    nodes. 
   struct vec3{
     union{
       double x;
@@ -56,7 +65,7 @@ namespace AWSMap2 {
     }
   };
 
-
+    
   inline bool operator == (const vec3 & l, const vec3 & r)
   {
     return l.x == r.x && l.y == r.y && l.z == r.z;
@@ -81,6 +90,11 @@ namespace AWSMap2 {
   {
     return l.x * r.x + l.y * r.y + l.z * r.z;
   }
+
+  inline vec3 cross(const vec3 &l, const vec3 & r)
+  {
+    return vec3(l.y*r.z-l.z*r.y, l.z*r.x-l.x*r.z, l.x*r.y-l.y*r.x);
+  }
   
   struct vec2{
     union{
@@ -101,6 +115,16 @@ namespace AWSMap2 {
     {
     }
   };
+
+  inline vec2 operator + (const vec2 & l, const vec2 & r)
+  {
+    return vec2(l.x + r.x, l.y + r.y);
+  }
+  
+  inline vec2 operator * (const vec2 & l, const double & r)
+  {
+    return vec2(l.x * r, l.y * r);
+  }
   
   inline bool operator == (const vec2 & l, const vec2 & r)
   {
@@ -128,12 +152,205 @@ namespace AWSMap2 {
     return sqrt(l2Norm2(pt0, pt1));
   }
   
+  struct veci2{
+    int x, y;
+    veci2():x(0), y(0){};
+    veci2(const int _x, const int _y): x(_x), y(_y){};
+  };
+
+   inline bool det_collision_line_and_sphere_mid(const vec3 & v0,
+						const vec3 & v1,
+						const vec3 & s,
+						const double r2)
+  {
+    double n = (l2Norm(v1, v0));
+    double invn = (1.0 / n);
+    
+    vec3 d = (v1 - v0) * invn;
+    
+    double t =  dot(d, s - v0);
+    
+    if (t < 0.f || t > n){
+      return false;
+    }
+    
+    d *= t;
+    d += v0;
+    if (l2Norm2(d, s) < r2)
+      return true;
+    
+    return false;
+  }
+
+  // detect line and sphere collision
+  // V0, V1 : terminal points of the line
+  // S: the central point of the sphere
+  // R2: squared radius of the sphere
+  // |V0-S| < R or |V1 - S| < R
+  // other wise
+  // s = n(V1-V0)* (S - V0)
+  // L = t(V1-V0) + V0 
+  // 0 < t < 1 and |S - L| < R  
+  inline bool det_collision_line_and_sphere(const vec3 & v0, const vec3 & v1,
+					    const vec3 & s, const float r2)
+  {
+    if (l2Norm2(v0, s) < r2) // v0 is in the sphere
+      return true;
+    
+    if (l2Norm2(v1, s) < r2) // v1 is in the sphere
+      return true;
+
+    // detect if (v0,v1) crosses the arc of the sphere.
+    return det_collision_line_and_sphere_mid(v0, v1, s, r2);
+  }
+
+  // detect the collision between a triangle and a sphere.
+  // v0, v1, v2 are the vertices of the triangle.
+  // s and r2 is the center and squared radius of the sphere
+  inline bool det_collision_tri_and_sphere(const vec3 & v0, const vec3 & v1,
+					   const vec3 & v2, const vec3 & s,
+					   const float r2)
+  {
+    // check three points are in the sphere.
+    double d0 = l2Norm2(v0, s);
+    if (d0 < r2)
+      return true;
+    
+    double d1 = l2Norm2(v1, s);
+    if (d1 < r2)
+      return true;
+    
+    double d2 = l2Norm2(v1, s);
+    if (d2 < r2)
+      return true;
+    
+    if (d0 > BE * BE && d1 > BE * BE && d2 > BE * BE)
+      return false;
+    
+    // inside flag is asserted when s projects on both edge 01 and edge 02
+    bool binside = false;
+    
+    // check around edge 01
+    double n01 = l2Norm(v0, v1);
+    double invn01 = 1.0 / n01;
+    vec3 d01 = (v1 - v0) * invn01;
+    double t01 = dot(d01, s - v0);
+    
+    if (t01 > 0.f && t01 < n01) {
+      d01 *= t01;
+      d01 += v0;
+      if (l2Norm2(d01, s) < r2) // s is near around edge 01
+	return true;
+      
+      binside = true;
+    }
+    
+    // check around edge 02
+    double n02 = l2Norm(v2, v0);
+    double invn02 = 1.0 / n02;
+    vec3 d02 = (v2 - v0) * invn02;
+    double t02 = dot(d02, s - v0);
+    d02 *= t02;
+    d02 += v0;
+    if (t02 > 0.f && t02 < n02) {
+      if (binside) // s is projected on both edge 01 and 02
+	return true;
+      
+      d02 *= t02;
+      d02 += v0;
+      if (l2Norm2(d02, s) < r2) // s is near around edge 02
+	return true;
+    }
+    
+    // check outside near edge 12
+    double n12 = l2Norm(v1, v2);
+    double invn12 = 1.0 / n12;
+    vec3 d12 = (v2 - v1) * invn12;
+    double t12 = dot(d12, s - v1);
+    d12 *= t12;
+    d12 += v1;
+    if (t12 > 0.f && t12 < n12) {
+      d12 *= t12;
+      d12 += v1;
+      if (l2Norm2(d12, s) < r2) // s is near around edge 12 (actually only the outside case is reached here.)
+	return true;
+    }
+    
+    return false;
+  }
+
+  // Determinant of the matrix given as three column vectors a0, a1, and a2.
+  inline double det(const vec3 & a0, const vec3 & a1, const vec3 & a2)
+  {
+    // a0.x a1.x a2.x
+    // a0.y a1.y a2.y
+    // a0.z a1.z a2.z
+    
+    double d = a0.x * a1.y * a2.z + a0.z * a1.x * a2.y + a0.y * a1.z * a2.x
+      - a0.z * a1.y * a2.x - a0.x * a1.z * a2.y - a0.y * a1.x * a2.z;
+    return d;
+  }
+
+  // Detect collision between a triange (t0,t1,t2) and a line(l1, l0).
+  // By default, l0 is set at the coordinate origin.
+  inline bool det_collision(const vec3 & t2, const vec3 & t1, const vec3 & t0,
+			    const vec3 & l1, const vec3 & l0 = vec3(0, 0, 0),
+			    const double err = 0)
+  {
+    vec3 e1 = t1 - t0;
+    vec3 e2 = t2 - t0;
+    vec3 me3 = l0 - l1; // -e3
+    vec3 e4 = l0 - t0;
+    // u e1 + v e2 + t0 = w e3 + l0
+    //   -> u e1 + v e2 - w e3 = l0 - t0
+    //   -> u e1 + v e2 + w me3 = e4
+    
+    double invD = 1.0 / det(e1, e2, me3);
+    // invD = 1.0 / |e1 e2 me3|
+    
+    double u = det(e4, e2, me3) * invD;
+    // u = |e4 e2 me3| * invD, v = |e1 e4 me3| * invD, w = |e1 e2 e4| * invD 
+    
+    // 0 < u < 1
+    if (u < -err || u > (1. + err))
+      return false;
+    
+    double v = det(e1, e4, me3) * invD;
+    // 0 < v < 1
+    if (v < -err || v > (1. + err))
+      return false;
+    
+    if (u + v > (1. + err))
+      return false;
+    
+    double t = det(e1, e2, e4) * invD;
+    // t > 0
+    if (t < -err)
+      return false;
+
+    return true;
+  }
+
+  // Projects vector p to the triangle specified with two vectors v0 and v1 originated from ptri.
+  // projected point is u * p or s*v0+t*v1+ptri
+  inline void proj2tri(double &s, double & t, double & u,
+		       const vec3 & p,
+		       const vec3 & ptri, const vec3 & v0, const vec3 & v1)
+  {
+    vec3 mp(-p.x, -p.y, -p.z);
+    
+    double invD = 1.0 / det(v0, v1, p);
+    s = det(ptri, v1, mp) * invD;
+    t = det(v0, ptri, mp) * invD;
+    u = det(v0, v1, ptri) * invD;
+  }
+ 
   enum {
     MAX_PATH_LEN=1024
   };
   
   enum LayerType {
-    lt_coast_line=0, lt_undef
+    lt_coast_line=0, lt_depth, lt_undef
   };
 
   extern const char * strLayerType[lt_undef];
@@ -224,8 +441,31 @@ namespace AWSMap2 {
 		 const list<LayerType> & layerTypes,
 		 const vec3 & center, const float radius,
 		 const float resolution = 0);
+    
+    // request Node profiles.
+    // The method collects properties of the nodes specified with
+    // the region (center, radius) and allowed maximum circumscribed
+    // circle radius.
+    // this function create downlink if the radius_cc does not satisfied.
+    // returned profiles are the triangle points of the nodes,
+    // downward paths of the quad-tree, storing types of the layer datum. 
+    void request(list<const vec3*> & tris,
+		 list<list<unsigned char>> & paths,
+		 list<list<LayerType>> & types,
+		 const vec3 & center, const float radius,
+		 const float radius_cc);
 
-    // insert an instance of LayerData to the location.
+    // Insert an instance of LayerData to the location.
+    // Internally, the function calls layerData::split for all 20 root nodes.
+    // layerData::split is implemented in each sub class, but it is expected
+    // that the function calls Node::addLayerData.
+    // addLayerData distributes the layerdata to child nodes of the node
+    // by calling distributeLayerData, and distributeLayerData calls
+    // split recursively.
+    // After calling distributeLayerData, addLayerData calls layerData::merge
+    // to merge new layerData into old layerData. Then layerData::reduce
+    // is called for the merged layerData to meet the size limit of the
+    // layerData.
     bool insert(const LayerData * layerData);
     
     // remove the layerData, upperlayer data is recursively reconstructed.
@@ -299,7 +539,8 @@ namespace AWSMap2 {
     void calc_ecef();
     vec3 vtx_ecef[3];   // ecef coordinate of the node's triangle (calculated automatically in construction phase) 
     vec3 vec_ecef[2];		// vtx_ecef[1] - vtx_ecef[0], vtx_ecef[2] - vtx_ecef[0]
-
+    vec3 vtx_center; 
+    
     map<LayerType, LayerData*> layerDataList;
     
     // create downLink nodes, and assert bdownLink flag. 
@@ -391,10 +632,37 @@ namespace AWSMap2 {
     // Finally, corresponding downlink indices to points are stored in inodes.
     const void collision_downlink(const vector<vec3> & pts, vector<char> & inodes);
 
+    const float getRadius()
+    {
+      double d = dot(vec_ecef[0], vec_ecef[1]);
+      vec3 vec2 = vec_ecef[1] - vec_ecef[0];
+      
+      double s0 = sqrt(dot(vec_ecef[0],vec_ecef[0]));      
+      double s1 = sqrt(dot(vec_ecef[1], vec_ecef[1]));      
+      double s2 = sqrt(dot(vec2, vec2));
+      
+      double c = d / (s0 * s1);
+      double s = sqrt(1 - c * c);
+
+      double r = 0.5 * s2/s;
+      return r;
+    }
+
+    const vec3 getCenter()
+    {
+       return vtx_center;
+    }
+    
     // getLayerData called from MapDataBase::request
     void getLayerData(list<list<LayerDataPtr>> & layerData, 
 		      const list<LayerType> & layerType, const vec3 & center,
 		      const float radius, const float resolution = 0);
+    
+    void getNodeProfile(list<const vec3*> & tris,
+			list<list<unsigned char>> & paths,
+			list<list<LayerType>> & types,
+			const vec3 & center, const float radius,
+			const float radius_cc);
     
     // addLayerData adds the layer data given in the argument.
     // the function is invoked from LayerData::split, and the split is called from MapDataBase::insert
@@ -402,10 +670,12 @@ namespace AWSMap2 {
     bool addLayerData(const LayerData & layerData);
     
     // deleteLayerData deletes the layer data given in the argument.
-    // The method delete the layer data in the node when the pointer is exactly the same as that given in the argument.
+    // The method delete the layer data in the node when the pointer is exatly the same as that given in the argument.
     // so the pointer given as the argument should be got via getLayerData
     bool deleteLayerData(const LayerData * layerData);
     bool deleteLayerData(const LayerData * layerData, const unsigned int id);
+
+
   };
   
   class LayerData
@@ -478,8 +748,8 @@ namespace AWSMap2 {
     }
     
     // major interfaces 
-    bool save();
-    bool load();
+    virtual bool save();
+    virtual bool load();
     void release();
     bool reduce(const size_t sz_lim);
     bool merge(const LayerData & layerData);
@@ -523,7 +793,7 @@ namespace AWSMap2 {
     // returns radius of the object's distribution in meter
     virtual float radius() const = 0;
     
-    // returns center of the object's distribution
+    // returns center of the object's distribution in ECEF coordinate system
     virtual vec3 center() const = 0;
 
     // dump the data inside as text 
@@ -532,6 +802,7 @@ namespace AWSMap2 {
   
   #include "aws_map_point.hpp"
   #include "aws_map_coast_line.hpp"
+  #include "aws_map_depth.hpp"
     
   class LayerDataPtr
   {

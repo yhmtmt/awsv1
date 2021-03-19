@@ -17,15 +17,37 @@
 
 struct s_aws_bmp{
   unsigned int width, height;
-  unsigned int channels, depth, rowbytes;  
-  unsigned char * data;
+  unsigned int channels, depth, rowbytes;
+  union{
+    unsigned char * data;
+    long long * datai64;    
+    int * datai32;
+    short * datai16;
+    unsigned short * datau16;
+    unsigned int * datau32;
+    unsigned long long * datau64;
+    float * dataf32;
+    double * dataf64;
+  };
   
   s_aws_bmp():data(nullptr), width(-1), height(-1), channels(0){};
-  s_aws_bmp(unsigned int width, unsigned int height, unsigned int channels, unsigned int depth):data(nullptr), width(width), height(height), channels(channels), depth(depth){
-    data = new unsigned char[width * height * channels * (depth / 8)];
+  s_aws_bmp(unsigned int width, unsigned int height,
+	    unsigned int channels, unsigned int depth)
+    :data(nullptr), width(width), height(height),
+     channels(channels), depth(depth)
+  {
+    data = new unsigned char[get_data_size()];
+  }
+
+  bool init(unsigned int width, unsigned int height,
+	    unsigned int channels, unsigned int depth);
+  ~s_aws_bmp(){ delete[] data; data = nullptr; };
+  
+  size_t get_data_size() const
+  {
+    return width * height * channels * (depth / 8);    
   }
   
-  ~s_aws_bmp(){ delete[] data; data = nullptr; };
   bool read_png(const char * fname);
   bool write_png(const char * fname);
 };

@@ -74,7 +74,7 @@ public:
   virtual size_t size() const;
   virtual float resolution() const;
   virtual float radius() const; // returns radius of the object's distribution in meter
-  virtual vec3 center() const; // returns center of the object's distribution
+  virtual vec3 center() const; // returns center of the object's distribution (in ecef)
   virtual void setCenter(const vec3 & _center)
   {
     pt_center = _center;
