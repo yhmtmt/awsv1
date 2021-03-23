@@ -795,7 +795,6 @@ namespace AWSMap2 {
     }
     
     list<bool> filled(layerType.size(), false);
-    list<LayerType> detailedLayerType; 
     {
       auto itrData = layerData.begin();
       auto itrType = layerType.begin();
@@ -810,10 +809,7 @@ namespace AWSMap2 {
 	  (*itrFilled) = true;
 	  continue;
 	}
-	detailedLayerType.push_back(*itrType);
       }
-      if (detailedLayerType.size() == 0)
-	return;
     }
     
     // retrieving more detailed data than this node
@@ -825,29 +821,26 @@ namespace AWSMap2 {
 	if (downLink[idown] == NULL) {
 	  downLink[idown] = load(this, idown);
 	}
-	downLink[idown]->getLayerData(detailedLayerData, detailedLayerType,
+	downLink[idown]->getLayerData(detailedLayerData, layerType,
 				      center, radius, resolution);
       }
     }
-    
+
     auto itrData = layerData.begin();
     auto itrType = layerType.begin();
     auto itrFilled = filled.begin();
     
-    auto itrDetailedType = detailedLayerType.begin();
+    
     auto itrDetailedDatum = detailedLayerData.begin();
     for (; itrFilled != filled.end(); itrFilled++, itrData++, itrType++) {
       if (*itrFilled) // data of the type is filled in this layer.
 	continue;
-      
-      assert(*itrType == *itrDetailedType);
-      
+            
       for (auto itrDetailedData = itrDetailedDatum->begin();
 	   itrDetailedData != itrDetailedDatum->end(); itrDetailedData++) {
 	itrData->push_back(LayerDataPtr(*itrDetailedData));
       }
       itrDetailedDatum++;
-      itrDetailedType++;
     }
   }
 
