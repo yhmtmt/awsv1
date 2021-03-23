@@ -308,6 +308,9 @@ void c_clock::set_time_delta(long long &delta)
 
 long long c_clock::get_time()
 {
+  if(m_state == PAUSE)
+    return m_offset;
+  
   if (m_bonline)
   {
     timespec ts;
@@ -401,7 +404,7 @@ bool c_clock::pause()
   if (m_state != RUN)
     return false;
 
+  m_offset = get_time();  
   m_state = PAUSE;
-  m_offset = get_time();
   return true;
 }

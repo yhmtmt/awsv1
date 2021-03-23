@@ -169,7 +169,7 @@ namespace AWSMap2 {
 
   }
 
-  void MapDataBase::request(list<const vec3*> & tris,
+  void MapDataBase::request(list<vector<vec3>> & tris,
 			     list<list<unsigned char>> & paths,
 			    list<list<LayerType>> & types,
 			     const vec3 & center, const float radius,
@@ -852,7 +852,7 @@ namespace AWSMap2 {
   }
 
 
-  void Node::getNodeProfile(list<const vec3*> & tris,
+  void Node::getNodeProfile(list<vector<vec3>> & tris,
 			    list<list<unsigned char>> & paths,
 			    list<list<LayerType>> & types,
 			    const vec3 & center, const float radius,
@@ -864,7 +864,11 @@ namespace AWSMap2 {
 
     if (getRadius() < radius_cc){
       // fill profile data.
-      tris.push_back(vtx_ecef);
+      vector<vec3> tri(3);
+      tri[0] = vtx_ecef[0];
+      tri[1] = vtx_ecef[1];
+      tri[2] = vtx_ecef[2];       
+      tris.push_back(tri);
       
       paths.push_back(list<unsigned char>());
       getPath(paths.back());

@@ -151,7 +151,7 @@ public:
   {
     if (ofile){
       if(current_timestamp > 0)
-	open_new_write_file(current_timestamp);
+	open_new_write_file(current_timestamp + 1);
       delete ofile;
     }
 
@@ -206,7 +206,7 @@ public:
   {
     if (ofile){
       if(current_timestamp > 0)
-	open_new_write_file(current_timestamp);
+	open_new_write_file(current_timestamp + 1);
       delete ofile;
     }
     ofile = nullptr;
@@ -271,7 +271,7 @@ public:
     if(ifile == nullptr)
       return false;
     
-    if (current_timestamp < t)
+    if (current_timestamp <= t)
     {
       ifile->read((char *)&buf_size, sizeof(buf_size));
       ifile->read((char *)buf, buf_size);

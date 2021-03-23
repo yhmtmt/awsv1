@@ -449,7 +449,7 @@ namespace AWSMap2 {
     // this function create downlink if the radius_cc does not satisfied.
     // returned profiles are the triangle points of the nodes,
     // downward paths of the quad-tree, storing types of the layer datum. 
-    void request(list<const vec3*> & tris,
+    void request(list<vector<vec3>> & tris,
 		 list<list<unsigned char>> & paths,
 		 list<list<LayerType>> & types,
 		 const vec3 & center, const float radius,
@@ -658,7 +658,7 @@ namespace AWSMap2 {
 		      const list<LayerType> & layerType, const vec3 & center,
 		      const float radius, const float resolution = 0);
     
-    void getNodeProfile(list<const vec3*> & tris,
+    void getNodeProfile(list<vector<vec3>> & tris,
 			list<list<unsigned char>> & paths,
 			list<list<LayerType>> & types,
 			const vec3 & center, const float radius,

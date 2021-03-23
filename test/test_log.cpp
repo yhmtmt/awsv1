@@ -85,7 +85,10 @@ TEST_F(LogTest, WriteRead)
   olog.init(path, prefix, false, size_max);
   for (int i = 0; i < data_list.size(); i++){
     bool r = olog.write(data_list[i].t, data_list[i].data,  data_list[i].sz);
-    ASSERT_TRUE(r);
+    if(data_list[i].sz)
+      ASSERT_TRUE(r);
+    else
+      ASSERT_FALSE(r);
   }
   olog.destroy();
   
@@ -97,11 +100,14 @@ TEST_F(LogTest, WriteRead)
     unsigned int szread;
 
     if(t < time_start){
-      ASSERT_FALSE(ilog.read(tread, (unsigned char*)buf, szread));
+      ilog.read(tread, (unsigned char*)buf, szread);
+      ASSERT_EQ(szread, 0);
       t += tstep;
       continue;
     }else{
-      ASSERT_TRUE(ilog.read(tread, (unsigned char*)buf, szread));            
+      bool r = ilog.read(tread, (unsigned char*)buf, szread);
+      if(data_list.back().t >= t)
+	ASSERT_TRUE(r);
     }
 
     

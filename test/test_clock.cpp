@@ -17,7 +17,7 @@ protected:
 
 
 bool avg_jit(double t){return t < 1000;};    // 100usec deviation allowed
-bool tper_err(long long t){return t < 1000;};
+bool tper_err(long long t){return t < 1500;}; // 150usec deviation allowed
 bool ttl_err(long long t){return t < 10000;};// 1msec deviation allowed
 
 TEST_F(ClockTest, OnlineTest){
