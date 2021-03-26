@@ -286,6 +286,8 @@ namespace AWSMap2{
     cout << nred << "/" << sortlist.size() << "):";
 #endif
     while (nredd < nred && nredd < sortlist.size()){
+      if(nredd % 100 == 0)
+	cout << "nredd = " << nredd << endl;
 #ifdef _AWS_MAP_DEBUG
       if ((nredd * 10 / nred) > prog) {
 	prog ++;
@@ -662,14 +664,14 @@ namespace AWSMap2{
 	  char * p = buf;
 	  for (; *p != '<' && *p != '\0'; p++);
 	  
-	  if (strcmp(p, "<gml:posList>") == 0) {
+	  if (strncmp(p, "<gml:posList>", 13) == 0) {
 	    bline = true;
 	  }
 	}
 	else {
 	  char * p = buf;
 	  for (; *p != '<' && *p != '\0'; p++);
-	  if (strcmp(buf, "</gml:posList>") == 0) {
+	  if (strncmp(p, "</gml:posList>", 14) == 0) {
 	    add(line);
 	    line.clear();
 	    bline = false;

@@ -56,6 +56,7 @@ protected:
     
     work_path = PATH_TEST_INPUT_DATA;
     work_path += "/work";
+    cout << "create directory on " << work_path << endl;
     fs::create_directory(work_path.c_str());
     fs::permissions(work_path, fs::perms::owner_all);
     
@@ -74,13 +75,14 @@ protected:
 	break;
       }
 
+      cout << "inserting " << data_path << endl;
       mdb.insert(&cl);
     }    
   }
 
   virtual void TearDown(){
-    cout << "removing " << work_path << endl;
-    fs::remove_all(work_path.c_str());
+    //    cout << "removing " << work_path << endl;
+    //    fs::remove_all(work_path.c_str());
   }
   
 };
