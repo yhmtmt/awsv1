@@ -515,7 +515,7 @@ const long long c_aws1_state_sampler::get_cycle_time()
 void c_aws1_state_sampler::sample_1hz_data(c_aws1_state & st)
 {
   while(1){
-    long long tnext = t1hz + dt;
+    long long tnext = st.get_1hz_data_samplable_time(t1hz + dt);
     if(!st.is_1hz_data_samplable(tnext))
       return;
 
@@ -547,7 +547,7 @@ void c_aws1_state_sampler::sample_1hz_data(c_aws1_state & st)
 void c_aws1_state_sampler::sample_10hz_data(c_aws1_state & st)
 {
   while(1){
-    long long tnext = t10hz + dt;
+    long long tnext = st.get_10hz_data_samplable_time(t10hz + dt);
     if(!st.is_10hz_data_samplable(tnext))
       return;
     
